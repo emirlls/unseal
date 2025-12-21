@@ -25,6 +25,7 @@ using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
 using Volo.Abp.MultiTenancy;
+using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.Swashbuckle;
 using Volo.Abp.VirtualFileSystem;
 
@@ -38,12 +39,33 @@ namespace Unseal;
     typeof(AbpAspNetCoreAuthenticationJwtBearerModule),
     typeof(AbpAutofacModule),
     typeof(AbpCachingStackExchangeRedisModule),
+    typeof(AbpOpenIddictEntityFrameworkCoreModule),
     typeof(AbpAspNetCoreSerilogModule),
     typeof(AbpSwashbuckleModule)
     )]
 public class UnsealHttpApiHostModule : AbpModule
 {
+    public override void PreConfigureServices(ServiceConfigurationContext context)
+    {
+        PreConfigure<OpenIddictBuilder>(builder =>
+        {
+            builder.AddValidation(options =>
+            {
+                options.UseLocalServer();
+                options.UseAspNetCore();
+            });
+        });
 
+        if (context.Services.GetHostingEnvironment().IsDevelopment())
+        {
+            PreConfigure<OpenIddictServerBuilder>(builder =>
+            {
+                builder.SetAccessTokenLifetime(TimeSpan.FromDays(1));
+                builder.AddDevelopmentEncryptionCertificate();
+                builder.AddDevelopmentSigningCertificate();
+            });
+        }
+    }
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var hostingEnvironment = context.Services.GetHostingEnvironment();

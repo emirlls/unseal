@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
+using Volo.Abp.Data;
 
 namespace Unseal;
 
@@ -35,6 +36,12 @@ public class Program
             await builder.AddApplicationAsync<UnsealHttpApiHostModule>();
             var app = builder.Build();
             await app.InitializeApplicationAsync();
+            using (var scope = app.Services.CreateScope())
+            {
+                await scope.ServiceProvider
+                    .GetRequiredService<IDataSeeder>()
+                    .SeedAsync();
+            }
             await app.RunAsync();
             return 0;
         }
