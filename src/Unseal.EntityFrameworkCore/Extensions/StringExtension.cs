@@ -8,21 +8,33 @@ public static class StringExtension
 {
     public static void ToSnakeCase(this ModelBuilder builder)
     {
-        var entityTypes = builder.Model.GetEntityTypes();
-        foreach (var entityType in entityTypes)
+        foreach (var entity in builder.Model.GetEntityTypes())
         {
-            if (entityType.IsOwned())
+            var tableName = entity.GetTableName();
+            if (!string.IsNullOrEmpty(tableName))
             {
-                continue;
+                entity.SetTableName(tableName.ConvertToSnakeCase());
             }
-            entityType.SetTableName(entityType.GetTableName()?.ConvertToSnakeCase());
-            entityType.SetSchema(entityType.GetSchema()?.ConvertToSnakeCase());
-            var entityProperties = entityType.GetProperties().ToList();
-            foreach (var propertyName in entityProperties.Select(c => c.Name))
+
+            var schema = entity.GetSchema();
+            if (!string.IsNullOrEmpty(schema))
             {
-                builder.Entity(entityType.Name,
-                    entityTypeBuilder =>
-                        entityTypeBuilder.Property(propertyName).HasColumnName(propertyName.ConvertToSnakeCase()));
+                entity.SetSchema(schema.ConvertToSnakeCase());
+            }
+
+            foreach (var property in entity.GetProperties())
+            {
+                var columnName = property.GetColumnBaseName(); 
+                property.SetColumnName(columnName.ConvertToSnakeCase());
+            }
+
+            foreach (var key in entity.GetKeys())
+            {
+                key.SetName(key.GetName().ConvertToSnakeCase());
+            }
+            foreach (var foreignKey in entity.GetForeignKeys())
+            {
+                foreignKey.SetConstraintName(foreignKey.GetConstraintName().ConvertToSnakeCase());
             }
         }
     }

@@ -1,20 +1,21 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
 namespace Unseal.EntityFrameworkCore;
 
-public class UnsealHttpApiHostMigrationsDbContextFactory : IDesignTimeDbContextFactory<UnsealHttpApiHostMigrationsDbContext>
+public class UnsealHttpApiHostMigrationsDbContextFactory : IDesignTimeDbContextFactory<UnsealDbContext>
 {
-    public UnsealHttpApiHostMigrationsDbContext CreateDbContext(string[] args)
+    public UnsealDbContext CreateDbContext(string[] args)
     {
         var configuration = BuildConfiguration();
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        var builder = new DbContextOptionsBuilder<UnsealDbContext>()
+            .UseNpgsql(configuration.GetConnectionString("Default"));
 
-        var builder = new DbContextOptionsBuilder<UnsealHttpApiHostMigrationsDbContext>()
-            .UseNpgsql(configuration.GetConnectionString("Unseal"));
-
-        return new UnsealHttpApiHostMigrationsDbContext(builder.Options);
+        return new UnsealDbContext(builder.Options);
     }
 
     private static IConfigurationRoot BuildConfiguration()

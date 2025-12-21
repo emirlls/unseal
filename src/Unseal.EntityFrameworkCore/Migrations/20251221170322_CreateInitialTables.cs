@@ -45,17 +45,17 @@ namespace Unseal.Migrations
                     logo_uri = table.Column<string>(type: "text", nullable: true),
                     extra_properties = table.Column<string>(type: "text", nullable: false),
                     concurrency_stamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
-                    creation_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    creation_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     creator_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    last_modification_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    last_modification_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     last_modifier_id = table.Column<Guid>(type: "uuid", nullable: true),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     deleter_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    deletion_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    deletion_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_applications", x => x.id);
+                    table.PrimaryKey("p_k_applications", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -71,13 +71,67 @@ namespace Unseal.Migrations
                     regex_description = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
                     description = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     value_type = table.Column<int>(type: "integer", nullable: false),
-                    creation_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    creation_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     extra_properties = table.Column<string>(type: "text", nullable: false),
                     concurrency_stamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_claim_types", x => x.id);
+                    table.PrimaryKey("p_k_claim_types", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "feature_groups",
+                schema: "auth_management",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    display_name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    extra_properties = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("p_k_feature_groups", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "feature_values",
+                schema: "auth_management",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    value = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    provider_name = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                    provider_key = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("p_k_feature_values", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "features",
+                schema: "auth_management",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    group_name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    parent_name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
+                    display_name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    description = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    default_value = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    is_visible_to_clients = table.Column<bool>(type: "boolean", nullable: false),
+                    is_available_to_host = table.Column<bool>(type: "boolean", nullable: false),
+                    allowed_providers = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    value_type = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true),
+                    extra_properties = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("p_k_features", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -93,7 +147,7 @@ namespace Unseal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_link_users", x => x.id);
+                    table.PrimaryKey("p_k_link_users", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -109,19 +163,19 @@ namespace Unseal.Migrations
                     entity_version = table.Column<int>(type: "integer", nullable: false),
                     extra_properties = table.Column<string>(type: "text", nullable: false),
                     concurrency_stamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
-                    creation_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    creation_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     creator_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    last_modification_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    last_modification_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     last_modifier_id = table.Column<Guid>(type: "uuid", nullable: true),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     deleter_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    deletion_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    deletion_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_organization_units", x => x.id);
+                    table.PrimaryKey("p_k_organization_units", x => x.id);
                     table.ForeignKey(
-                        name: "FK_organization_units_organization_units_parent_id",
+                        name: "f_k_organization_units_organization_units_parent_id",
                         column: x => x.parent_id,
                         principalSchema: "auth_management",
                         principalTable: "organization_units",
@@ -141,7 +195,7 @@ namespace Unseal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_permission_grants", x => x.id);
+                    table.PrimaryKey("p_k_permission_grants", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -156,7 +210,7 @@ namespace Unseal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_permission_groups", x => x.id);
+                    table.PrimaryKey("p_k_permission_groups", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -177,7 +231,7 @@ namespace Unseal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_permissions", x => x.id);
+                    table.PrimaryKey("p_k_permissions", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -193,13 +247,13 @@ namespace Unseal.Migrations
                     is_static = table.Column<bool>(type: "boolean", nullable: false),
                     is_public = table.Column<bool>(type: "boolean", nullable: false),
                     entity_version = table.Column<int>(type: "integer", nullable: false),
-                    creation_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    creation_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     extra_properties = table.Column<string>(type: "text", nullable: false),
                     concurrency_stamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_roles", x => x.id);
+                    table.PrimaryKey("p_k_roles", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -217,17 +271,17 @@ namespace Unseal.Migrations
                     resources = table.Column<string>(type: "text", nullable: true),
                     extra_properties = table.Column<string>(type: "text", nullable: false),
                     concurrency_stamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
-                    creation_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    creation_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     creator_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    last_modification_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    last_modification_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     last_modifier_id = table.Column<Guid>(type: "uuid", nullable: true),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     deleter_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    deletion_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    deletion_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_scopes", x => x.id);
+                    table.PrimaryKey("p_k_scopes", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -247,13 +301,13 @@ namespace Unseal.Migrations
                     correlation_id = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
                     client_ip_address = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
                     browser_info = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true),
-                    creation_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    creation_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     extra_properties = table.Column<string>(type: "text", nullable: false),
                     concurrency_stamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_security_logs", x => x.id);
+                    table.PrimaryKey("p_k_security_logs", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -269,13 +323,13 @@ namespace Unseal.Migrations
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     client_id = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
                     ip_addresses = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true),
-                    signed_in = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    last_accessed = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    signed_in = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    last_accessed = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     extra_properties = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_sessions", x => x.id);
+                    table.PrimaryKey("p_k_sessions", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -296,7 +350,7 @@ namespace Unseal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_setting_definitions", x => x.id);
+                    table.PrimaryKey("p_k_setting_definitions", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -312,7 +366,7 @@ namespace Unseal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_settings", x => x.id);
+                    table.PrimaryKey("p_k_settings", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -326,17 +380,17 @@ namespace Unseal.Migrations
                     entity_version = table.Column<int>(type: "integer", nullable: false),
                     extra_properties = table.Column<string>(type: "text", nullable: false),
                     concurrency_stamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
-                    creation_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    creation_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     creator_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    last_modification_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    last_modification_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     last_modifier_id = table.Column<Guid>(type: "uuid", nullable: true),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     deleter_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    deletion_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    deletion_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_tenants", x => x.id);
+                    table.PrimaryKey("p_k_tenants", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -348,12 +402,12 @@ namespace Unseal.Migrations
                     tenant_id = table.Column<Guid>(type: "uuid", nullable: true),
                     source_user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     target_user_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    start_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    end_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    start_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    end_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_user_delegations", x => x.id);
+                    table.PrimaryKey("p_k_user_delegations", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -385,17 +439,17 @@ namespace Unseal.Migrations
                     last_password_change_time = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     extra_properties = table.Column<string>(type: "text", nullable: false),
                     concurrency_stamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
-                    creation_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    creation_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     creator_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    last_modification_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    last_modification_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     last_modifier_id = table.Column<Guid>(type: "uuid", nullable: true),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     deleter_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    deletion_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    deletion_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_users", x => x.id);
+                    table.PrimaryKey("p_k_users", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -405,7 +459,7 @@ namespace Unseal.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     application_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    creation_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    creation_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     properties = table.Column<string>(type: "text", nullable: true),
                     scopes = table.Column<string>(type: "text", nullable: true),
                     status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
@@ -416,9 +470,9 @@ namespace Unseal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_authorizations", x => x.id);
+                    table.PrimaryKey("p_k_authorizations", x => x.id);
                     table.ForeignKey(
-                        name: "FK_authorizations_applications_application_id",
+                        name: "f_k_authorizations_applications_application_id",
                         column: x => x.application_id,
                         principalSchema: "open_iddict",
                         principalTable: "applications",
@@ -433,21 +487,21 @@ namespace Unseal.Migrations
                     role_id = table.Column<Guid>(type: "uuid", nullable: false),
                     organization_unit_id = table.Column<Guid>(type: "uuid", nullable: false),
                     tenant_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    creation_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    creation_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     creator_id = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_organization_unit_roles", x => new { x.organization_unit_id, x.role_id });
+                    table.PrimaryKey("p_k_organization_unit_roles", x => new { x.organization_unit_id, x.role_id });
                     table.ForeignKey(
-                        name: "FK_organization_unit_roles_organization_units_organization_uni~",
+                        name: "f_k_organization_unit_roles_organization_units_organization_uni~",
                         column: x => x.organization_unit_id,
                         principalSchema: "auth_management",
                         principalTable: "organization_units",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_organization_unit_roles_roles_role_id",
+                        name: "f_k_organization_unit_roles_roles_role_id",
                         column: x => x.role_id,
                         principalSchema: "auth_management",
                         principalTable: "roles",
@@ -468,9 +522,9 @@ namespace Unseal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_role_claims", x => x.id);
+                    table.PrimaryKey("p_k_role_claims", x => x.id);
                     table.ForeignKey(
-                        name: "FK_role_claims_roles_role_id",
+                        name: "f_k_role_claims_roles_role_id",
                         column: x => x.role_id,
                         principalSchema: "auth_management",
                         principalTable: "roles",
@@ -489,9 +543,9 @@ namespace Unseal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_tenant_connection_strings", x => new { x.tenant_id, x.name });
+                    table.PrimaryKey("p_k_tenant_connection_strings", x => new { x.tenant_id, x.name });
                     table.ForeignKey(
-                        name: "FK_tenant_connection_strings_tenants_tenant_id",
+                        name: "f_k_tenant_connection_strings_tenants_tenant_id",
                         column: x => x.tenant_id,
                         principalSchema: "auth_management",
                         principalTable: "tenants",
@@ -512,9 +566,9 @@ namespace Unseal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_user_claims", x => x.id);
+                    table.PrimaryKey("p_k_user_claims", x => x.id);
                     table.ForeignKey(
-                        name: "FK_user_claims_users_user_id",
+                        name: "f_k_user_claims_users_user_id",
                         column: x => x.user_id,
                         principalSchema: "auth_management",
                         principalTable: "users",
@@ -535,9 +589,9 @@ namespace Unseal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_user_logins", x => new { x.user_id, x.login_provider });
+                    table.PrimaryKey("p_k_user_logins", x => new { x.user_id, x.login_provider });
                     table.ForeignKey(
-                        name: "FK_user_logins_users_user_id",
+                        name: "f_k_user_logins_users_user_id",
                         column: x => x.user_id,
                         principalSchema: "auth_management",
                         principalTable: "users",
@@ -553,21 +607,21 @@ namespace Unseal.Migrations
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     organization_unit_id = table.Column<Guid>(type: "uuid", nullable: false),
                     tenant_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    creation_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    creation_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     creator_id = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_user_organization_units", x => new { x.organization_unit_id, x.user_id });
+                    table.PrimaryKey("p_k_user_organization_units", x => new { x.organization_unit_id, x.user_id });
                     table.ForeignKey(
-                        name: "FK_user_organization_units_organization_units_organization_uni~",
+                        name: "f_k_user_organization_units_organization_units_organization_unit~",
                         column: x => x.organization_unit_id,
                         principalSchema: "auth_management",
                         principalTable: "organization_units",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_user_organization_units_users_user_id",
+                        name: "f_k_user_organization_units_users_user_id",
                         column: x => x.user_id,
                         principalSchema: "auth_management",
                         principalTable: "users",
@@ -586,16 +640,16 @@ namespace Unseal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_user_roles", x => new { x.user_id, x.role_id });
+                    table.PrimaryKey("p_k_user_roles", x => new { x.user_id, x.role_id });
                     table.ForeignKey(
-                        name: "FK_user_roles_roles_role_id",
+                        name: "f_k_user_roles_roles_role_id",
                         column: x => x.role_id,
                         principalSchema: "auth_management",
                         principalTable: "roles",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_user_roles_users_user_id",
+                        name: "f_k_user_roles_users_user_id",
                         column: x => x.user_id,
                         principalSchema: "auth_management",
                         principalTable: "users",
@@ -616,9 +670,9 @@ namespace Unseal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_user_tokens", x => new { x.user_id, x.login_provider, x.name });
+                    table.PrimaryKey("p_k_user_tokens", x => new { x.user_id, x.login_provider, x.name });
                     table.ForeignKey(
-                        name: "FK_user_tokens_users_user_id",
+                        name: "f_k_user_tokens_users_user_id",
                         column: x => x.user_id,
                         principalSchema: "auth_management",
                         principalTable: "users",
@@ -634,11 +688,11 @@ namespace Unseal.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     application_id = table.Column<Guid>(type: "uuid", nullable: true),
                     authorization_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    creation_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    expiration_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    creation_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    expiration_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     payload = table.Column<string>(type: "text", nullable: true),
                     properties = table.Column<string>(type: "text", nullable: true),
-                    redemption_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    redemption_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     reference_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     subject = table.Column<string>(type: "character varying(400)", maxLength: 400, nullable: true),
@@ -648,15 +702,15 @@ namespace Unseal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_tokens", x => x.id);
+                    table.PrimaryKey("p_k_tokens", x => x.id);
                     table.ForeignKey(
-                        name: "FK_tokens_applications_application_id",
+                        name: "f_k_tokens_applications_application_id",
                         column: x => x.application_id,
                         principalSchema: "open_iddict",
                         principalTable: "applications",
                         principalColumn: "id");
                     table.ForeignKey(
-                        name: "FK_tokens_authorizations_authorization_id",
+                        name: "f_k_tokens_authorizations_authorization_id",
                         column: x => x.authorization_id,
                         principalSchema: "open_iddict",
                         principalTable: "authorizations",
@@ -674,6 +728,33 @@ namespace Unseal.Migrations
                 schema: "open_iddict",
                 table: "authorizations",
                 columns: new[] { "application_id", "status", "subject", "type" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_feature_groups_name",
+                schema: "auth_management",
+                table: "feature_groups",
+                column: "name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_feature_values_name_provider_name_provider_key",
+                schema: "auth_management",
+                table: "feature_values",
+                columns: new[] { "name", "provider_name", "provider_key" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_features_group_name",
+                schema: "auth_management",
+                table: "features",
+                column: "group_name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_features_name",
+                schema: "auth_management",
+                table: "features",
+                column: "name",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_link_users_source_user_id_source_tenant_id_target_user_id_t~",
@@ -885,6 +966,18 @@ namespace Unseal.Migrations
         {
             migrationBuilder.DropTable(
                 name: "claim_types",
+                schema: "auth_management");
+
+            migrationBuilder.DropTable(
+                name: "feature_groups",
+                schema: "auth_management");
+
+            migrationBuilder.DropTable(
+                name: "feature_values",
+                schema: "auth_management");
+
+            migrationBuilder.DropTable(
+                name: "features",
                 schema: "auth_management");
 
             migrationBuilder.DropTable(

@@ -1,5 +1,4 @@
 using Unseal.Samples;
-using Xunit;
 
 namespace Unseal.EntityFrameworkCore.Domains;
 

@@ -1,22 +1,53 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.EntityFrameworkCore.PostgreSql;
+using Volo.Abp.FeatureManagement.EntityFrameworkCore;
+using Volo.Abp.Identity.EntityFrameworkCore;
 using Volo.Abp.Modularity;
+using Volo.Abp.OpenIddict.EntityFrameworkCore;
+using Volo.Abp.PermissionManagement.EntityFrameworkCore;
+using Volo.Abp.SettingManagement.EntityFrameworkCore;
+using Volo.Abp.TenantManagement.EntityFrameworkCore;
 
 namespace Unseal.EntityFrameworkCore;
 
 [DependsOn(
     typeof(UnsealDomainModule),
-    typeof(AbpEntityFrameworkCoreModule)
+    typeof(AbpEntityFrameworkCoreModule),
+    typeof(AbpEntityFrameworkCorePostgreSqlModule),
+    typeof(AbpEntityFrameworkCorePostgreSqlModule),
+    typeof(AbpPermissionManagementEntityFrameworkCoreModule),
+    typeof(AbpSettingManagementEntityFrameworkCoreModule),
+    typeof(AbpTenantManagementEntityFrameworkCoreModule),
+    typeof(AbpIdentityEntityFrameworkCoreModule),
+    typeof(AbpOpenIddictEntityFrameworkCoreModule)
 )]
 public class UnsealEntityFrameworkCoreModule : AbpModule
 {
+    public override void PreConfigureServices(ServiceConfigurationContext context)
+    {
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+    }
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         context.Services.AddAbpDbContext<UnsealDbContext>(options =>
         {
-                /* Add custom repositories here. Example:
-                 * options.AddRepository<Question, EfCoreQuestionRepository>();
-                 */
+            options.AddDefaultRepositories(includeAllEntities: true);
         });
+        Configure<AbpDbContextOptions>(options =>
+        {
+            options.Configure(opts =>
+            {
+                opts.UseNpgsql();
+            });
+            
+        });
+        context.Services.Replace(ServiceDescriptor.Transient<ISettingManagementDbContext, UnsealDbContext>());
+        context.Services.Replace(ServiceDescriptor.Transient<IPermissionManagementDbContext, UnsealDbContext>());
+        context.Services.Replace(ServiceDescriptor.Transient<IIdentityDbContext, UnsealDbContext>());
+        context.Services.Replace(ServiceDescriptor.Transient<ITenantManagementDbContext, UnsealDbContext>());
+        context.Services.Replace(ServiceDescriptor.Transient<IFeatureManagementDbContext, UnsealDbContext>());
     }
 }
