@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Unseal.Repositories.Base;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.PostgreSql;
 using Volo.Abp.FeatureManagement.EntityFrameworkCore;
@@ -49,5 +50,7 @@ public class UnsealEntityFrameworkCoreModule : AbpModule
         context.Services.Replace(ServiceDescriptor.Transient<IIdentityDbContext, UnsealDbContext>());
         context.Services.Replace(ServiceDescriptor.Transient<ITenantManagementDbContext, UnsealDbContext>());
         context.Services.Replace(ServiceDescriptor.Transient<IFeatureManagementDbContext, UnsealDbContext>());
+        
+        context.Services.AddTransient(typeof(IBaseRepository<>), typeof(EfBaseRepository<>));
     }
 }
