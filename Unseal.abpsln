@@ -1,0 +1,7 @@
+{
+  "modules": {
+    "Unseal": {
+      "path": "Unseal.abpmdl"
+    }
+  }
+}

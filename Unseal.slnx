@@ -1,0 +1,30 @@
+<Solution>
+  <Folder Name="/host/">
+    
+    
+    
+    <Project Path="host/Unseal.Host.Shared/Unseal.Host.Shared.csproj" />
+    <Project Path="host/Unseal.HttpApi.Host/Unseal.HttpApi.Host.csproj" />
+    
+    
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Unseal.Application.Contracts/Unseal.Application.Contracts.csproj" />
+    <Project Path="src/Unseal.Application/Unseal.Application.csproj" />
+    
+    
+    <Project Path="src/Unseal.Domain.Shared/Unseal.Domain.Shared.csproj" />
+    <Project Path="src/Unseal.Domain/Unseal.Domain.csproj" />
+    <Project Path="src/Unseal.EntityFrameworkCore/Unseal.EntityFrameworkCore.csproj" />
+    <Project Path="src/Unseal.HttpApi.Client/Unseal.HttpApi.Client.csproj" />
+    <Project Path="src/Unseal.HttpApi/Unseal.HttpApi.csproj" />
+    
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Unseal.Application.Tests/Unseal.Application.Tests.csproj" />
+    <Project Path="test/Unseal.Domain.Tests/Unseal.Domain.Tests.csproj" />
+    <Project Path="test/Unseal.EntityFrameworkCore.Tests/Unseal.EntityFrameworkCore.Tests.csproj" />
+    <Project Path="test/Unseal.HttpApi.Client.ConsoleTestApp/Unseal.HttpApi.Client.ConsoleTestApp.csproj" />
+    <Project Path="test/Unseal.TestBase/Unseal.TestBase.csproj" />
+  </Folder>
+</Solution>
