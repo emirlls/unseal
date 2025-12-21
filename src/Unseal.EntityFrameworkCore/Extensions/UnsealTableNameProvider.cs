@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Unseal.Constants;
+using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity;
 using Volo.Abp.OpenIddict;
 using Volo.Abp.PermissionManagement;
@@ -41,6 +42,8 @@ public static class UnsealTableNameProvider
         //Open Iddict
         AbpOpenIddictDbProperties.DbTablePrefix = string.Empty;
         AbpOpenIddictDbProperties.DbSchema = DatabaseConstants.OpenIddictSchema;
-
+        //Feature
+        AbpFeatureManagementDbProperties.DbTablePrefix = string.Empty;
+        AbpFeatureManagementDbProperties.DbSchema = DatabaseConstants.IdentitySchema;
     }
 }

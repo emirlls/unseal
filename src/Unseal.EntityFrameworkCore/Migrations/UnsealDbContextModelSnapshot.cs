@@ -24,6 +24,146 @@ namespace Unseal.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Volo.Abp.FeatureManagement.FeatureDefinitionRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AllowedProviders")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("allowed_providers");
+
+                    b.Property<string>("DefaultValue")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("default_value");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("display_name");
+
+                    b.Property<string>("ExtraProperties")
+                        .HasColumnType("text")
+                        .HasColumnName("extra_properties");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("group_name");
+
+                    b.Property<bool>("IsAvailableToHost")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_available_to_host");
+
+                    b.Property<bool>("IsVisibleToClients")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_visible_to_clients");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("ParentName")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("parent_name");
+
+                    b.Property<string>("ValueType")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("value_type");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_features");
+
+                    b.HasIndex("GroupName");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("features", "auth_management");
+                });
+
+            modelBuilder.Entity("Volo.Abp.FeatureManagement.FeatureGroupDefinitionRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("display_name");
+
+                    b.Property<string>("ExtraProperties")
+                        .HasColumnType("text")
+                        .HasColumnName("extra_properties");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_feature_groups");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("feature_groups", "auth_management");
+                });
+
+            modelBuilder.Entity("Volo.Abp.FeatureManagement.FeatureValue", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("ProviderKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("provider_key");
+
+                    b.Property<string>("ProviderName")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("provider_name");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_feature_values");
+
+                    b.HasIndex("Name", "ProviderName", "ProviderKey")
+                        .IsUnique();
+
+                    b.ToTable("feature_values", "auth_management");
+                });
+
             modelBuilder.Entity("Volo.Abp.Identity.IdentityClaimType", b =>
                 {
                     b.Property<Guid>("Id")
@@ -38,7 +178,7 @@ namespace Unseal.Migrations
                         .HasColumnName("concurrency_stamp");
 
                     b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("creation_time");
 
                     b.Property<string>("Description")
@@ -79,7 +219,8 @@ namespace Unseal.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("value_type");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_claim_types");
 
                     b.ToTable("claim_types", "auth_management");
                 });
@@ -106,7 +247,8 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("target_user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_link_users");
 
                     b.HasIndex("SourceUserId", "SourceTenantId", "TargetUserId", "TargetTenantId")
                         .IsUnique();
@@ -128,7 +270,7 @@ namespace Unseal.Migrations
                         .HasColumnName("concurrency_stamp");
 
                     b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("creation_time");
 
                     b.Property<int>("EntityVersion")
@@ -168,7 +310,8 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_roles");
 
                     b.HasIndex("NormalizedName");
 
@@ -200,7 +343,8 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_role_claims");
 
                     b.HasIndex("RoleId");
 
@@ -251,7 +395,7 @@ namespace Unseal.Migrations
                         .HasColumnName("correlation_id");
 
                     b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("creation_time");
 
                     b.Property<string>("ExtraProperties")
@@ -282,7 +426,8 @@ namespace Unseal.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("user_name");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_security_logs");
 
                     b.HasIndex("TenantId", "Action");
 
@@ -327,7 +472,7 @@ namespace Unseal.Migrations
                         .HasColumnName("ip_addresses");
 
                     b.Property<DateTime?>("LastAccessed")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("last_accessed");
 
                     b.Property<string>("SessionId")
@@ -337,7 +482,7 @@ namespace Unseal.Migrations
                         .HasColumnName("session_id");
 
                     b.Property<DateTime>("SignedIn")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("signed_in");
 
                     b.Property<Guid?>("TenantId")
@@ -348,7 +493,8 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_sessions");
 
                     b.HasIndex("Device");
 
@@ -379,7 +525,7 @@ namespace Unseal.Migrations
                         .HasColumnName("concurrency_stamp");
 
                     b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("creation_time");
 
                     b.Property<Guid?>("CreatorId")
@@ -391,7 +537,7 @@ namespace Unseal.Migrations
                         .HasColumnName("deleter_id");
 
                     b.Property<DateTime?>("DeletionTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("deletion_time");
 
                     b.Property<string>("Email")
@@ -432,7 +578,7 @@ namespace Unseal.Migrations
                         .HasColumnName("is_external");
 
                     b.Property<DateTime?>("LastModificationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("last_modification_time");
 
                     b.Property<Guid?>("LastModifierId")
@@ -517,7 +663,8 @@ namespace Unseal.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("user_name");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_users");
 
                     b.HasIndex("Email");
 
@@ -555,7 +702,8 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_user_claims");
 
                     b.HasIndex("UserId");
 
@@ -569,7 +717,7 @@ namespace Unseal.Migrations
                         .HasColumnName("id");
 
                     b.Property<DateTime>("EndTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("end_time");
 
                     b.Property<Guid>("SourceUserId")
@@ -577,7 +725,7 @@ namespace Unseal.Migrations
                         .HasColumnName("source_user_id");
 
                     b.Property<DateTime>("StartTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("start_time");
 
                     b.Property<Guid>("TargetUserId")
@@ -588,7 +736,8 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_user_delegations");
 
                     b.ToTable("user_delegations", "auth_management");
                 });
@@ -619,7 +768,8 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
-                    b.HasKey("UserId", "LoginProvider");
+                    b.HasKey("UserId", "LoginProvider")
+                        .HasName("p_k_user_logins");
 
                     b.HasIndex("LoginProvider", "ProviderKey");
 
@@ -637,7 +787,7 @@ namespace Unseal.Migrations
                         .HasColumnName("user_id");
 
                     b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("creation_time");
 
                     b.Property<Guid?>("CreatorId")
@@ -648,7 +798,8 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
-                    b.HasKey("OrganizationUnitId", "UserId");
+                    b.HasKey("OrganizationUnitId", "UserId")
+                        .HasName("p_k_user_organization_units");
 
                     b.HasIndex("UserId", "OrganizationUnitId");
 
@@ -669,7 +820,8 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
-                    b.HasKey("UserId", "RoleId");
+                    b.HasKey("UserId", "RoleId")
+                        .HasName("p_k_user_roles");
 
                     b.HasIndex("RoleId", "UserId");
 
@@ -700,7 +852,8 @@ namespace Unseal.Migrations
                         .HasColumnType("text")
                         .HasColumnName("value");
 
-                    b.HasKey("UserId", "LoginProvider", "Name");
+                    b.HasKey("UserId", "LoginProvider", "Name")
+                        .HasName("p_k_user_tokens");
 
                     b.ToTable("user_tokens", "auth_management");
                 });
@@ -725,7 +878,7 @@ namespace Unseal.Migrations
                         .HasColumnName("concurrency_stamp");
 
                     b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("creation_time");
 
                     b.Property<Guid?>("CreatorId")
@@ -737,7 +890,7 @@ namespace Unseal.Migrations
                         .HasColumnName("deleter_id");
 
                     b.Property<DateTime?>("DeletionTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("deletion_time");
 
                     b.Property<string>("DisplayName")
@@ -762,7 +915,7 @@ namespace Unseal.Migrations
                         .HasColumnName("is_deleted");
 
                     b.Property<DateTime?>("LastModificationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("last_modification_time");
 
                     b.Property<Guid?>("LastModifierId")
@@ -777,7 +930,8 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_organization_units");
 
                     b.HasIndex("Code");
 
@@ -797,7 +951,7 @@ namespace Unseal.Migrations
                         .HasColumnName("role_id");
 
                     b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("creation_time");
 
                     b.Property<Guid?>("CreatorId")
@@ -808,7 +962,8 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
-                    b.HasKey("OrganizationUnitId", "RoleId");
+                    b.HasKey("OrganizationUnitId", "RoleId")
+                        .HasName("p_k_organization_unit_roles");
 
                     b.HasIndex("RoleId", "OrganizationUnitId");
 
@@ -857,7 +1012,7 @@ namespace Unseal.Migrations
                         .HasColumnName("consent_type");
 
                     b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("creation_time");
 
                     b.Property<Guid?>("CreatorId")
@@ -869,7 +1024,7 @@ namespace Unseal.Migrations
                         .HasColumnName("deleter_id");
 
                     b.Property<DateTime?>("DeletionTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("deletion_time");
 
                     b.Property<string>("DisplayName")
@@ -900,7 +1055,7 @@ namespace Unseal.Migrations
                         .HasColumnName("json_web_key_set");
 
                     b.Property<DateTime?>("LastModificationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("last_modification_time");
 
                     b.Property<Guid?>("LastModifierId")
@@ -935,7 +1090,8 @@ namespace Unseal.Migrations
                         .HasColumnType("text")
                         .HasColumnName("settings");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_applications");
 
                     b.HasIndex("ClientId");
 
@@ -960,7 +1116,7 @@ namespace Unseal.Migrations
                         .HasColumnName("concurrency_stamp");
 
                     b.Property<DateTime?>("CreationDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("creation_date");
 
                     b.Property<string>("ExtraProperties")
@@ -991,7 +1147,8 @@ namespace Unseal.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("type");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_authorizations");
 
                     b.HasIndex("ApplicationId", "Status", "Subject", "Type");
 
@@ -1012,7 +1169,7 @@ namespace Unseal.Migrations
                         .HasColumnName("concurrency_stamp");
 
                     b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("creation_time");
 
                     b.Property<Guid?>("CreatorId")
@@ -1024,7 +1181,7 @@ namespace Unseal.Migrations
                         .HasColumnName("deleter_id");
 
                     b.Property<DateTime?>("DeletionTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("deletion_time");
 
                     b.Property<string>("Description")
@@ -1055,7 +1212,7 @@ namespace Unseal.Migrations
                         .HasColumnName("is_deleted");
 
                     b.Property<DateTime?>("LastModificationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("last_modification_time");
 
                     b.Property<Guid?>("LastModifierId")
@@ -1075,7 +1232,8 @@ namespace Unseal.Migrations
                         .HasColumnType("text")
                         .HasColumnName("resources");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_scopes");
 
                     b.HasIndex("Name");
 
@@ -1104,11 +1262,11 @@ namespace Unseal.Migrations
                         .HasColumnName("concurrency_stamp");
 
                     b.Property<DateTime?>("CreationDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("creation_date");
 
                     b.Property<DateTime?>("ExpirationDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("expiration_date");
 
                     b.Property<string>("ExtraProperties")
@@ -1125,7 +1283,7 @@ namespace Unseal.Migrations
                         .HasColumnName("properties");
 
                     b.Property<DateTime?>("RedemptionDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("redemption_date");
 
                     b.Property<string>("ReferenceId")
@@ -1148,7 +1306,8 @@ namespace Unseal.Migrations
                         .HasColumnType("character varying(150)")
                         .HasColumnName("type");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_tokens");
 
                     b.HasIndex("AuthorizationId");
 
@@ -1210,7 +1369,8 @@ namespace Unseal.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("state_checkers");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_permissions");
 
                     b.HasIndex("GroupName");
 
@@ -1248,7 +1408,8 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_permission_grants");
 
                     b.HasIndex("TenantId", "Name", "ProviderName", "ProviderKey")
                         .IsUnique();
@@ -1278,7 +1439,8 @@ namespace Unseal.Migrations
                         .HasColumnType("character varying(128)")
                         .HasColumnName("name");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_permission_groups");
 
                     b.HasIndex("Name")
                         .IsUnique();
@@ -1289,7 +1451,6 @@ namespace Unseal.Migrations
             modelBuilder.Entity("Volo.Abp.SettingManagement.Setting", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1315,7 +1476,8 @@ namespace Unseal.Migrations
                         .HasColumnType("character varying(2048)")
                         .HasColumnName("value");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_settings");
 
                     b.HasIndex("Name", "ProviderName", "ProviderKey")
                         .IsUnique();
@@ -1326,7 +1488,6 @@ namespace Unseal.Migrations
             modelBuilder.Entity("Volo.Abp.SettingManagement.SettingDefinitionRecord", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1373,7 +1534,8 @@ namespace Unseal.Migrations
                         .HasColumnType("character varying(1024)")
                         .HasColumnName("providers");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_setting_definitions");
 
                     b.HasIndex("Name")
                         .IsUnique();
@@ -1395,7 +1557,7 @@ namespace Unseal.Migrations
                         .HasColumnName("concurrency_stamp");
 
                     b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("creation_time");
 
                     b.Property<Guid?>("CreatorId")
@@ -1407,7 +1569,7 @@ namespace Unseal.Migrations
                         .HasColumnName("deleter_id");
 
                     b.Property<DateTime?>("DeletionTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("deletion_time");
 
                     b.Property<int>("EntityVersion")
@@ -1426,7 +1588,7 @@ namespace Unseal.Migrations
                         .HasColumnName("is_deleted");
 
                     b.Property<DateTime?>("LastModificationTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("last_modification_time");
 
                     b.Property<Guid?>("LastModifierId")
@@ -1445,7 +1607,8 @@ namespace Unseal.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("normalized_name");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("p_k_tenants");
 
                     b.HasIndex("Name");
 
@@ -1471,7 +1634,8 @@ namespace Unseal.Migrations
                         .HasColumnType("character varying(1024)")
                         .HasColumnName("value");
 
-                    b.HasKey("TenantId", "Name");
+                    b.HasKey("TenantId", "Name")
+                        .HasName("p_k_tenant_connection_strings");
 
                     b.ToTable("tenant_connection_strings", "auth_management");
                 });
@@ -1482,7 +1646,8 @@ namespace Unseal.Migrations
                         .WithMany("Claims")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("f_k_role_claims_roles_role_id");
                 });
 
             modelBuilder.Entity("Volo.Abp.Identity.IdentityUserClaim", b =>
@@ -1491,7 +1656,8 @@ namespace Unseal.Migrations
                         .WithMany("Claims")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("f_k_user_claims_users_user_id");
                 });
 
             modelBuilder.Entity("Volo.Abp.Identity.IdentityUserLogin", b =>
@@ -1500,7 +1666,8 @@ namespace Unseal.Migrations
                         .WithMany("Logins")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("f_k_user_logins_users_user_id");
                 });
 
             modelBuilder.Entity("Volo.Abp.Identity.IdentityUserOrganizationUnit", b =>
@@ -1509,13 +1676,15 @@ namespace Unseal.Migrations
                         .WithMany()
                         .HasForeignKey("OrganizationUnitId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("f_k_user_organization_units_organization_units_organization_unit~");
 
                     b.HasOne("Volo.Abp.Identity.IdentityUser", null)
                         .WithMany("OrganizationUnits")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("f_k_user_organization_units_users_user_id");
                 });
 
             modelBuilder.Entity("Volo.Abp.Identity.IdentityUserRole", b =>
@@ -1524,13 +1693,15 @@ namespace Unseal.Migrations
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("f_k_user_roles_roles_role_id");
 
                     b.HasOne("Volo.Abp.Identity.IdentityUser", null)
                         .WithMany("Roles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("f_k_user_roles_users_user_id");
                 });
 
             modelBuilder.Entity("Volo.Abp.Identity.IdentityUserToken", b =>
@@ -1539,14 +1710,16 @@ namespace Unseal.Migrations
                         .WithMany("Tokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("f_k_user_tokens_users_user_id");
                 });
 
             modelBuilder.Entity("Volo.Abp.Identity.OrganizationUnit", b =>
                 {
                     b.HasOne("Volo.Abp.Identity.OrganizationUnit", null)
                         .WithMany()
-                        .HasForeignKey("ParentId");
+                        .HasForeignKey("ParentId")
+                        .HasConstraintName("f_k_organization_units_organization_units_parent_id");
                 });
 
             modelBuilder.Entity("Volo.Abp.Identity.OrganizationUnitRole", b =>
@@ -1555,31 +1728,36 @@ namespace Unseal.Migrations
                         .WithMany("Roles")
                         .HasForeignKey("OrganizationUnitId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("f_k_organization_unit_roles_organization_units_organization_uni~");
 
                     b.HasOne("Volo.Abp.Identity.IdentityRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("f_k_organization_unit_roles_roles_role_id");
                 });
 
             modelBuilder.Entity("Volo.Abp.OpenIddict.Authorizations.OpenIddictAuthorization", b =>
                 {
                     b.HasOne("Volo.Abp.OpenIddict.Applications.OpenIddictApplication", null)
                         .WithMany()
-                        .HasForeignKey("ApplicationId");
+                        .HasForeignKey("ApplicationId")
+                        .HasConstraintName("f_k_authorizations_applications_application_id");
                 });
 
             modelBuilder.Entity("Volo.Abp.OpenIddict.Tokens.OpenIddictToken", b =>
                 {
                     b.HasOne("Volo.Abp.OpenIddict.Applications.OpenIddictApplication", null)
                         .WithMany()
-                        .HasForeignKey("ApplicationId");
+                        .HasForeignKey("ApplicationId")
+                        .HasConstraintName("f_k_tokens_applications_application_id");
 
                     b.HasOne("Volo.Abp.OpenIddict.Authorizations.OpenIddictAuthorization", null)
                         .WithMany()
-                        .HasForeignKey("AuthorizationId");
+                        .HasForeignKey("AuthorizationId")
+                        .HasConstraintName("f_k_tokens_authorizations_authorization_id");
                 });
 
             modelBuilder.Entity("Volo.Abp.TenantManagement.TenantConnectionString", b =>
@@ -1588,7 +1766,8 @@ namespace Unseal.Migrations
                         .WithMany("ConnectionStrings")
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("f_k_tenant_connection_strings_tenants_tenant_id");
                 });
 
             modelBuilder.Entity("Volo.Abp.Identity.IdentityRole", b =>

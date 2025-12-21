@@ -6,5 +6,6 @@ public static class DatabaseConstants
     public const string IdentitySchema = "AuthManagement";
     public const string OpenIddictSchema = "OpenIddict";
     public const string SettingSchema = "SettingManagement";
+    public const string MigrationHistoryTable = "__EFMigrationsHistory";
 
 }
