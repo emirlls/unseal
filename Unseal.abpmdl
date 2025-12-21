@@ -1,0 +1,71 @@
+{
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {},
+      "host": {}
+    }
+  },
+  "packages": {
+    "Unseal.Domain.Shared": {
+      "path": "src/Unseal.Domain.Shared/Unseal.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "Unseal.Domain": {
+      "path": "src/Unseal.Domain/Unseal.Domain.abppkg",
+      "folder": "src"
+    },
+    "Unseal.Application.Contracts": {
+      "path": "src/Unseal.Application.Contracts/Unseal.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "Unseal.Application": {
+      "path": "src/Unseal.Application/Unseal.Application.abppkg",
+      "folder": "src"
+    },
+    "Unseal.EntityFrameworkCore": {
+      "path": "src/Unseal.EntityFrameworkCore/Unseal.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "Unseal.HttpApi": {
+      "path": "src/Unseal.HttpApi/Unseal.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "Unseal.HttpApi.Client": {
+      "path": "src/Unseal.HttpApi.Client/Unseal.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "Unseal.TestBase": {
+      "path": "test/Unseal.TestBase/Unseal.TestBase.abppkg",
+      "folder": "test"
+    },
+    "Unseal.EntityFrameworkCore.Tests": {
+      "path": "test/Unseal.EntityFrameworkCore.Tests/Unseal.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "Unseal.Domain.Tests": {
+      "path": "test/Unseal.Domain.Tests/Unseal.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "Unseal.Application.Tests": {
+      "path": "test/Unseal.Application.Tests/Unseal.Application.Tests.abppkg",
+      "folder": "test"
+    },
+    "Unseal.HttpApi.Host": {
+      "path": "host/Unseal.HttpApi.Host/Unseal.HttpApi.Host.abppkg",
+      "folder": "host"
+    },
+    "Unseal.HttpApi.Client.ConsoleTestApp": {
+      "path": "test/Unseal.HttpApi.Client.ConsoleTestApp/Unseal.HttpApi.Client.ConsoleTestApp.abppkg",
+      "folder": "test"
+    },
+    "Unseal.AuthServer": {
+      "path": "host/Unseal.AuthServer/Unseal.AuthServer.abppkg",
+      "folder": "host"
+    },
+    "Unseal.Host.Shared": {
+      "path": "host/Unseal.Host.Shared/Unseal.Host.Shared.abppkg",
+      "folder": "host"
+    }
+  }
+}
