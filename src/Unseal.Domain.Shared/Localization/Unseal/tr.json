@@ -1,0 +1,13 @@
+{
+  "culture": "tr",
+  "texts": {
+    "MyAccount":  "Hesabım",
+    "SamplePageMessage": "Unseal modulünden örnek bir sayfa",
+
+    "Unseal:ExceptionCodes:UnexpectedException:001": "Beklenmedik hata oluştu.",
+    "Unseal:ExceptionCodes:Success:001": "İşlem başarıyla tamamlandı.",
+
+    "Unseal:ExceptionCodes:IdentityUser:001": "Kullanıcı bulunamadı.",
+    "Unseal:ExceptionCodes:IdentityUser:002": "Kullanıcı zaten mevcut."
+  }
+}

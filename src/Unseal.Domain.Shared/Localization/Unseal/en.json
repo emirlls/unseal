@@ -1,0 +1,13 @@
+{
+  "culture": "en",
+  "texts": {
+    "MyAccount":  "My account",
+    "SamplePageMessage": "A sample page for the Unseal module",
+
+    "Unseal:ExceptionCodes:UnexpectedException:001": "Unexpected Error.",
+    "Unseal:ExceptionCodes:Success:001": "Success.",
+
+    "Unseal:ExceptionCodes:IdentityUser:001": "User not found.",
+    "Unseal:ExceptionCodes:IdentityUser:002": "User already exists."
+  }
+}
