@@ -1,8 +1,6 @@
 namespace Unseal.Dtos.Auth;
 
-public record LoginDto
-{
-    public string UserName;
-    public string Password;
-    
-}
+public record LoginDto(
+    string UserName,
+    string Password
+);

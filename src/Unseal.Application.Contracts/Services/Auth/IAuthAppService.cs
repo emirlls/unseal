@@ -11,4 +11,8 @@ public interface IAuthAppService : IApplicationService
         RegisterDto dto,
         CancellationToken cancellationToken = default
     );
+
+    Task<LoginResponseDto> LoginAsync(
+        LoginDto loginDto,
+        CancellationToken cancellationToken = default);
 }

@@ -35,4 +35,16 @@ public class AuthController : UnsealController
     {
         return await AuthAppService.RegisterAsync(registerDto, cancellationToken);
     }
+
+    /// <summary>
+    /// Use to login
+    /// </summary>
+    /// <param name="loginDto"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("login")]
+    public async Task<LoginResponseDto> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken = default)
+    {
+        return await AuthAppService.LoginAsync(loginDto, cancellationToken);
+    }
 }
