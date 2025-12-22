@@ -22,9 +22,12 @@ using Volo.Abp.Autofac;
 using Volo.Abp.Caching;
 using Volo.Abp.Caching.StackExchangeRedis;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.Identity.AspNetCore;
+using Volo.Abp.Identity.EntityFrameworkCore;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
 using Volo.Abp.MultiTenancy;
+using Volo.Abp.OpenIddict;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.Swashbuckle;
 using Volo.Abp.VirtualFileSystem;
@@ -40,6 +43,9 @@ namespace Unseal;
     typeof(AbpAutofacModule),
     typeof(AbpCachingStackExchangeRedisModule),
     typeof(AbpOpenIddictEntityFrameworkCoreModule),
+    typeof(AbpIdentityAspNetCoreModule),
+    typeof(AbpIdentityEntityFrameworkCoreModule),
+    typeof(AbpOpenIddictAspNetCoreModule),
     typeof(AbpAspNetCoreSerilogModule),
     typeof(AbpSwashbuckleModule)
     )]
@@ -56,15 +62,12 @@ public class UnsealHttpApiHostModule : AbpModule
             });
         });
 
-        if (context.Services.GetHostingEnvironment().IsDevelopment())
+        PreConfigure<OpenIddictServerBuilder>(builder =>
         {
-            PreConfigure<OpenIddictServerBuilder>(builder =>
-            {
-                builder.SetAccessTokenLifetime(TimeSpan.FromDays(1));
-                builder.AddDevelopmentEncryptionCertificate();
-                builder.AddDevelopmentSigningCertificate();
-            });
-        }
+            builder.SetAccessTokenLifetime(TimeSpan.FromDays(1));
+            builder.AddDevelopmentEncryptionCertificate();
+            builder.AddDevelopmentSigningCertificate();
+        });
     }
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
@@ -103,6 +106,13 @@ public class UnsealHttpApiHostModule : AbpModule
                 options.SwaggerDoc("v1", new OpenApiInfo {Title = "Unseal API", Version = "v1"});
                 options.DocInclusionPredicate((docName, description) => ConfigureSwaggerNotVisibleApis(description));
                 options.CustomSchemaIds(type => type.FullName);
+                var baseDirectory = AppContext.BaseDirectory;
+                var xmlFiles = Directory.GetFiles(baseDirectory, "*.xml");
+
+                foreach (var xmlFile in xmlFiles)
+                {
+                    options.IncludeXmlComments(xmlFile);
+                }
             });
 
         Configure<AbpLocalizationOptions>(options =>
@@ -110,7 +120,7 @@ public class UnsealHttpApiHostModule : AbpModule
             options.Languages.Add(new LanguageInfo("en", "en", "English"));
             options.Languages.Add(new LanguageInfo("tr", "tr", "Türkçe"));
         });
-
+        context.Services.AddAbpIdentity();
         context.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddAbpJwtBearer(options =>
             {
