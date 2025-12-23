@@ -1,4 +1,7 @@
-﻿using Volo.Abp.Modularity;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
+using Unseal.Extensions;
+using Volo.Abp.Modularity;
 using Volo.Abp.Localization;
 using Unseal.Localization;
 using Volo.Abp.Domain;
@@ -34,5 +37,8 @@ public class UnsealDomainSharedModule : AbpModule
         {
             options.MapCodeNamespace("Unseal", typeof(UnsealResource));
         });
+        
+        LocalizationExtensions.SetLocalizer(context.Services.BuildServiceProviderFromFactory()
+            .GetRequiredService<IStringLocalizer<UnsealResource>>());
     }
 }

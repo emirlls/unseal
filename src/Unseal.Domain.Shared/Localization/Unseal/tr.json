@@ -8,6 +8,23 @@
     "Unseal:ExceptionCodes:Success:001": "İşlem başarıyla tamamlandı.",
 
     "Unseal:ExceptionCodes:IdentityUser:001": "Kullanıcı bulunamadı.",
-    "Unseal:ExceptionCodes:IdentityUser:002": "Kullanıcı zaten mevcut."
+    "Unseal:ExceptionCodes:IdentityUser:002": "Kullanıcı zaten mevcut.",
+
+    "Unseal:ExceptionCodes:Capsule:001": "Kapsül bulunamadı.",
+    "Unseal:ExceptionCodes:Capsule:002": "Kapsül zaten mevcut.",
+
+    "Unseal:ExceptionCodes:CapsuleItem:001": "Kapsül içeriği bulunamadı.",
+    "Unseal:ExceptionCodes:CapsuleItem:002": "Kapsül içeriği zaten mevcut.",
+
+    "Unseal:ExceptionCodes:CapsuleType:001": "Kapsül tipi bulunamadı.",
+    "Unseal:ExceptionCodes:CapsuleType:002": "Kapsül tipi zaten mevcut.",
+    
+    //Enums
+    
+    "CapsuleTypes:00":"Gelecekteki Kendime",
+    "CapsuleTypes:01":"Kişiye Özel",
+    "CapsuleTypes:02":"Tüm Takipçilerime",
+    "CapsuleTypes:03":"Ortak",
+    "CapsuleTypes:04":"Herkese"
   }
 }

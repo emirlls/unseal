@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Unseal.Entities.Capsules;
+using Unseal.Entities.Lookups;
 using Unseal.Extensions;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
@@ -66,6 +68,10 @@ public class UnsealDbContext :
     public DbSet<FeatureGroupDefinitionRecord> FeatureGroups { get; }
     public DbSet<FeatureDefinitionRecord> Features { get; }
     public DbSet<FeatureValue> FeatureValues { get; }
+    
+    public DbSet<Capsule> Capsules { get; set; }
+    public DbSet<CapsuleItem> CapsuleItems { get; set; }
+    public DbSet<CapsuleType> CapsuleTypes { get; set; }
 
     public UnsealDbContext(DbContextOptions<UnsealDbContext> options)
         : base(options)
@@ -76,7 +82,7 @@ public class UnsealDbContext :
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        
+        builder.LookupSeeder();
         builder.SetAbpTablePrefix();
 
         builder.ConfigurePermissionManagement();
