@@ -1,0 +1,8 @@
+using Unseal.Entities.Lookups;
+using Unseal.Repositories.Base;
+
+namespace Unseal.Repositories.Lookups;
+
+public interface ICapsuleTypeRepository : IBaseRepository<CapsuleType>
+{
+}

@@ -1,4 +1,5 @@
-﻿using Volo.Abp.Settings;
+﻿using Unseal.Constants;
+using Volo.Abp.Settings;
 
 namespace Unseal.Settings;
 
@@ -9,5 +10,9 @@ public class UnsealSettingDefinitionProvider : SettingDefinitionProvider
         /* Define module settings here.
          * Use names from UnsealSettings class.
          */
+        var mailSettingsName = $"{SettingConstants.Prefix}{SettingConstants.MailSettingModel.Name}";
+        context.Add(
+            new SettingDefinition(mailSettingsName)
+        );
     }
 }

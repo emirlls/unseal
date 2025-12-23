@@ -8,6 +8,23 @@
     "Unseal:ExceptionCodes:Success:001": "Success.",
 
     "Unseal:ExceptionCodes:IdentityUser:001": "User not found.",
-    "Unseal:ExceptionCodes:IdentityUser:002": "User already exists."
+    "Unseal:ExceptionCodes:IdentityUser:002": "User already exists.",
+
+    "Unseal:ExceptionCodes:Capsule:001": "Capsule not found.",
+    "Unseal:ExceptionCodes:Capsule:002": "Capsule already exists.",
+
+    "Unseal:ExceptionCodes:CapsuleItem:001": "Capsule item not found.",
+    "Unseal:ExceptionCodes:CapsuleItem:002": "Capsule item already exists.",
+
+    "Unseal:ExceptionCodes:CapsuleType:001": "Capsule type not found.",
+    "Unseal:ExceptionCodes:CapsuleType:002": "Capsule type already exists.",
+
+    //Enums
+
+    "CapsuleTypes:00":"Personal",
+    "CapsuleTypes:01":"Direct",
+    "CapsuleTypes:02":"Followers",
+    "CapsuleTypes:03":"Collaborative",
+    "CapsuleTypes:04":"Public"
   }
 }
