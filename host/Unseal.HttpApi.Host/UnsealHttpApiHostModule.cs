@@ -200,6 +200,8 @@ public class UnsealHttpApiHostModule : AbpModule
             options.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);
             options.OAuthScopes("Unseal");
         });
+        app.UseMiddleware<GenericResponseMiddleware>();
+        
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();

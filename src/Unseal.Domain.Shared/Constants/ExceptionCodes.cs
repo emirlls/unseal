@@ -12,4 +12,18 @@ public static class ExceptionCodes
         public const string NotFound = $"{Prefix}001";
         public const string AlreadyExists = $"{Prefix}002";
     }
+    
+    public static class Capsule
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}:Capsule:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
+    
+    public static class CapsuleItem
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}:CapsuleItem:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
 }
