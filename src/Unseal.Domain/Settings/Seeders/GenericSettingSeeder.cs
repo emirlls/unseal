@@ -5,6 +5,7 @@ namespace Unseal.Settings.Seeders;
 
 public class GenericSettingSeeder : IGenericSettingSeeder
 {
+    //Add seeder services here.
     private readonly MailSettingDefinitionSeeder _mailSettingDefinitionSeeder;
 
     public GenericSettingSeeder(MailSettingDefinitionSeeder mailSettingDefinitionSeeder)

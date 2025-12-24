@@ -6,6 +6,12 @@ public static class ExceptionCodes
     public const string UnexpectedException = $"{ExceptionCodePrefix}UnexpectedException:001";
     public const string Success = $"{ExceptionCodePrefix}Success:001";
     
+    public static class Mail
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}:Mail:";
+        public const string SettingNotFound = $"{Prefix}001";
+    }
+    
     public static class IdentityUser
     {
         private const string Prefix = $"{ExceptionCodePrefix}:IdentityUser:";

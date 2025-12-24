@@ -52,9 +52,9 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             await _applicationManager.CreateAsync(new OpenIddictApplicationDescriptor
             {
                 ClientId = clientId,
-                ClientSecret = clientSecret,
+                //ClientSecret = clientSecret,
                 DisplayName = "Swagger UI",
-                ClientType = OpenIddictConstants.ClientTypes.Confidential,
+                ClientType = OpenIddictConstants.ClientTypes.Public,
                 Permissions =
                 {
                     OpenIddictConstants.Permissions.Endpoints.Token,
