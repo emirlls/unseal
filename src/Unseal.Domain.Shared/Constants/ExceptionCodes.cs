@@ -32,4 +32,18 @@ public static class ExceptionCodes
         public const string NotFound = $"{Prefix}001";
         public const string AlreadyExists = $"{Prefix}002";
     }
+    
+    public static class NotificationTemplate
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}:NotificationTemplate:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
+    
+    public static class NotificationEventType
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}:NotificationEventType:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
 }

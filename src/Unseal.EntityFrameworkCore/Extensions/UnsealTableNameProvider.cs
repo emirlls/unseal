@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Unseal.Constants;
 using Unseal.Entities.Capsules;
 using Unseal.Entities.Lookups;
+using Unseal.Entities.Notifications;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity;
 using Volo.Abp.OpenIddict;
@@ -27,6 +28,9 @@ public static class UnsealTableNameProvider
         {nameof(Capsule),"Capsules"},
         {nameof(CapsuleItem),"CapsuleItems"},
         {nameof(CapsuleType),"CapsuleTypes"},
+        {nameof(Notification),"Notifications"},
+        {nameof(NotificationEventType),"NotificationEventTypes"},
+        {nameof(NotificationTemplate),"NotificationTemplates"},
     };
     
     public static void SetAbpTablePrefix(this ModelBuilder builder)

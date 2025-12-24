@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -46,5 +47,26 @@ public class AuthController : UnsealController
     public async Task<LoginResponseDto> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken = default)
     {
         return await AuthAppService.LoginAsync(loginDto, cancellationToken);
+    }
+
+    /// <summary>
+    /// Use to confirm mail
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="confirmationToken"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("confirm")]
+    public async Task<bool> ConfirmMailAsync(
+        Guid userId,
+        string confirmationToken,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await AuthAppService.ConfirmMailAsync(
+            userId,
+            confirmationToken,
+            cancellationToken
+        );
     }
 }

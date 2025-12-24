@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,8 @@ using Volo.Abp.Autofac;
 using Volo.Abp.Caching;
 using Volo.Abp.Caching.StackExchangeRedis;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.EventBus.Distributed;
+using Volo.Abp.EventBus.RabbitMq;
 using Volo.Abp.Identity.AspNetCore;
 using Volo.Abp.Identity.EntityFrameworkCore;
 using Volo.Abp.Localization;
@@ -68,12 +71,26 @@ public class UnsealHttpApiHostModule : AbpModule
             builder.AddDevelopmentEncryptionCertificate();
             builder.AddDevelopmentSigningCertificate();
         });
+        
+        context.Services.Configure<IdentityOptions>(options =>
+        {
+            options.SignIn.RequireConfirmedEmail = true;
+        });
     }
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var hostingEnvironment = context.Services.GetHostingEnvironment();
         var configuration = context.Services.GetConfiguration();
 
+        Configure<AbpDistributedEventBusOptions>(options =>
+        {
+            
+        });
+        Configure<AbpRabbitMqEventBusOptions>(options =>
+        {
+            options.ClientName = "UnsealClient";
+            options.ExchangeName = "UnsealExchange";
+        });
         Configure<AbpDbContextOptions>(options =>
         {
             options.UseNpgsql();
@@ -83,7 +100,7 @@ public class UnsealHttpApiHostModule : AbpModule
         {
             options.IsEnabled = MultiTenancyConsts.IsEnabled;
         });
-
+        
         if (hostingEnvironment.IsDevelopment())
         {
             Configure<AbpVirtualFileSystemOptions>(options =>
@@ -140,7 +157,7 @@ public class UnsealHttpApiHostModule : AbpModule
             var redis = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]!);
             dataProtectionBuilder.PersistKeysToStackExchangeRedis(redis, "Unseal-Protection-Keys");
         }
-
+        
         context.Services.AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>

@@ -18,7 +18,12 @@
 
     "Unseal:ExceptionCodes:CapsuleType:001": "Capsule type not found.",
     "Unseal:ExceptionCodes:CapsuleType:002": "Capsule type already exists.",
-    
+
+    "Unseal:ExceptionCodes:NotificationTemplate:001": "Notification template not found.",
+    "Unseal:ExceptionCodes:NotificationTemplate:002": "Notification template already exists.",
+
+    "Unseal:ExceptionCodes:NotificationEventType:001": "Notification event type not found.",
+    "Unseal:ExceptionCodes:NotificationEventType:002": "Notification event type already exists.",
     
     "Unseal:ExceptionCodes:Mail:001": "Mail settings not found.",
 

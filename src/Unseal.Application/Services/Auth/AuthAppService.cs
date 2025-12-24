@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,9 +7,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Unseal.Constants;
 using Unseal.Dtos.Auth;
+using Unseal.Etos;
 using Unseal.Interfaces.Managers.Auth;
 using Unseal.Profiles.Auth;
 using Volo.Abp;
+using Volo.Abp.EventBus.Distributed;
 using Volo.Abp.Identity;
 
 namespace Unseal.Services.Auth;
@@ -23,7 +26,9 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         LazyServiceProvider.LazyGetRequiredService<AuthMapper>();
     private IConfiguration Configuration =>
         LazyServiceProvider.LazyGetRequiredService<IConfiguration>();
-    
+    private IDistributedEventBus DistributedEventBus =>
+        LazyServiceProvider.LazyGetRequiredService<IDistributedEventBus>();
+
     public async Task<bool> RegisterAsync(
         RegisterDto dto,
         CancellationToken cancellationToken = default
@@ -39,6 +44,19 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         var result = await IdentityUserManager.CreateAsync(user, model.Password);
         result.CheckErrors();
         await IdentityUserManager.AddDefaultRolesAsync(user);
+        
+        var  mailConfirmationToken = await IdentityUserManager
+            .GenerateEmailConfirmationTokenAsync(user);
+
+        var userRegisterEto = new UserRegisterEto
+        {
+            UserId = user.Id,
+            Name = user.Name,
+            Surname = user.Surname,
+            Email = user.Email,
+            ConfirmationToken = mailConfirmationToken
+        };
+        await DistributedEventBus.PublishAsync(userRegisterEto);
         return result.Succeeded;
     }
 
@@ -47,15 +65,16 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default
     )
     {
+        var user = await CustomIdentityUserManager.TryGetByAsync(x=>
+                string.Equals(x.UserName, loginDto.UserName), 
+            throwIfNull:true,
+            cancellationToken: cancellationToken);
+        
         var tokenResponse = await GetTokenAsync(
             loginDto.UserName,
             loginDto.Password,
             cancellationToken
         );
-        
-        var user = await CustomIdentityUserManager.TryGetByAsync(x=>
-            string.Equals(x.UserName, loginDto.UserName), 
-            cancellationToken: cancellationToken);
         
         var response = new LoginResponseDto(
             user.Id,
@@ -64,6 +83,22 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             tokenResponse.ExpiresIn);
         
         return response;
+    }
+
+    public async Task<bool> ConfirmMailAsync(
+        Guid userId,
+        string confirmationToken,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var user = await CustomIdentityUserManager.TryGetByAsync(x=>
+            x.Id.Equals(userId) ,
+            throwIfNull:true,
+            cancellationToken: cancellationToken
+        );
+        var result = await IdentityUserManager
+            .ConfirmEmailAsync(user, confirmationToken);
+        return result.Succeeded;
     }
 
     private async Task<TokenResponse> GetTokenAsync(

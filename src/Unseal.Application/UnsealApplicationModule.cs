@@ -2,6 +2,8 @@
 using Volo.Abp.Mapperly;
 using Volo.Abp.Modularity;
 using Volo.Abp.Application;
+using Volo.Abp.EventBus;
+using Volo.Abp.EventBus.RabbitMq;
 
 namespace Unseal;
 
@@ -9,7 +11,9 @@ namespace Unseal;
     typeof(UnsealDomainModule),
     typeof(UnsealApplicationContractsModule),
     typeof(AbpDddApplicationModule),
-    typeof(AbpMapperlyModule)
+    typeof(AbpMapperlyModule),
+    typeof(AbpEventBusModule),
+    typeof(AbpEventBusRabbitMqModule)
     )]
 public class UnsealApplicationModule : AbpModule
 {
