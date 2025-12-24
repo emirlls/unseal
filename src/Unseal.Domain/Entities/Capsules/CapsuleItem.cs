@@ -22,6 +22,11 @@ public class CapsuleItem : FullAuditedAggregateRoot<Guid>
         string fileName
     )
     {
-        
+        Id = id;
+        CapsuleId = capsuleId;
+        ContentType = contentType;
+        TextContext = textContext;
+        FileUrl = fileUrl;
+        FileName = fileName;
     }
 }

@@ -35,9 +35,12 @@ public class BaseDomainService<TEntity> : DomainService, IBaseDomainService<TEnt
         AlreadyExistsException = alreadyExistsException;
     }
 
-    public async Task<TEntity> TryGetByAsync(Expression<Func<TEntity, bool>> expression, bool throwIfNull = false,
+    public async Task<TEntity> TryGetByAsync(
+        Expression<Func<TEntity, bool>> expression,
+        bool throwIfNull = false,
         bool asNoTracking = false,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var response = await _baseRepository.GetByAsync(expression, asNoTracking, cancellationToken)!;
         if (throwIfNull && response is null)

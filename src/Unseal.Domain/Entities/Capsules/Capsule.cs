@@ -27,8 +27,16 @@ public class Capsule : FullAuditedAggregateRoot<Guid>,IMultiTenant
         string name,
         bool? isPublic,
         DateTime revealDate,
-        Guid? capsuleTypeId)
+        Guid? capsuleTypeId,
+        Guid? creatorId)
     {
-        
+        Id = id;
+        TenantId = tenantId;
+        ReceiverId = receiverId;
+        Name = name;
+        IsPublic = isPublic;
+        RevealDate = revealDate;
+        CapsuleTypeId = capsuleTypeId;
+        CreatorId = creatorId;
     }
 }
