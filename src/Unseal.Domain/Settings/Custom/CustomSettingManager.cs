@@ -35,13 +35,14 @@ where TSetting : class
         await _settingManager.SetGlobalAsync(settingName, jsonValue);
     }
 
-    public async Task<TSetting> GetAsync<TSettingModel>(CancellationToken cancellationToken = default)
+    public async Task<TSetting?> GetAsync<TSettingModel>(CancellationToken cancellationToken = default)
     where TSettingModel : class
     {
         var description = typeof(TSettingModel).GetCustomAttribute<DescriptionAttribute>()?.Description 
                           ?? typeof(TSettingModel).Name;
         var settingName = GetSettingName(description);
-        var settings = await _settingManager.GetOrNullDefaultAsync(settingName);
+        var settings = await _settingManager.GetOrNullGlobalAsync(settingName);
+        if (settings.IsNullOrWhiteSpace()) return null;
         var model  = _jsonSerializer.Deserialize<TSetting>(settings, camelCase:false);
         return model;
     }

@@ -2,6 +2,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Unseal.Constants;
 using Unseal.Entities.Lookups;
+using Unseal.Entities.Notifications;
 
 namespace Unseal.Extensions;
 
@@ -9,7 +10,7 @@ public static class LookupSeeders
 {
     public static void LookupSeeder(this ModelBuilder builder)
     {
-        #region SoilTypes
+        #region CapsuleTypes
 
         builder.Entity<CapsuleType>().HasData(
             new CapsuleType(
@@ -34,7 +35,20 @@ public static class LookupSeeders
                 LookupSeederConstants.CapsuleTypesConstants.Public.Name,
                 LookupSeederConstants.CapsuleTypesConstants.Public.Code)
         );
+        #endregion
+        
+        #region NotificationEventTypes
 
+        builder.Entity<NotificationEventType>().HasData(
+            new CapsuleType(
+                Guid.Parse(LookupSeederConstants.NotificationEventTypesConstants.UserRegister.Id),
+                LookupSeederConstants.NotificationEventTypesConstants.UserRegister.Name,
+                LookupSeederConstants.NotificationEventTypesConstants.UserRegister.Code),
+            
+            new CapsuleType(Guid.Parse(LookupSeederConstants.NotificationEventTypesConstants.UserDelete.Id),
+                LookupSeederConstants.NotificationEventTypesConstants.UserDelete.Name,
+                LookupSeederConstants.NotificationEventTypesConstants.UserDelete.Code)
+        );
         #endregion
     }
 }

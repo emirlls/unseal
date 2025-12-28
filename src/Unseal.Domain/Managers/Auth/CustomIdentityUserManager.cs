@@ -26,7 +26,11 @@ public class CustomIdentityUserManager : BaseDomainService<IdentityUser>, ICusto
 
     public async Task<IdentityUser> Create(Guid id, Guid? tenantId, RegisterModel model)
     {
-        var user = new IdentityUser(id, model.Email,model.Email,tenantId);
+        var user = new IdentityUser(id, model.Email,model.Email,tenantId)
+        {
+            Name = model.FirstName,
+            Surname = model.LastName
+        };
         return user;
     }
     
