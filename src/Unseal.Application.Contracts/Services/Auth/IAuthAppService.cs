@@ -19,7 +19,12 @@ public interface IAuthAppService : IApplicationService
 
     Task<bool> ConfirmMailAsync(
         Guid userId,
-        string confirmationToken,
+        string token,
         CancellationToken cancellationToken =  default
+    );
+
+    Task<bool> UserDeleteAsync(
+        Guid userId,
+        CancellationToken cancellationToken=default
     );
 }

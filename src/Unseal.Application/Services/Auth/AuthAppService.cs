@@ -1,14 +1,18 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Duende.IdentityModel.Client;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Localization;
 using Unseal.Constants;
 using Unseal.Dtos.Auth;
 using Unseal.Etos;
 using Unseal.Interfaces.Managers.Auth;
+using Unseal.Localization;
 using Unseal.Profiles.Auth;
 using Volo.Abp;
 using Volo.Abp.EventBus.Distributed;
@@ -28,7 +32,8 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         LazyServiceProvider.LazyGetRequiredService<IConfiguration>();
     private IDistributedEventBus DistributedEventBus =>
         LazyServiceProvider.LazyGetRequiredService<IDistributedEventBus>();
-
+    private IStringLocalizer<UnsealResource> StringLocalizer =>
+        LazyServiceProvider.LazyGetRequiredService<IStringLocalizer<UnsealResource>>();
     public async Task<bool> RegisterAsync(
         RegisterDto dto,
         CancellationToken cancellationToken = default
@@ -87,7 +92,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
 
     public async Task<bool> ConfirmMailAsync(
         Guid userId,
-        string confirmationToken,
+        string token,
         CancellationToken cancellationToken = default
     )
     {
@@ -97,7 +102,36 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             cancellationToken: cancellationToken
         );
         var result = await IdentityUserManager
-            .ConfirmEmailAsync(user, confirmationToken);
+            .ConfirmEmailAsync(user, token);
+        return result.Succeeded;
+    }
+
+    public async Task<bool> UserDeleteAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var user = await IdentityUserManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.NotFound]);
+        }
+        var roles = await IdentityUserManager.GetRolesAsync(user);
+        if (!roles.IsNullOrEmpty() && roles.Any())
+        {
+            await IdentityUserManager.RemoveFromRolesAsync(user, roles);
+        }
+        var result = await IdentityUserManager.DeleteAsync(user);
+        if (result.Succeeded)
+        {
+            var userDeleteEto = new UserDeleteEto
+            {
+                Name = user.Name,
+                Surname = user.Surname,
+                Email = user.Email
+            };
+            await DistributedEventBus.PublishAsync(userDeleteEto);
+        }
         return result.Succeeded;
     }
 

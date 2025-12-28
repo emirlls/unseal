@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unseal.Dtos.Auth;
 using Unseal.Services.Auth;
@@ -53,20 +54,36 @@ public class AuthController : UnsealController
     /// Use to confirm mail
     /// </summary>
     /// <param name="userId"></param>
-    /// <param name="confirmationToken"></param>
+    /// <param name="token"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    [HttpPost("confirm")]
+    [HttpGet("confirm-email")]
+    [AllowAnonymous]
     public async Task<bool> ConfirmMailAsync(
         Guid userId,
-        string confirmationToken,
+        string token,
         CancellationToken cancellationToken = default
     )
     {
         return await AuthAppService.ConfirmMailAsync(
             userId,
-            confirmationToken,
+            token,
             cancellationToken
         );
+    }
+
+    /// <summary>
+    /// Use to delete user.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("user-delete")]
+    public async Task<bool> UserDeleteAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await AuthAppService.UserDeleteAsync(userId, cancellationToken);
     }
 }

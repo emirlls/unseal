@@ -1,8 +1,6 @@
 using System;
 using System.Globalization;
-using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Unseal.Constants;
 using Unseal.Enums;
@@ -14,27 +12,23 @@ using Volo.Abp.EventBus.Distributed;
 
 namespace Unseal.Handlers;
 
-public class UserRegisterEventHandler : 
-    IDistributedEventHandler<UserRegisterEto>, ITransientDependency
+public class UserDeleteEventHandler : IDistributedEventHandler<UserDeleteEto>, ITransientDependency
 {
     private readonly IServiceProvider _serviceProvider;
 
-    public UserRegisterEventHandler(IServiceProvider serviceProvider)
+    public UserDeleteEventHandler(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }
 
-    public async Task HandleEventAsync(UserRegisterEto eventData)
+    public async Task HandleEventAsync(UserDeleteEto eventData)
     {
-        var configuration = _serviceProvider
-            .GetRequiredService<IConfiguration>();
-        
         var notificationEventTypeManager = _serviceProvider
             .GetRequiredService<INotificationEventTypeManager>();
         
         var notificationEventType =
             await notificationEventTypeManager.TryGetByAsync(x => 
-                x.Code == (int)NotificationEventTypes.UserRegister,
+                    x.Code == (int)NotificationEventTypes.UserDelete,
                 throwIfNull:true);
         
         var notificationTemplateManager = _serviceProvider
@@ -44,17 +38,13 @@ public class UserRegisterEventHandler :
             await notificationTemplateManager.TryGetByAsync(
                 x => 
                     x.NotificationEventTypeId.Equals(notificationEventType.Id) &&
-                string.Equals(x.Culture,CultureInfo.CurrentCulture.Name),
+                    string.Equals(x.Culture,CultureInfo.CurrentCulture.Name),
                 throwIfNull: true);
         
-        var baseUrl = configuration["App:SelfUrl"]; 
-        var verifyUrl = $"{baseUrl}/api/auth/confirm-email?userId={eventData.UserId}&token={WebUtility.UrlEncode(eventData.ConfirmationToken)}";
-        
         var replacedTemplate = notificationTemplate.Content
-            .Replace(NotificationTemplateProperties.UserRegisterTemplateParameters.Name, eventData.Name)
-            .Replace(NotificationTemplateProperties.UserRegisterTemplateParameters.Surname, eventData.Surname)
-            .Replace(NotificationTemplateProperties.UserRegisterTemplateParameters.VerifyEmailUrl, verifyUrl)
-            .Replace(NotificationTemplateProperties.UserRegisterTemplateParameters.ApplicationName, NotificationTemplateProperties.AppName);
+            .Replace(NotificationTemplateProperties.UserDeleteTemplateParameters.Name, eventData.Name)
+            .Replace(NotificationTemplateProperties.UserDeleteTemplateParameters.Surname, eventData.Surname)
+            .Replace(NotificationTemplateProperties.UserDeleteTemplateParameters.ApplicationName, NotificationTemplateProperties.AppName);
         
         await _serviceProvider
             .SendMailAsync(eventData.Email,

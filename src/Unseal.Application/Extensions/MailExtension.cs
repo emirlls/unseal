@@ -24,27 +24,34 @@ public static class MailExtension
         var stringLocalizer = serviceProvider.GetRequiredService<IStringLocalizer<UnsealResource>>();
         var customSettingManager = serviceProvider.GetRequiredService<ICustomSettingManager<MailSettingModel>>();
         var mailSettings = await customSettingManager.GetAsync<MailSettingModel>();
+        if (mailSettings is null) throw new UserFriendlyException(stringLocalizer[ExceptionCodes.Mail.SettingNotFound]);
 
-        if (mailSettings == null) throw new UserFriendlyException(stringLocalizer[ExceptionCodes.Mail.SettingNotFound]);
-
-        using (var client = new SmtpClient(mailSettings.Server.Value!.ToString(),
-                   int.Parse(mailSettings.Port.Value!.ToString()!)))
+        try
         {
-            client.Credentials =
-                new NetworkCredential(
-                    mailSettings.Login.Value!.ToString(),
-                    mailSettings.Key.Value!.ToString());
-            client.EnableSsl = true;
-
-            var mailMessage = new MailMessage
+            using (var client = new SmtpClient(mailSettings.Server.Value!.ToString(),
+                       int.Parse(mailSettings.Port.Value!.ToString()!)))
             {
-                From = new MailAddress(mailSettings.Login.Value.ToString()!),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
-            };
-            mailMessage.To.Add(to);
-            await client.SendMailAsync(mailMessage);
+                client.Credentials =
+                    new NetworkCredential(
+                        mailSettings.Login.Value!.ToString(),
+                        mailSettings.Key.Value!.ToString());
+                client.EnableSsl = true;
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(mailSettings.Login.Value.ToString()!,"Unseal App"),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                };
+                mailMessage.To.Add(to);
+                await client.SendMailAsync(mailMessage);
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
         }
     }
 }
