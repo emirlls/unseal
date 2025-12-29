@@ -37,7 +37,8 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             await _scopeManager.CreateAsync(new OpenIddictScopeDescriptor
             {
                 Name = scopeName,
-                DisplayName = $"{scopeName} API Scope"
+                DisplayName = $"{scopeName} API Scope",
+                Resources = { AuthConstants.Audience }
             });
         }
     }

@@ -60,13 +60,13 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
     }
 
     public async Task<TEntity?> TryGetQueryableAsync(
-        IQueryable<TEntity> queryable,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
         bool asNoTracking = false,
         CancellationToken cancellationToken = default
     )
     {
-        IQueryable<TEntity> query = queryable;
-
+        var query = await GetQueryableAsync();
+        query = queryBuilder(query);
         if (asNoTracking)
         {
             query = query
@@ -111,6 +111,41 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
             var dbSet = await GetDbSetAsync();
             var dbContext = await GetDbContextAsync();
             dbSet.Remove(entity);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    public async Task BulkInsertAsync(
+        IEnumerable<TEntity> entities,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var dbContext = await GetDbContextAsync();
+        await dbContext.Set<TEntity>().AddRangeAsync(entities, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        
+    }
+
+    public async Task BulkUpdateAsync(
+        IEnumerable<TEntity> entities,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var dbContext = await GetDbContextAsync();
+        dbContext.Set<TEntity>().UpdateRange(entities);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task HardDeleteManyAsync(
+        IEnumerable<TEntity> entities,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using (DataFilter.Disable<ISoftDelete>())
+        {
+            var dbSet = await GetDbSetAsync();
+            var dbContext = await GetDbContextAsync();
+            dbSet.RemoveRange(entities);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
     }

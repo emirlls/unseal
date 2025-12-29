@@ -74,14 +74,16 @@ public class BaseDomainService<TEntity> : DomainService, IBaseDomainService<TEnt
     }
 
     public async Task<TEntity> TryGetQueryableAsync(
-        IQueryable<TEntity> queryable,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
         bool throwIfNull = false,
         bool asNoTracking = false,
         bool throwIfExists = false,
         CancellationToken cancellationToken = default
     )
     {
-        var response = await _baseRepository.TryGetQueryableAsync(queryable, asNoTracking, cancellationToken);
+        var response = await _baseRepository
+            .TryGetQueryableAsync(queryBuilder, asNoTracking, cancellationToken);
+        
         if (throwIfNull && response is null)
         {
             throw new UserFriendlyException(_stringLocalizer[NotFoundException]);

@@ -26,7 +26,7 @@ public interface IBaseRepository<TEntity> : IRepository<TEntity>, ITransientDepe
     );
 
     Task<TEntity?> TryGetQueryableAsync(
-        IQueryable<TEntity> queryable,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
         bool asNoTracking = false,
         CancellationToken cancellationToken = default
     );
@@ -44,6 +44,19 @@ public interface IBaseRepository<TEntity> : IRepository<TEntity>, ITransientDepe
 
     Task HardDeleteAsync(
         TEntity entity,
+        CancellationToken cancellationToken = default
+    );
+    Task BulkInsertAsync(
+        IEnumerable<TEntity> entities,
+        CancellationToken cancellationToken = default
+    );
+
+    Task BulkUpdateAsync(
+        IEnumerable<TEntity> entities,
+        CancellationToken cancellationToken = default
+    );
+    Task HardDeleteManyAsync(
+        IEnumerable<TEntity> entities,
         CancellationToken cancellationToken = default
     );
 }

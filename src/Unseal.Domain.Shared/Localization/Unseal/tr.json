@@ -35,6 +35,13 @@
     "Unseal:ExceptionCodes:UserFollower:001": "Takipçi bulunamadı.",
     "Unseal:ExceptionCodes:UserFollower:002": "Takipçi zaten mevcut.",
     "Unseal:ExceptionCodes:UserFollower:003": "Kullanıcı engellediğinden dolayı takip edilemez.",
+    
+    "Unseal:ExceptionCodes:Group:001": "Grup bulunamadı.",
+    "Unseal:ExceptionCodes:Group:002": "Grup zaten mevcut.",
+
+    "Unseal:ExceptionCodes:GroupMember:001": "Grup üyesi bulunamadı.",
+    "Unseal:ExceptionCodes:GroupMember:002": "Grup üyesi zaten mevcut.",
+    "Unseal:ExceptionCodes:GroupMember:003": "Gruba eklenme izni vermeyen kullanıcı eklenemez.",
 
     "Unseal:ExceptionCodes:Mail:001": "Mail ayarları bulunamadı.",
     

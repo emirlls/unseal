@@ -152,16 +152,19 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             Address = Configuration[AuthConstants.Authority],
             Policy = { RequireHttps = false }
         }, cancellationToken: cancellationToken);
-        
-        var tokenResponse = await client.RequestPasswordTokenAsync(new PasswordTokenRequest
+        var request = new PasswordTokenRequest
         {
             Address = discovery.TokenEndpoint,
             ClientId = Configuration[AuthConstants.SwaggerClientId]!,
-            ClientSecret = Configuration[AuthConstants.SwaggerClientSecret]!,
             UserName = username,
             Password = password,
             Scope = AuthConstants.Scope
-        }, cancellationToken: cancellationToken);
+        }; 
+        var tokenResponse = await client
+            .RequestPasswordTokenAsync(
+                request,
+                cancellationToken: cancellationToken
+            );
 
         if (tokenResponse.IsError)
         {

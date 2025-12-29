@@ -28,7 +28,7 @@ public interface IBaseDomainService<TEntity> : IDomainService
     );
 
     Task<TEntity> TryGetQueryableAsync(
-        IQueryable<TEntity> queryable,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
         bool throwIfNull = false,
         bool asNoTracking = false,
         bool throwIfExists = false,

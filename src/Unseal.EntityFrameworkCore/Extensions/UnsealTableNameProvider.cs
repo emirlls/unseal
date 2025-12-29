@@ -34,6 +34,8 @@ public static class UnsealTableNameProvider
         {nameof(NotificationTemplate),"NotificationTemplates"},
         {nameof(UserProfile),"UserProfiles"},
         {nameof(UserFollower),"UserFollowers"},
+        {nameof(Group),"Groups"},
+        {nameof(GroupMember),"GroupMembers"},
     };
     
     public static void SetAbpTablePrefix(this ModelBuilder builder)

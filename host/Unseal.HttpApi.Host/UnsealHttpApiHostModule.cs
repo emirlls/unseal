@@ -11,10 +11,12 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Unseal.EntityFrameworkCore;
 using Unseal.MultiTenancy;
 using StackExchange.Redis;
 using Microsoft.OpenApi.Models;
+using Unseal.Constants;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Authentication.JwtBearer;
 using Volo.Abp.AspNetCore.Mvc.UI.MultiTenancy;
@@ -143,9 +145,16 @@ public class UnsealHttpApiHostModule : AbpModule
             {
                 options.Authority = configuration["AuthServer:Authority"];
                 options.RequireHttpsMetadata = configuration.GetValue<bool>("AuthServer:RequireHttpsMetadata");
-                options.Audience = "Unseal";
+                options.Audience = AuthConstants.Audience;
+                options.MapInboundClaims = false;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    NameClaimType = "sub", 
+                    RoleClaimType = "role",
+                    ValidateAudience = true,
+                    AuthenticationType = "Bearer"
+                };
             });
-
         Configure<AbpDistributedCacheOptions>(options =>
         {
             options.KeyPrefix = "Unseal:";

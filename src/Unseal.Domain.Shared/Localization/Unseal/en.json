@@ -36,6 +36,13 @@
     "Unseal:ExceptionCodes:UserFollower:002": "User follower already exists.",
     "Unseal:ExceptionCodes:UserFollower:003": "You cannot follow because the user blocked you.",
 
+    "Unseal:ExceptionCodes:Group:001": "Group not found.",
+    "Unseal:ExceptionCodes:Group:002": "Group already exists.",
+
+    "Unseal:ExceptionCodes:GroupMember:001": "Group member not found.",
+    "Unseal:ExceptionCodes:GroupMember:002": "Group member already exists.",
+    "Unseal:ExceptionCodes:GroupMember:003": "Users who do not give permission cannot be added to the group.",
+    
     "Unseal:ExceptionCodes:Mail:001": "Mail settings not found.",
 
     //Enums

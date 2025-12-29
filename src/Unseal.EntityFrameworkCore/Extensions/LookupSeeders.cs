@@ -26,7 +26,6 @@ public static class LookupSeeders
                 LookupSeederConstants.CapsuleTypesConstants.PublicBroadcast.Name,
                 LookupSeederConstants.CapsuleTypesConstants.PublicBroadcast.Code),
             
-            
             new CapsuleType(Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.Collaborative.Id),
                 LookupSeederConstants.CapsuleTypesConstants.Collaborative.Name,
                 LookupSeederConstants.CapsuleTypesConstants.Collaborative.Code),
@@ -40,12 +39,12 @@ public static class LookupSeeders
         #region NotificationEventTypes
 
         builder.Entity<NotificationEventType>().HasData(
-            new CapsuleType(
+            new NotificationEventType(
                 Guid.Parse(LookupSeederConstants.NotificationEventTypesConstants.UserRegister.Id),
                 LookupSeederConstants.NotificationEventTypesConstants.UserRegister.Name,
                 LookupSeederConstants.NotificationEventTypesConstants.UserRegister.Code),
             
-            new CapsuleType(Guid.Parse(LookupSeederConstants.NotificationEventTypesConstants.UserDelete.Id),
+            new NotificationEventType(Guid.Parse(LookupSeederConstants.NotificationEventTypesConstants.UserDelete.Id),
                 LookupSeederConstants.NotificationEventTypesConstants.UserDelete.Name,
                 LookupSeederConstants.NotificationEventTypesConstants.UserDelete.Code)
         );
