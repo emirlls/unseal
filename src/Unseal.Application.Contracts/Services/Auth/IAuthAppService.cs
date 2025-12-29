@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Unseal.Dtos.Auth;
@@ -15,4 +16,15 @@ public interface IAuthAppService : IApplicationService
     Task<LoginResponseDto> LoginAsync(
         LoginDto loginDto,
         CancellationToken cancellationToken = default);
+
+    Task<bool> ConfirmMailAsync(
+        Guid userId,
+        string token,
+        CancellationToken cancellationToken =  default
+    );
+
+    Task<bool> UserDeleteAsync(
+        Guid userId,
+        CancellationToken cancellationToken=default
+    );
 }

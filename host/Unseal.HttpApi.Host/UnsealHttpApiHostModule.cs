@@ -6,14 +6,17 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Unseal.EntityFrameworkCore;
 using Unseal.MultiTenancy;
 using StackExchange.Redis;
 using Microsoft.OpenApi.Models;
+using Unseal.Constants;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Authentication.JwtBearer;
 using Volo.Abp.AspNetCore.Mvc.UI.MultiTenancy;
@@ -22,6 +25,8 @@ using Volo.Abp.Autofac;
 using Volo.Abp.Caching;
 using Volo.Abp.Caching.StackExchangeRedis;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.EventBus.Distributed;
+using Volo.Abp.EventBus.RabbitMq;
 using Volo.Abp.Identity.AspNetCore;
 using Volo.Abp.Identity.EntityFrameworkCore;
 using Volo.Abp.Localization;
@@ -68,12 +73,26 @@ public class UnsealHttpApiHostModule : AbpModule
             builder.AddDevelopmentEncryptionCertificate();
             builder.AddDevelopmentSigningCertificate();
         });
+        
+        context.Services.Configure<IdentityOptions>(options =>
+        {
+            options.SignIn.RequireConfirmedEmail = true;
+        });
     }
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var hostingEnvironment = context.Services.GetHostingEnvironment();
         var configuration = context.Services.GetConfiguration();
 
+        Configure<AbpDistributedEventBusOptions>(options =>
+        {
+            
+        });
+        Configure<AbpRabbitMqEventBusOptions>(options =>
+        {
+            options.ClientName = "UnsealClient";
+            options.ExchangeName = "UnsealExchange";
+        });
         Configure<AbpDbContextOptions>(options =>
         {
             options.UseNpgsql();
@@ -83,7 +102,7 @@ public class UnsealHttpApiHostModule : AbpModule
         {
             options.IsEnabled = MultiTenancyConsts.IsEnabled;
         });
-
+        
         if (hostingEnvironment.IsDevelopment())
         {
             Configure<AbpVirtualFileSystemOptions>(options =>
@@ -126,9 +145,16 @@ public class UnsealHttpApiHostModule : AbpModule
             {
                 options.Authority = configuration["AuthServer:Authority"];
                 options.RequireHttpsMetadata = configuration.GetValue<bool>("AuthServer:RequireHttpsMetadata");
-                options.Audience = "Unseal";
+                options.Audience = AuthConstants.Audience;
+                options.MapInboundClaims = false;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    NameClaimType = "sub", 
+                    RoleClaimType = "role",
+                    ValidateAudience = true,
+                    AuthenticationType = "Bearer"
+                };
             });
-
         Configure<AbpDistributedCacheOptions>(options =>
         {
             options.KeyPrefix = "Unseal:";
@@ -140,7 +166,7 @@ public class UnsealHttpApiHostModule : AbpModule
             var redis = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]!);
             dataProtectionBuilder.PersistKeysToStackExchangeRedis(redis, "Unseal-Protection-Keys");
         }
-
+        
         context.Services.AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>

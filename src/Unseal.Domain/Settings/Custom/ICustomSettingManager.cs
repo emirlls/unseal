@@ -11,10 +11,9 @@ where TSetting: class
         TSetting settings,
         CancellationToken cancellationToken = default
     );
-    Task<TSetting> GetAsync(
-        TSetting settings,
+    Task<TSetting?> GetAsync<TSettingModel>(
         CancellationToken cancellationToken = default
-    );
+    )where TSettingModel : class;
     
     Task<string> GetSerializedSettingAsync(
         TSetting settings,

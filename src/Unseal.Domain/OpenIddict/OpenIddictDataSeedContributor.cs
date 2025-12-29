@@ -37,7 +37,8 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             await _scopeManager.CreateAsync(new OpenIddictScopeDescriptor
             {
                 Name = scopeName,
-                DisplayName = $"{scopeName} API Scope"
+                DisplayName = $"{scopeName} API Scope",
+                Resources = { AuthConstants.Audience }
             });
         }
     }
@@ -52,9 +53,9 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             await _applicationManager.CreateAsync(new OpenIddictApplicationDescriptor
             {
                 ClientId = clientId,
-                ClientSecret = clientSecret,
+                //ClientSecret = clientSecret,
                 DisplayName = "Swagger UI",
-                ClientType = OpenIddictConstants.ClientTypes.Confidential,
+                ClientType = OpenIddictConstants.ClientTypes.Public,
                 Permissions =
                 {
                     OpenIddictConstants.Permissions.Endpoints.Token,

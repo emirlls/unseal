@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Unseal.Entities.Capsules;
 using Unseal.Entities.Lookups;
+using Unseal.Entities.Notifications;
+using Unseal.Entities.Users;
 using Unseal.Extensions;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
@@ -68,11 +70,18 @@ public class UnsealDbContext :
     public DbSet<FeatureGroupDefinitionRecord> FeatureGroups { get; }
     public DbSet<FeatureDefinitionRecord> Features { get; }
     public DbSet<FeatureValue> FeatureValues { get; }
-    
+    //Capsules
     public DbSet<Capsule> Capsules { get; set; }
     public DbSet<CapsuleItem> CapsuleItems { get; set; }
     public DbSet<CapsuleType> CapsuleTypes { get; set; }
-
+    //Notifications
+    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<NotificationEventType> NotificationEventTypes { get; set; }
+    public DbSet<NotificationTemplate> NotificationTemplates { get; set; }
+    //Users
+    public DbSet<UserProfile> UserProfiles { get; set; }
+    public DbSet<UserFollower> UserFollowers { get; set; }
+    
     public UnsealDbContext(DbContextOptions<UnsealDbContext> options)
         : base(options)
     {

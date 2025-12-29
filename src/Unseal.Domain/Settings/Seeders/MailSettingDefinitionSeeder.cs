@@ -21,7 +21,7 @@ public class MailSettingDefinitionSeeder : SettingDefinitionSeeder<MailSettingMo
     public async Task SeedDataAsync()
     {
         var mailSettings = _configuration
-            .GetSection(SettingConstants.MailSettingModel.Brevo)
+            .GetSection(SettingConstants.MailSettingModel.Gmail)
             .Get<MailSettings>();
         
         if (mailSettings is null) return;

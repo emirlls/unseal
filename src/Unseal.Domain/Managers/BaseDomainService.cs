@@ -35,9 +35,13 @@ public class BaseDomainService<TEntity> : DomainService, IBaseDomainService<TEnt
         AlreadyExistsException = alreadyExistsException;
     }
 
-    public async Task<TEntity> TryGetByAsync(Expression<Func<TEntity, bool>> expression, bool throwIfNull = false,
+    public async Task<TEntity> TryGetByAsync(
+        Expression<Func<TEntity, bool>> expression,
+        bool throwIfNull = false,
         bool asNoTracking = false,
-        CancellationToken cancellationToken = default)
+        bool throwIfExists = false,
+        CancellationToken cancellationToken = default
+    )
     {
         var response = await _baseRepository.GetByAsync(expression, asNoTracking, cancellationToken)!;
         if (throwIfNull && response is null)
@@ -45,12 +49,20 @@ public class BaseDomainService<TEntity> : DomainService, IBaseDomainService<TEnt
             throw new UserFriendlyException(_stringLocalizer[NotFoundException]);
         }
 
+        if (throwIfExists && response is not null)
+        {
+            throw new UserFriendlyException(_stringLocalizer[AlreadyExistsException]);
+        }
+
         return response;
     }
 
-    public async Task<List<TEntity>> TryGetListByAsync(Expression<Func<TEntity, bool>> expression, bool throwIfNull = false,
+    public async Task<List<TEntity>> TryGetListByAsync(
+        Expression<Func<TEntity, bool>> expression,
+        bool throwIfNull = false,
         bool asNoTracking = false,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var response = await _baseRepository.GetListByAsync(expression, asNoTracking, cancellationToken);
         if (throwIfNull && response is null)
@@ -61,16 +73,36 @@ public class BaseDomainService<TEntity> : DomainService, IBaseDomainService<TEnt
         return response;
     }
 
-    public async Task<TEntity> TryGetQueryableAsync(IQueryable<TEntity> queryable, bool throwIfNull = false,
+    public async Task<TEntity> TryGetQueryableAsync(
+        Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
+        bool throwIfNull = false,
         bool asNoTracking = false,
-        CancellationToken cancellationToken = default)
+        bool throwIfExists = false,
+        CancellationToken cancellationToken = default
+    )
     {
-        var response = await _baseRepository.TryGetQueryableAsync(queryable, asNoTracking, cancellationToken);
+        var response = await _baseRepository
+            .TryGetQueryableAsync(queryBuilder, asNoTracking, cancellationToken);
+        
         if (throwIfNull && response is null)
         {
             throw new UserFriendlyException(_stringLocalizer[NotFoundException]);
         }
 
+        if (throwIfExists && response is not null)
+        {
+            throw new UserFriendlyException(_stringLocalizer[AlreadyExistsException]);
+        }
+
+        return response;
+    }
+
+    public async Task<bool> ExistsAsync(
+        Expression<Func<TEntity, bool>> expression,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var response = await _baseRepository.ExistsAsync(expression, cancellationToken);
         return response;
     }
 }

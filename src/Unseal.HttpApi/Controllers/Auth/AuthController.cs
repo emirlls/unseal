@@ -1,11 +1,13 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unseal.Dtos.Auth;
 using Unseal.Services.Auth;
 using Volo.Abp.DependencyInjection;
 
-namespace Unseal.Auth;
+namespace Unseal.Controllers.Auth;
 
 [Route("api/auth")]
 [ApiController]
@@ -46,5 +48,42 @@ public class AuthController : UnsealController
     public async Task<LoginResponseDto> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken = default)
     {
         return await AuthAppService.LoginAsync(loginDto, cancellationToken);
+    }
+
+    /// <summary>
+    /// Use to confirm mail
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="token"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("confirm-email")]
+    [AllowAnonymous]
+    public async Task<bool> ConfirmMailAsync(
+        Guid userId,
+        string token,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await AuthAppService.ConfirmMailAsync(
+            userId,
+            token,
+            cancellationToken
+        );
+    }
+
+    /// <summary>
+    /// Use to delete user.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("user-delete")]
+    public async Task<bool> UserDeleteAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await AuthAppService.UserDeleteAsync(userId, cancellationToken);
     }
 }

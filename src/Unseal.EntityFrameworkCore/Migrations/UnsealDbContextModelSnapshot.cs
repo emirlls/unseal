@@ -241,6 +241,337 @@ namespace Unseal.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Unseal.Entities.Notifications.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("concurrency_stamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("creation_time");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleter_id");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("deletion_time");
+
+                    b.Property<Guid>("DestinationUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("destination_user_id");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("extra_properties");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_read");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("last_modification_time");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifier_id");
+
+                    b.Property<Guid>("NotificationEventId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("notification_event_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_notifications");
+
+                    b.HasIndex("NotificationEventId");
+
+                    b.ToTable("notifications", "unseal");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Notifications.NotificationEventType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Code")
+                        .HasColumnType("integer")
+                        .HasColumnName("code");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_notification_event_types");
+
+                    b.ToTable("notification_event_types", "unseal");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("a9745b1b-3aa1-4a57-b5a6-8a4e07fe778b"),
+                            Code = 0,
+                            Name = "UserRegister"
+                        },
+                        new
+                        {
+                            Id = new Guid("d5961c50-522f-4bea-a641-ab88ae983985"),
+                            Code = 1,
+                            Name = "UserDelete"
+                        });
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Notifications.NotificationTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AppName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("app_name");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("creation_time");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<string>("Culture")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("culture");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleter_id");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("deletion_time");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("last_modification_time");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifier_id");
+
+                    b.Property<Guid>("NotificationEventTypeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("notification_event_type_id");
+
+                    b.Property<string>("Subject")
+                        .HasColumnType("text")
+                        .HasColumnName("subject");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_notification_templates");
+
+                    b.HasIndex("NotificationEventTypeId");
+
+                    b.ToTable("notification_templates", "unseal");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Users.Group", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("creation_time");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("GroupImageUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("group_image_url");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("last_modification_time");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifier_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_groups");
+
+                    b.ToTable("groups", "unseal");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Users.GroupMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("group_id");
+
+                    b.Property<DateTime>("JoinDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("join_date");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_group_members");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("group_members", "unseal");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Users.UserFollower", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("FollowerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("follower_id");
+
+                    b.Property<bool>("IsBlocked")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_blocked");
+
+                    b.Property<bool>("IsMuted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_muted");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_user_followers");
+
+                    b.HasIndex("FollowerId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("user_followers", "unseal");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Users.UserProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("AllowJoinGroup")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("allow_join_group");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("creation_time");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<bool>("IsLocked")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_locked");
+
+                    b.Property<DateTime>("LastActivity")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("last_activity");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("last_modification_time");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifier_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_user_profiles");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("user_profiles", "unseal");
+                });
+
             modelBuilder.Entity("Volo.Abp.FeatureManagement.FeatureDefinitionRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1880,6 +2211,84 @@ namespace Unseal.Migrations
                     b.Navigation("Capsule");
                 });
 
+            modelBuilder.Entity("Unseal.Entities.Notifications.Notification", b =>
+                {
+                    b.HasOne("Unseal.Entities.Notifications.NotificationEventType", "NotificationEventType")
+                        .WithMany("Notifications")
+                        .HasForeignKey("NotificationEventId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_notifications_notification_event_types_notification_event_id");
+
+                    b.Navigation("NotificationEventType");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Notifications.NotificationTemplate", b =>
+                {
+                    b.HasOne("Unseal.Entities.Notifications.NotificationEventType", "NotificationEventType")
+                        .WithMany("NotificationTemplates")
+                        .HasForeignKey("NotificationEventTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_notification_templates_notification_event_types_notificatio~");
+
+                    b.Navigation("NotificationEventType");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Users.GroupMember", b =>
+                {
+                    b.HasOne("Unseal.Entities.Users.Group", "Group")
+                        .WithMany("GroupMembers")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_group_members_groups_group_id");
+
+                    b.HasOne("Volo.Abp.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_group_members_users_user_id");
+
+                    b.Navigation("Group");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Users.UserFollower", b =>
+                {
+                    b.HasOne("Volo.Abp.Identity.IdentityUser", "Follower")
+                        .WithMany()
+                        .HasForeignKey("FollowerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_user_followers_users_follower_id");
+
+                    b.HasOne("Volo.Abp.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_user_followers_users_user_id");
+
+                    b.Navigation("Follower");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Users.UserProfile", b =>
+                {
+                    b.HasOne("Volo.Abp.Identity.IdentityUser", "User")
+                        .WithOne()
+                        .HasForeignKey("Unseal.Entities.Users.UserProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_user_profiles_users_user_id");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Volo.Abp.Identity.IdentityRoleClaim", b =>
                 {
                     b.HasOne("Volo.Abp.Identity.IdentityRole", null)
@@ -2018,6 +2427,18 @@ namespace Unseal.Migrations
             modelBuilder.Entity("Unseal.Entities.Lookups.CapsuleType", b =>
                 {
                     b.Navigation("Capsules");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Notifications.NotificationEventType", b =>
+                {
+                    b.Navigation("NotificationTemplates");
+
+                    b.Navigation("Notifications");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Users.Group", b =>
+                {
+                    b.Navigation("GroupMembers");
                 });
 
             modelBuilder.Entity("Volo.Abp.Identity.IdentityRole", b =>
