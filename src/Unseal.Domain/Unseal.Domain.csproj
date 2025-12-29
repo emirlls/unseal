@@ -9,6 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CloudinaryDotNet" Version="1.27.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.Ddd.Domain" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.OpenIddict.Domain" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.SettingManagement.Domain" Version="10.0.1" />

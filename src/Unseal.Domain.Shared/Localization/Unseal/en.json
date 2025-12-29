@@ -24,6 +24,24 @@
 
     "Unseal:ExceptionCodes:NotificationEventType:001": "Notification event type not found.",
     "Unseal:ExceptionCodes:NotificationEventType:002": "Notification event type already exists.",
+
+    "Unseal:ExceptionCodes:File:001": "File not found.",
+    "Unseal:ExceptionCodes:File:002": "File already exists.",
+    "Unseal:ExceptionCodes:File:003": "An error occurred while uploading the file.",
+    
+    "Unseal:ExceptionCodes:UserProfile:001": "User profile not found.",
+    "Unseal:ExceptionCodes:UserProfile:002": "User profile already exists.",
+
+    "Unseal:ExceptionCodes:UserFollower:001": "User follower not found.",
+    "Unseal:ExceptionCodes:UserFollower:002": "User follower already exists.",
+    "Unseal:ExceptionCodes:UserFollower:003": "You cannot follow because the user blocked you.",
+
+    "Unseal:ExceptionCodes:Group:001": "Group not found.",
+    "Unseal:ExceptionCodes:Group:002": "Group already exists.",
+
+    "Unseal:ExceptionCodes:GroupMember:001": "Group member not found.",
+    "Unseal:ExceptionCodes:GroupMember:002": "Group member already exists.",
+    "Unseal:ExceptionCodes:GroupMember:003": "Users who do not give permission cannot be added to the group.",
     
     "Unseal:ExceptionCodes:Mail:001": "Mail settings not found.",
 

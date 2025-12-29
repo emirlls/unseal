@@ -46,4 +46,39 @@ public static class ExceptionCodes
         public const string NotFound = $"{Prefix}001";
         public const string AlreadyExists = $"{Prefix}002";
     }
+    
+    public static class File
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}:File:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+        public const string UploadError = $"{Prefix}003";
+    }
+    
+    public static class UserProfile
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}:UserProfile:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
+    public static class UserFollower
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}:UserFollower:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+        public const string UserIsBanned = $"{Prefix}003";
+    }
+    public static class Group
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}:Group:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
+    public static class GroupMember
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}:GroupMember:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+        public const string UserNotAllowedToJoinGroup = $"{Prefix}003";
+    }
 }

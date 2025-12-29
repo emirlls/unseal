@@ -6,7 +6,7 @@ using Volo.Abp.MultiTenancy;
 
 namespace Unseal.Entities.Capsules;
 
-public class Capsule : FullAuditedAggregateRoot<Guid>,IMultiTenant
+public class Capsule : FullAuditedAggregateRoot<Guid>, IMultiTenant
 {
     public Guid? TenantId { get; set; }
     public Guid? ReceiverId { get; set; }
@@ -14,9 +14,9 @@ public class Capsule : FullAuditedAggregateRoot<Guid>,IMultiTenant
     public bool? IsPublic { get; set; }
     public bool? IsOpened { get; set; }
     public DateTime RevealDate { get; set; }
-    
+
     public Guid? CapsuleTypeId { get; set; }
-    
+
     public virtual CapsuleType CapsuleType { get; set; }
     public virtual ICollection<CapsuleItem> CapsuleItems { get; set; }
 
@@ -24,11 +24,12 @@ public class Capsule : FullAuditedAggregateRoot<Guid>,IMultiTenant
         Guid id,
         Guid? tenantId,
         Guid? receiverId,
+        Guid? capsuleTypeId,
+        Guid? creatorId,
         string name,
         bool? isPublic,
-        DateTime revealDate,
-        Guid? capsuleTypeId,
-        Guid? creatorId)
+        DateTime revealDate
+    )
     {
         Id = id;
         TenantId = tenantId;
