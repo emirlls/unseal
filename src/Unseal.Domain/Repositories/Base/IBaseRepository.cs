@@ -30,10 +30,20 @@ public interface IBaseRepository<TEntity> : IRepository<TEntity>, ITransientDepe
         bool asNoTracking = false,
         CancellationToken cancellationToken = default
     );
-    
+
     Task<List<TEntity>> TryGetListQueryableAsync(
         IQueryable<TEntity> queryable,
         bool asNoTracking = false,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<bool> ExistsAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken = default
+    );
+
+    Task HardDeleteAsync(
+        TEntity entity,
         CancellationToken cancellationToken = default
     );
 }

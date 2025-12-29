@@ -39,6 +39,7 @@ public class BaseDomainService<TEntity> : DomainService, IBaseDomainService<TEnt
         Expression<Func<TEntity, bool>> expression,
         bool throwIfNull = false,
         bool asNoTracking = false,
+        bool throwIfExists = false,
         CancellationToken cancellationToken = default
     )
     {
@@ -48,12 +49,20 @@ public class BaseDomainService<TEntity> : DomainService, IBaseDomainService<TEnt
             throw new UserFriendlyException(_stringLocalizer[NotFoundException]);
         }
 
+        if (throwIfExists && response is not null)
+        {
+            throw new UserFriendlyException(_stringLocalizer[AlreadyExistsException]);
+        }
+
         return response;
     }
 
-    public async Task<List<TEntity>> TryGetListByAsync(Expression<Func<TEntity, bool>> expression, bool throwIfNull = false,
+    public async Task<List<TEntity>> TryGetListByAsync(
+        Expression<Func<TEntity, bool>> expression,
+        bool throwIfNull = false,
         bool asNoTracking = false,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var response = await _baseRepository.GetListByAsync(expression, asNoTracking, cancellationToken);
         if (throwIfNull && response is null)
@@ -64,9 +73,13 @@ public class BaseDomainService<TEntity> : DomainService, IBaseDomainService<TEnt
         return response;
     }
 
-    public async Task<TEntity> TryGetQueryableAsync(IQueryable<TEntity> queryable, bool throwIfNull = false,
+    public async Task<TEntity> TryGetQueryableAsync(
+        IQueryable<TEntity> queryable,
+        bool throwIfNull = false,
         bool asNoTracking = false,
-        CancellationToken cancellationToken = default)
+        bool throwIfExists = false,
+        CancellationToken cancellationToken = default
+    )
     {
         var response = await _baseRepository.TryGetQueryableAsync(queryable, asNoTracking, cancellationToken);
         if (throwIfNull && response is null)
@@ -74,6 +87,20 @@ public class BaseDomainService<TEntity> : DomainService, IBaseDomainService<TEnt
             throw new UserFriendlyException(_stringLocalizer[NotFoundException]);
         }
 
+        if (throwIfExists && response is not null)
+        {
+            throw new UserFriendlyException(_stringLocalizer[AlreadyExistsException]);
+        }
+
+        return response;
+    }
+
+    public async Task<bool> ExistsAsync(
+        Expression<Func<TEntity, bool>> expression,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var response = await _baseRepository.ExistsAsync(expression, cancellationToken);
         return response;
     }
 }

@@ -17,9 +17,9 @@ public class CapsuleItem : FullAuditedAggregateRoot<Guid>
         Guid id,
         Guid capsuleId,
         string contentType,
-        string textContext,
-        string fileUrl,
-        string fileName
+        string? textContext,
+        string? fileUrl,
+        string? fileName
     )
     {
         Id = id;

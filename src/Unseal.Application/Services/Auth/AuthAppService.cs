@@ -39,7 +39,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default
     )
     {
-        var model = AuthMapper.MapToModel(dto);
+        var model = AuthMapper.MapRegisterDtoToRegisterModel(dto);
         
         var user =await CustomIdentityUserManager.Create(
             GuidGenerator.Create(),

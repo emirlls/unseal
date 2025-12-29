@@ -16,6 +16,7 @@ public interface IBaseDomainService<TEntity> : IDomainService
         Expression<Func<TEntity, bool>> expression,
         bool throwIfNull = false,
         bool asNoTracking = false,
+        bool throwIfExists = false,
         CancellationToken cancellationToken = default
     );
 
@@ -30,6 +31,12 @@ public interface IBaseDomainService<TEntity> : IDomainService
         IQueryable<TEntity> queryable,
         bool throwIfNull = false,
         bool asNoTracking = false,
+        bool throwIfExists = false,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<bool> ExistsAsync(
+        Expression<Func<TEntity, bool>> expression,
         CancellationToken cancellationToken = default
     );
 }

@@ -7,7 +7,7 @@ using Unseal.Dtos.Auth;
 using Unseal.Services.Auth;
 using Volo.Abp.DependencyInjection;
 
-namespace Unseal.Auth;
+namespace Unseal.Controllers.Auth;
 
 [Route("api/auth")]
 [ApiController]

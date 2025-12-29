@@ -5,6 +5,7 @@ using Unseal.Constants;
 using Unseal.Entities.Capsules;
 using Unseal.Entities.Lookups;
 using Unseal.Entities.Notifications;
+using Unseal.Entities.Users;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity;
 using Volo.Abp.OpenIddict;
@@ -31,6 +32,8 @@ public static class UnsealTableNameProvider
         {nameof(Notification),"Notifications"},
         {nameof(NotificationEventType),"NotificationEventTypes"},
         {nameof(NotificationTemplate),"NotificationTemplates"},
+        {nameof(UserProfile),"UserProfiles"},
+        {nameof(UserFollower),"UserFollowers"},
     };
     
     public static void SetAbpTablePrefix(this ModelBuilder builder)
