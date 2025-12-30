@@ -1,16 +1,22 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.DependencyInjection;
 using Unseal.EntityFrameworkCore;
+using Unseal.Extensions;
 using Volo.Abp;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.Users;
 
 namespace Unseal.Repositories.Base;
 
@@ -30,7 +36,7 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
     {
         var dbSet = await GetDbSetAsync();
 
-        var query = DynamicQueryableExtensions.Where(dbSet, expression);
+        var query = dbSet.Where(expression);
         if (asNoTracking)
         {
             query = query
@@ -148,5 +154,58 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
             dbSet.RemoveRange(entities);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
+    }
+
+    public async Task<List<TEntity>> GetDynamicListAsync<TFilters>(
+        TFilters filters,
+        CancellationToken cancellationToken = default
+
+    ) where TFilters : PagedAndSortedResultRequestDto
+    {
+        var dbSet = await GetDbSetAsync();
+        var currentUser = ServiceProvider.GetRequiredService<ICurrentUser>();
+        var distributedCache = ServiceProvider.GetRequiredService<IDistributedCache>();
+        var cacheCountKey = CacheExtension.GenerateCacheKeyToCount(
+            CultureInfo.CurrentCulture,
+            currentUser.Id,
+            typeof(TFilters).Name
+        );
+        var cacheOptions = new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(int.MaxValue)
+        };
+        var response= dbSet
+            .ApplyDynamicFilters(filters)
+            .AsQueryable();
+        var count = await response.CountAsync(cancellationToken: cancellationToken);
+        await distributedCache.SetStringAsync(
+            cacheCountKey,
+            count.ToString(),
+            cacheOptions,
+            token: cancellationToken);
+        return await response
+            .PageBy(filters.SkipCount, filters.MaxResultCount)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<long> GetDynamicListCountAsync<TFilters>(
+        TFilters filters,
+        CancellationToken cancellationToken = default
+
+    ) where TFilters : PagedAndSortedResultRequestDto
+    {
+        var currentUser = ServiceProvider.GetRequiredService<ICurrentUser>();
+        var distributedCache = ServiceProvider.GetRequiredService<IDistributedCache>();
+        var cacheCountKey = CacheExtension.GenerateCacheKeyToCount(
+            CultureInfo.CurrentCulture,
+            currentUser.Id,
+            typeof(TFilters).Name
+        );
+        var count = await distributedCache.GetStringAsync(
+            cacheCountKey,
+            token: cancellationToken
+        );
+        if (count == null) return -1;
+        return Convert.ToInt32(count);
     }
 }

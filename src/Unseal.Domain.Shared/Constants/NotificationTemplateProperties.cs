@@ -2,7 +2,6 @@ namespace Unseal.Constants;
 
 public static class NotificationTemplateProperties
 {
-    public const string AppName = "Unseal";
     public static class UserRegisterTemplateParameters
     {
         public const string ApplicationName = "{{ApplicationName}}";

@@ -54,11 +54,11 @@ public class UserRegisterEventHandler :
             .Replace(NotificationTemplateProperties.UserRegisterTemplateParameters.Name, eventData.Name)
             .Replace(NotificationTemplateProperties.UserRegisterTemplateParameters.Surname, eventData.Surname)
             .Replace(NotificationTemplateProperties.UserRegisterTemplateParameters.VerifyEmailUrl, verifyUrl)
-            .Replace(NotificationTemplateProperties.UserRegisterTemplateParameters.ApplicationName, NotificationTemplateProperties.AppName);
+            .Replace(NotificationTemplateProperties.UserRegisterTemplateParameters.ApplicationName, AppConstants.AppName);
         
         await _serviceProvider
             .SendMailAsync(eventData.Email,
-                notificationTemplate.Subject ?? NotificationTemplateProperties.AppName,
+                notificationTemplate.Subject ?? AppConstants.AppName,
                 replacedTemplate
             );
     }

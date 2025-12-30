@@ -35,7 +35,6 @@ public class GenericResponseMiddleware
             var responseText = await new StreamReader(responseBody).ReadToEndAsync();
             
             object genericResponse;
-            string newResponseContent;
 
             if (statusCode >= 200 && statusCode < 300)
             {
@@ -69,12 +68,12 @@ public class GenericResponseMiddleware
                      try
                      {
                          var abpError = JsonSerializer.Deserialize<JsonElement>(responseText);
-                         if (abpError.TryGetProperty(GenericConstants.Error, out var errorElement))
+                         if (abpError.TryGetProperty(AppConstants.GenericResponse.Error, out var errorElement))
                          {
                             errorDetails = new {
-                                Code = errorElement.GetProperty(GenericConstants.Code).GetString() ?? statusCode.ToString(),
-                                Message = _localizer[errorElement.GetProperty(GenericConstants.Message).GetString()!],
-                                Details = (object?)errorElement.GetProperty(GenericConstants.Details).GetString()
+                                Code = errorElement.GetProperty(AppConstants.GenericResponse.Code).GetString() ?? statusCode.ToString(),
+                                Message = _localizer[errorElement.GetProperty(AppConstants.GenericResponse.Message).GetString()!],
+                                Details = (object?)errorElement.GetProperty(AppConstants.GenericResponse.Details).GetString()
                             };
                          }
                      }
@@ -94,9 +93,9 @@ public class GenericResponseMiddleware
                 };
             }
 
-            newResponseContent = JsonSerializer.Serialize(genericResponse, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            var newResponseContent = JsonSerializer.Serialize(genericResponse, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
             context.Response.ContentLength = Encoding.UTF8.GetByteCount(newResponseContent);
-            context.Response.ContentType = GenericConstants.ContentType;
+            context.Response.ContentType = AppConstants.GenericResponse.ContentType;
 
             await originalBodyStream.WriteAsync(Encoding.UTF8.GetBytes(newResponseContent));
         }

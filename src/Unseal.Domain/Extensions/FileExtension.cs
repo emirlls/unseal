@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
@@ -72,6 +73,36 @@ public static class FileExtension
             };
 
             var deletionResult = await cloudinary.DestroyAsync(deletionParams);
+        }
+        
+        public string? GetEncryptedFileUrlAsync(string? fileUrl)
+        {
+            if(string.IsNullOrEmpty(fileUrl)) return null;
+            var dataProtectorProvider = serviceProvider.GetRequiredService<IDataProtectionProvider>();
+            var dataProtector = dataProtectorProvider.CreateProtector(AppConstants.DataProtection.Purpose);
+            try
+            {
+                return dataProtector.Protect(fileUrl);
+            }
+            catch
+            {
+                return fileUrl;
+            }
+        }
+        
+        public string? GetDecryptedFileUrlAsync(string? encryptedFileUrl)
+        {
+            if (string.IsNullOrEmpty(encryptedFileUrl)) return null;
+            var dataProtectorProvider = serviceProvider.GetRequiredService<IDataProtectionProvider>();
+            var dataProtector = dataProtectorProvider.CreateProtector(AppConstants.DataProtection.Purpose);
+            try
+            { 
+                return dataProtector.Unprotect(encryptedFileUrl);
+            }
+            catch
+            {
+                return encryptedFileUrl;
+            }
         }
     }
 
