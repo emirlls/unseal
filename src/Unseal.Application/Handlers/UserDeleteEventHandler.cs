@@ -44,11 +44,11 @@ public class UserDeleteEventHandler : IDistributedEventHandler<UserDeleteEto>, I
         var replacedTemplate = notificationTemplate.Content
             .Replace(NotificationTemplateProperties.UserDeleteTemplateParameters.Name, eventData.Name)
             .Replace(NotificationTemplateProperties.UserDeleteTemplateParameters.Surname, eventData.Surname)
-            .Replace(NotificationTemplateProperties.UserDeleteTemplateParameters.ApplicationName, NotificationTemplateProperties.AppName);
+            .Replace(NotificationTemplateProperties.UserDeleteTemplateParameters.ApplicationName, AppConstants.AppName);
         
         await _serviceProvider
             .SendMailAsync(eventData.Email,
-                notificationTemplate.Subject ?? NotificationTemplateProperties.AppName,
+                notificationTemplate.Subject ?? AppConstants.AppName,
                 replacedTemplate
             );
     }

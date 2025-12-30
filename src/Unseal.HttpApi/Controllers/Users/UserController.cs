@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unseal.Dtos.Users;
+using Unseal.Filtering.Users;
 using Unseal.Services.Users;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.DependencyInjection;
 
 namespace Unseal.Controllers.Users;
@@ -87,6 +89,24 @@ public class UserController : UnsealController
         return await UserAppService.UpdateGroupAsync(
             groupId,
             groupUpdateDto, 
+            cancellationToken
+        );
+    }
+
+    /// <summary>
+    /// Use to filtered group list.
+    /// </summary>
+    /// <param name="groupFilters"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("group")]
+    public async Task<PagedResultDto<GroupDto>> GetFilteredGroupListAsync(
+        [FromQuery]GroupFilters groupFilters,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await UserAppService.GetFilteredGroupListAsync(
+            groupFilters,
             cancellationToken
         );
     }

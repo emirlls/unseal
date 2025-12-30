@@ -161,11 +161,8 @@ public class UnsealHttpApiHostModule : AbpModule
         });
 
         var dataProtectionBuilder = context.Services.AddDataProtection().SetApplicationName("Unseal");
-        if (!hostingEnvironment.IsDevelopment())
-        {
-            var redis = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]!);
-            dataProtectionBuilder.PersistKeysToStackExchangeRedis(redis, "Unseal-Protection-Keys");
-        }
+        var redis = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]!);
+        dataProtectionBuilder.PersistKeysToStackExchangeRedis(redis, "DataProtection-Keys");
         
         context.Services.AddCors(options =>
         {
