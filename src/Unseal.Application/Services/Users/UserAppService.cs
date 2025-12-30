@@ -8,12 +8,14 @@ using Microsoft.Extensions.Localization;
 using Unseal.Constants;
 using Unseal.Dtos.Users;
 using Unseal.Extensions;
+using Unseal.Filtering.Users;
 using Unseal.Interfaces.Managers.Auth;
 using Unseal.Interfaces.Managers.Users;
 using Unseal.Localization;
 using Unseal.Profiles.Users;
 using Unseal.Repositories.Users;
 using Volo.Abp;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Uow;
 
 namespace Unseal.Services.Users;
@@ -89,7 +91,7 @@ public class UserAppService : UnsealAppService, IUserAppService
         {
             var fileUrl = await LazyServiceProvider
                 .UploadFileAsync(groupCreateDto.StreamContent);
-            group.GroupImageUrl = fileUrl;
+            group.GroupImageUrl = LazyServiceProvider.GetEncryptedFileUrlAsync(fileUrl)!;
         }
         var groupMembers = GroupMemberManager.Create(
             groupCreateModel,
@@ -125,6 +127,30 @@ public class UserAppService : UnsealAppService, IUserAppService
         await GroupMemberRepository.HardDeleteManyAsync(group.GroupMembers, cancellationToken);
         await GroupMemberRepository.BulkInsertAsync(groupMembers, cancellationToken);
         return true;
+    }
+
+    public async Task<PagedResultDto<GroupDto>> GetFilteredGroupListAsync(
+        GroupFilters groupFilters,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var groups = await GroupRepository.GetDynamicListAsync(
+            groupFilters,
+            cancellationToken
+        );
+        
+        var count = await GroupRepository.GetDynamicListCountAsync(
+            groupFilters,
+            cancellationToken
+        );
+
+        var dto = UserMapper.MapGroupToGroupDtoList(groups);
+        var response = new PagedResultDto<GroupDto>
+        {
+            Items = dto,
+            TotalCount = count
+        };
+        return response;
     }
 
     private async Task CheckUserAllowToJoinGroupAsync(
