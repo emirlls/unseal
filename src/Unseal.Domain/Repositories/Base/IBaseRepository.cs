@@ -26,14 +26,20 @@ public interface IBaseRepository<TEntity> : IRepository<TEntity>, ITransientDepe
         CancellationToken cancellationToken = default
     );
 
-    Task<TEntity?> TryGetQueryableAsync(
+    Task<TEntity?> TryGetByQueryableAsync(
         Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
         bool asNoTracking = false,
         CancellationToken cancellationToken = default
     );
 
     Task<List<TEntity>> TryGetListQueryableAsync(
-        IQueryable<TEntity> queryable,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
+        bool asNoTracking = false,
+        CancellationToken cancellationToken = default
+    );
+    
+    Task<IQueryable<TEntity>?> TryGetQueryableAsync(
+        Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
         bool asNoTracking = false,
         CancellationToken cancellationToken = default
     );
@@ -63,6 +69,8 @@ public interface IBaseRepository<TEntity> : IRepository<TEntity>, ITransientDepe
 
     Task<List<TEntity>> GetDynamicListAsync<TFilters>(
         TFilters filters,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>>? queryBuilder, 
+        bool asNoTracking = false,
         CancellationToken cancellationToken = default)
         where TFilters : PagedAndSortedResultRequestDto;
     

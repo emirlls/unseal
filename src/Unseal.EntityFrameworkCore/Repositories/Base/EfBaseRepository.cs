@@ -65,7 +65,7 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
             .ToListAsync(cancellationToken: cancellationToken);
     }
 
-    public async Task<TEntity?> TryGetQueryableAsync(
+    public async Task<TEntity?> TryGetByQueryableAsync(
         Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
         bool asNoTracking = false,
         CancellationToken cancellationToken = default
@@ -83,13 +83,13 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
     }
 
     public async Task<List<TEntity>> TryGetListQueryableAsync(
-        IQueryable<TEntity> queryable,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
         bool asNoTracking = false,
         CancellationToken cancellationToken = default
     )
     {
-        IQueryable<TEntity> query = queryable;
-
+        var query = await GetQueryableAsync();
+        query = queryBuilder(query);        
         if (asNoTracking)
         {
             query = query
@@ -97,6 +97,23 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
         }
 
         return await query.ToListAsync(cancellationToken: cancellationToken);
+    }
+
+    public async Task<IQueryable<TEntity>?> TryGetQueryableAsync(
+        Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
+        bool asNoTracking = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var query = await GetQueryableAsync();
+        query = queryBuilder(query);        
+        if (asNoTracking)
+        {
+            query = query
+                .AsNoTracking();
+        }
+
+        return query;
     }
 
     public async Task<bool> ExistsAsync(
@@ -110,7 +127,10 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
         return response;
     }
 
-    public async Task HardDeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
+    public async Task HardDeleteAsync(
+        TEntity entity,
+        CancellationToken cancellationToken = default
+    )
     {
         using (DataFilter.Disable<ISoftDelete>())
         {
@@ -158,6 +178,8 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
 
     public async Task<List<TEntity>> GetDynamicListAsync<TFilters>(
         TFilters filters,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>>? queryBuilder, 
+        bool asNoTracking = false,
         CancellationToken cancellationToken = default
 
     ) where TFilters : PagedAndSortedResultRequestDto
@@ -177,6 +199,12 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
         var response= dbSet
             .ApplyDynamicFilters(filters)
             .AsQueryable();
+        if (asNoTracking)
+        {
+            response = response
+                .AsNoTracking();
+        }
+        if(queryBuilder is not null) response = queryBuilder(response);
         var count = await response.CountAsync(cancellationToken: cancellationToken);
         await distributedCache.SetStringAsync(
             cacheCountKey,

@@ -1,22 +1,13 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Unseal.Constants;
-using Unseal.Dtos.Users;
-using Unseal.Extensions;
-using Unseal.Filtering.Users;
 using Unseal.Interfaces.Managers.Auth;
 using Unseal.Interfaces.Managers.Users;
 using Unseal.Localization;
-using Unseal.Profiles.Users;
 using Unseal.Repositories.Users;
 using Volo.Abp;
-using Volo.Abp.Application.Dtos;
-using Volo.Abp.Uow;
 
 namespace Unseal.Services.Users;
 
@@ -28,18 +19,10 @@ public class UserAppService : UnsealAppService, IUserAppService
         LazyServiceProvider.LazyGetRequiredService<IUserFollowerManager>();
     private IUserFollowerRepository UserFollowerRepository =>
         LazyServiceProvider.LazyGetRequiredService<IUserFollowerRepository>();
-    private IUserProfileManager UserProfileManager =>
-        LazyServiceProvider.LazyGetRequiredService<IUserProfileManager>();
-    private UserMapper UserMapper =>
-        LazyServiceProvider.LazyGetRequiredService<UserMapper>();
-    private IGroupManager GroupManager =>
-        LazyServiceProvider.LazyGetRequiredService<IGroupManager>();
-    private IGroupMemberManager GroupMemberManager =>
-        LazyServiceProvider.LazyGetRequiredService<IGroupMemberManager>();
-    private IGroupRepository GroupRepository =>
-        LazyServiceProvider.LazyGetRequiredService<IGroupRepository>();
-    private IGroupMemberRepository GroupMemberRepository =>
-        LazyServiceProvider.LazyGetRequiredService<IGroupMemberRepository>();
+    private IUserInteractionManager UserInteractionManager =>
+        LazyServiceProvider.LazyGetRequiredService<IUserInteractionManager>();
+    private IUserInteractionRepository UserInteractionRepository =>
+        LazyServiceProvider.LazyGetRequiredService<IUserInteractionRepository>();
     private IStringLocalizer<UnsealResource> StringLocalizer =>
         LazyServiceProvider.LazyGetRequiredService<IStringLocalizer<UnsealResource>>();
     public async Task<bool> FollowAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -48,7 +31,7 @@ public class UserAppService : UnsealAppService, IUserAppService
             .TryGetByAsync(x => 
                     x.Id.Equals(userId), throwIfNull: true,
             cancellationToken: cancellationToken);
-        var isBlocked = await UserFollowerManager.CheckUserBlockedAsync(CurrentUser.Id, user.Id, cancellationToken);
+        var isBlocked = await UserInteractionManager.CheckUserBlockedAsync(user.Id, (Guid)CurrentUser.Id!, cancellationToken);
         if (isBlocked)
         {
             throw new UserFriendlyException(StringLocalizer[ExceptionCodes.UserFollower.UserIsBanned]);
@@ -75,108 +58,37 @@ public class UserAppService : UnsealAppService, IUserAppService
         return true;
     }
 
-    [UnitOfWork]
-    public async Task<bool> CreateGroupAsync(
-        GroupCreateDto groupCreateDto,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<bool> BlockAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        await CheckUserAllowToJoinGroupAsync(
-            groupCreateDto.UserIds.ToHashSet(),
-            cancellationToken
-        );
-        var groupCreateModel = UserMapper.MapGroupCreateDtoToModel(groupCreateDto);
-        var group = GroupManager.Create(groupCreateModel);
-        if (groupCreateDto.StreamContent is not null)
+        var userInteraction = await UserInteractionManager.TryGetByAsync(x =>
+            x.SourceUserId.Equals(CurrentUser.Id) && x.TargetUserId.Equals(userId), cancellationToken: cancellationToken);
+        if (userInteraction is null)
         {
-            var fileUrl = await LazyServiceProvider
-                .UploadFileAsync(groupCreateDto.StreamContent);
-            group.GroupImageUrl = LazyServiceProvider.GetEncryptedFileUrlAsync(fileUrl)!;
+            var entity = UserInteractionManager.Create((Guid)CurrentUser.Id!, userId);
+            entity.IsBlocked = true;
+            await UserInteractionRepository.InsertAsync(entity, cancellationToken: cancellationToken);
+            return true;
         }
-        var groupMembers = GroupMemberManager.Create(
-            groupCreateModel,
-            group.Id,
-            (Guid)CurrentUser.Id!
-        );
-        await GroupRepository.InsertAsync(group, cancellationToken: cancellationToken);
-        await GroupMemberRepository.BulkInsertAsync(groupMembers, cancellationToken);
+
+        userInteraction.IsBlocked = true;
+        await UserInteractionRepository.UpdateAsync(userInteraction, cancellationToken: cancellationToken);
         return true;
     }
 
-    public async Task<bool> UpdateGroupAsync(
-        Guid groupId,
-        GroupUpdateDto groupUpdateDto,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<bool> UnBlockAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-
-        var group = await GroupManager.TryGetQueryableAsync(q=>
-            q
-                .Where(x=>x.Id.Equals(groupId))
-                .Include(x=>x.GroupMembers),
-            cancellationToken: cancellationToken);
+        var userInteraction = await UserInteractionManager.TryGetByAsync(x =>
+            x.SourceUserId.Equals(CurrentUser.Id) && x.TargetUserId.Equals(userId), cancellationToken: cancellationToken);
         
-        var groupUpdateModel = UserMapper.MapGroupUpdateDtoToModel(groupUpdateDto);
-        var updatedGroup = GroupManager.Update(group, groupUpdateModel);
-        var groupMembers = GroupMemberManager.Create(
-            groupUpdateModel,
-            group.Id,
-            (Guid)CurrentUser.Id!
-        );
-        await GroupRepository.UpdateAsync(updatedGroup, cancellationToken: cancellationToken);
-        await GroupMemberRepository.HardDeleteManyAsync(group.GroupMembers, cancellationToken);
-        await GroupMemberRepository.BulkInsertAsync(groupMembers, cancellationToken);
-        return true;
-    }
-
-    public async Task<PagedResultDto<GroupDto>> GetFilteredGroupListAsync(
-        GroupFilters groupFilters,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var groups = await GroupRepository.GetDynamicListAsync(
-            groupFilters,
-            cancellationToken
-        );
-        
-        var count = await GroupRepository.GetDynamicListCountAsync(
-            groupFilters,
-            cancellationToken
-        );
-
-        var dto = UserMapper.MapGroupToGroupDtoList(groups);
-        var response = new PagedResultDto<GroupDto>
+        if (userInteraction is null)
         {
-            Items = dto,
-            TotalCount = count
-        };
-        return response;
-    }
+            var entity = UserInteractionManager.Create((Guid)CurrentUser.Id!, userId);
+            await UserInteractionRepository.InsertAsync(entity, cancellationToken: cancellationToken);
+            return true;
+        }
 
-    private async Task CheckUserAllowToJoinGroupAsync(
-        HashSet<Guid> userIds,
-        CancellationToken cancellationToken
-    )
-    {
-        var userAllowJoinGroups = (await UserProfileManager
-                .TryGetListByAsync(x => 
-                        userIds.Contains(x.UserId), 
-                    cancellationToken: cancellationToken))
-            .ToDictionary(x=>x.UserId,x=>x.AllowJoinGroup);
-
-        await Parallel.ForEachAsync(
-            userIds,
-            cancellationToken,
-            async (userId, ct) =>
-            {
-                if (userAllowJoinGroups.TryGetValue(userId, out var allowJoinGroup))
-                {
-                    if (!allowJoinGroup)
-                    {
-                        throw new UserFriendlyException(
-                            StringLocalizer[ExceptionCodes.GroupMember.UserNotAllowedToJoinGroup]);
-                    }
-                }
-            });
+        userInteraction.IsBlocked = false;
+        await UserInteractionRepository.UpdateAsync(userInteraction, cancellationToken: cancellationToken);
+        return true;
     }
 }

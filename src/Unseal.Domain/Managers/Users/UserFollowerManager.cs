@@ -1,6 +1,4 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Unseal.Constants;
 using Unseal.Entities.Users;
@@ -31,17 +29,5 @@ public class UserFollowerManager : BaseDomainService<UserFollower>, IUserFollowe
         );
 
         return userFollower;
-    }
-
-    public async Task<bool> CheckUserBlockedAsync(
-        Guid? userId,
-        Guid followerId,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var isBlocked =
-            await ExistsAsync(x => x.UserId.Equals(userId) && x.FollowerId.Equals(followerId) && x.IsBlocked,
-                cancellationToken);
-        return isBlocked;
     }
 }

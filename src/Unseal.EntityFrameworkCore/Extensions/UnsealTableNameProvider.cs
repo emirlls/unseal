@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Unseal.Constants;
 using Unseal.Entities.Capsules;
+using Unseal.Entities.Groups;
 using Unseal.Entities.Lookups;
 using Unseal.Entities.Notifications;
 using Unseal.Entities.Users;
@@ -36,6 +37,7 @@ public static class UnsealTableNameProvider
         {nameof(UserFollower),"UserFollowers"},
         {nameof(Group),"Groups"},
         {nameof(GroupMember),"GroupMembers"},
+        {nameof(UserInteraction),"UserInteractions"},
     };
     
     public static void SetAbpTablePrefix(this ModelBuilder builder)
