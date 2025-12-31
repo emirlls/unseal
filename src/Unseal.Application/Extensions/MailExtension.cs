@@ -7,7 +7,7 @@ using Microsoft.Extensions.Localization;
 using Unseal.Constants;
 using Unseal.Localization;
 using Unseal.Settings.Custom;
-using Unseal.Settings.Models;
+using Unseal.Settings.Models.Mail;
 using Volo.Abp;
 
 namespace Unseal.Extensions;

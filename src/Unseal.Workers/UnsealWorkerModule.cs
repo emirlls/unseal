@@ -1,3 +1,4 @@
+using Unseal.Workers.Workers.Capsules;
 using Volo.Abp;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Modularity;
@@ -11,6 +12,6 @@ public class UnsealWorkerModule : AbpModule
 {
     public override async Task OnPostApplicationInitializationAsync(ApplicationInitializationContext context)
     {
-        //await context.AddBackgroundWorkerAsync<TestWorker>();
+        await context.AddBackgroundWorkerAsync<CapsuleRevealWorker>();
     }
 }

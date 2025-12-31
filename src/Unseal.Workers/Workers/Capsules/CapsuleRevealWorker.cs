@@ -1,4 +1,6 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Unseal.Constants;
 using Unseal.Workers.BackgroundJobs;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Threading;
@@ -14,7 +16,14 @@ public class CapsuleRevealWorker : AsyncPeriodicBackgroundWorkerBase
 
     protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
     {
-        var capsuleRevealBackgroundJob = workerContext.ServiceProvider.GetRequiredService<CapsuleRevealBackgroundJob>();
-        await capsuleRevealBackgroundJob.RevealCapsulesAsync(workerContext.CancellationToken);
+        var configuration = ServiceProvider.GetRequiredService<IConfiguration>();
+        var capsuleRevealJobSetting = 
+            bool.Parse(configuration[BackgroundJobSettingConstants.CapsuleReveal.CapsuleRevealBackgroundJob]!);
+        if (!capsuleRevealJobSetting) return;
+        var capsuleRevealBackgroundJob = ServiceProvider.GetRequiredService<CapsuleRevealBackgroundJob>();
+        await capsuleRevealBackgroundJob.RevealCapsulesAsync(
+            ServiceProvider,
+            workerContext.CancellationToken
+        );
     }
 }

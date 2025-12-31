@@ -1,4 +1,4 @@
-namespace Unseal.Settings.Models;
+namespace Unseal.Settings.Models.Mail;
 
 public class MailSettings
 {

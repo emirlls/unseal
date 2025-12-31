@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using Unseal.Constants;
 
-namespace Unseal.Settings.Models;
+namespace Unseal.Settings.Models.Mail;
 
 [Description(SettingConstants.MailSettingModel.Name)]
 public class MailSettingModel

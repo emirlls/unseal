@@ -78,7 +78,7 @@ public class GroupAppService : UnsealAppService, IGroupAppService
         CancellationToken cancellationToken = default
     )
     {
-        var group = await GroupManager.TryGetQueryableAsync(q =>
+        var group = await GroupManager.TryGetByQueryableAsync(q =>
                 q
                     .Where(x => x.Id.Equals(groupId))
                     .Include(x => x.GroupMembers),
@@ -105,6 +105,8 @@ public class GroupAppService : UnsealAppService, IGroupAppService
     {
         var groups = await GroupRepository.GetDynamicListAsync(
             groupFilters,
+            null,
+            true,
             cancellationToken
         );
 
@@ -127,7 +129,7 @@ public class GroupAppService : UnsealAppService, IGroupAppService
         CancellationToken cancellationToken = default
     )
     {
-        var group = await GroupManager.TryGetQueryableAsync(q =>
+        var group = await GroupManager.TryGetByQueryableAsync(q =>
                 q
                     .Where(x => x.Id.Equals(groupId))
                     .Include(x => x.GroupMembers)
@@ -140,7 +142,7 @@ public class GroupAppService : UnsealAppService, IGroupAppService
 
     public async Task<bool> LeaveAsync(Guid groupId, CancellationToken cancellationToken = default)
     {
-        var group = await GroupManager.TryGetQueryableAsync(q =>
+        var group = await GroupManager.TryGetByQueryableAsync(q =>
                 q
                     .Where(x => x.Id.Equals(groupId) &&
                                 x.GroupMembers.Any(g => g.UserId.Equals(CurrentUser.Id)))

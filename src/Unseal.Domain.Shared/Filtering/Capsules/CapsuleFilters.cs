@@ -7,6 +7,7 @@ public class CapsuleFilters : PagedAndSortedResultRequestDto
 {
     public string? FilterText { get; set; }
     public string? Name { get; set; }
+    public bool? IsOpened { get; set; }
     public DateTime? RevealDateMin { get; set; }
     public DateTime? RevealDateMax { get; set; }
 }

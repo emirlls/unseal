@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Unseal.Constants;
 using Unseal.Settings.Custom;
 using Unseal.Settings.Models;
+using Unseal.Settings.Models.Mail;
 
 namespace Unseal.Settings.Seeders;
 
