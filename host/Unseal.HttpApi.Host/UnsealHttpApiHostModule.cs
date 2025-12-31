@@ -17,6 +17,7 @@ using Unseal.MultiTenancy;
 using StackExchange.Redis;
 using Microsoft.OpenApi.Models;
 using Unseal.Constants;
+using Unseal.Workers;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Authentication.JwtBearer;
 using Volo.Abp.AspNetCore.Mvc.UI.MultiTenancy;
@@ -52,7 +53,8 @@ namespace Unseal;
     typeof(AbpIdentityEntityFrameworkCoreModule),
     typeof(AbpOpenIddictAspNetCoreModule),
     typeof(AbpAspNetCoreSerilogModule),
-    typeof(AbpSwashbuckleModule)
+    typeof(AbpSwashbuckleModule),
+    typeof(UnsealWorkerModule)
     )]
 public class UnsealHttpApiHostModule : AbpModule
 {

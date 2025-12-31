@@ -40,6 +40,7 @@
     <ProjectReference Include="..\..\src\Unseal.HttpApi\Unseal.HttpApi.csproj" />
     <ProjectReference Include="..\..\src\Unseal.Application\Unseal.Application.csproj" />
     <ProjectReference Include="..\..\src\Unseal.EntityFrameworkCore\Unseal.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\src\Unseal.Workers\Unseal.Workers.csproj" />
     <ProjectReference Include="..\Unseal.Host.Shared\Unseal.Host.Shared.csproj" />
   </ItemGroup>
 

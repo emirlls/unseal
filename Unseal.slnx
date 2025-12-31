@@ -18,6 +18,7 @@
     <Project Path="src/Unseal.EntityFrameworkCore/Unseal.EntityFrameworkCore.csproj" />
     <Project Path="src/Unseal.HttpApi.Client/Unseal.HttpApi.Client.csproj" />
     <Project Path="src/Unseal.HttpApi/Unseal.HttpApi.csproj" />
+    <Project Path="src/Unseal.Workers/Unseal.Workers.csproj" />
     
   </Folder>
   <Folder Name="/test/">
