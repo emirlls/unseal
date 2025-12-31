@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -37,18 +38,37 @@ public class CapsuleController : UnsealController
     }
 
     /// <summary>
-    /// Use to paged capsule list
+    /// Use to paged capsule list.
+    /// To list own capsule, isAll must be false.
+    /// To list all capsule, isAll must be true.
     /// </summary>
     /// <param name="capsuleFilters"></param>
+    /// <param name="isAll"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpGet]
     public async Task<PagedResultDto<CapsuleDto>> GetFilteredListAsync(
         [FromQuery]CapsuleFilters capsuleFilters,
+        bool isAll = true,
         CancellationToken cancellationToken = default
     )
     {
         return await CapsuleAppService
-            .GetFilteredListAsync(capsuleFilters, cancellationToken);
+            .GetFilteredListAsync(capsuleFilters,isAll, cancellationToken);
+    }
+
+    /// <summary>
+    /// Use to get base64 qr code of the capsule
+    /// </summary>
+    /// <param name="capsuleId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("{capsuleId}/qr-code")]
+    public async Task<string> GetQrCodeAsync(
+        Guid capsuleId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await CapsuleAppService.GetQrCodeAsync(capsuleId, cancellationToken);
     }
 }

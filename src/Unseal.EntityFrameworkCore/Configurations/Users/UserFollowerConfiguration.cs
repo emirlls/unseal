@@ -14,9 +14,6 @@ public class UserFollowerConfiguration : IEntityTypeConfiguration<UserFollower>
         builder.ToTable(builder.GetTableName(),DatabaseConstants.SchemaName);
         builder.ConfigureByConvention();
 
-        builder.Property(x => x.IsMuted).HasDefaultValue(false);
-        builder.Property(x => x.IsBlocked).HasDefaultValue(false);
-        
         builder.HasOne(x => x.User)
             .WithMany()
             .HasForeignKey(x => x.UserId)

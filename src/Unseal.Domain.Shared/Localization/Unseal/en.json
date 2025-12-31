@@ -43,6 +43,9 @@
     "Unseal:ExceptionCodes:GroupMember:002": "Group member already exists.",
     "Unseal:ExceptionCodes:GroupMember:003": "Users who do not give permission cannot be added to the group.",
     
+    "Unseal:ExceptionCodes::UserInteraction::001": "User interaction not found.",
+    "Unseal:ExceptionCodes::UserInteraction::002": "User interaction already exists.",
+    
     "Unseal:ExceptionCodes:Mail:001": "Mail settings not found.",
 
     //Enums

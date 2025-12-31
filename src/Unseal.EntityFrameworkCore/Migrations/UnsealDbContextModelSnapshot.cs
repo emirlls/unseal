@@ -188,6 +188,78 @@ namespace Unseal.Migrations
                     b.ToTable("capsule_items", "unseal");
                 });
 
+            modelBuilder.Entity("Unseal.Entities.Groups.Group", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("creation_time");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("GroupImageUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("group_image_url");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("last_modification_time");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifier_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_groups");
+
+                    b.ToTable("groups", "unseal");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Groups.GroupMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("group_id");
+
+                    b.Property<DateTime>("JoinDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("join_date");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_group_members");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("group_members", "unseal");
+                });
+
             modelBuilder.Entity("Unseal.Entities.Lookups.CapsuleType", b =>
                 {
                     b.Property<Guid>("Id")
@@ -413,7 +485,31 @@ namespace Unseal.Migrations
                     b.ToTable("notification_templates", "unseal");
                 });
 
-            modelBuilder.Entity("Unseal.Entities.Users.Group", b =>
+            modelBuilder.Entity("Unseal.Entities.Users.UserFollower", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("FollowerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("follower_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_user_followers");
+
+                    b.HasIndex("FollowerId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("user_followers", "unseal");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Users.UserInteraction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -428,73 +524,6 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("creator_id");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<string>("GroupImageUrl")
-                        .HasColumnType("text")
-                        .HasColumnName("group_image_url");
-
-                    b.Property<DateTime?>("LastModificationTime")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("last_modification_time");
-
-                    b.Property<Guid?>("LastModifierId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("last_modifier_id");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id")
-                        .HasName("p_k_groups");
-
-                    b.ToTable("groups", "unseal");
-                });
-
-            modelBuilder.Entity("Unseal.Entities.Users.GroupMember", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("GroupId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("group_id");
-
-                    b.Property<DateTime>("JoinDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("join_date");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("p_k_group_members");
-
-                    b.HasIndex("GroupId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("group_members", "unseal");
-                });
-
-            modelBuilder.Entity("Unseal.Entities.Users.UserFollower", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("FollowerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("follower_id");
-
                     b.Property<bool>("IsBlocked")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -507,18 +536,22 @@ namespace Unseal.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_muted");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("SourceUserId")
                         .HasColumnType("uuid")
-                        .HasColumnName("user_id");
+                        .HasColumnName("source_user_id");
+
+                    b.Property<Guid>("TargetUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_user_id");
 
                     b.HasKey("Id")
-                        .HasName("p_k_user_followers");
+                        .HasName("p_k_user_interactions");
 
-                    b.HasIndex("FollowerId");
+                    b.HasIndex("SourceUserId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("TargetUserId");
 
-                    b.ToTable("user_followers", "unseal");
+                    b.ToTable("user_interactions", "unseal");
                 });
 
             modelBuilder.Entity("Unseal.Entities.Users.UserProfile", b =>
@@ -2211,6 +2244,27 @@ namespace Unseal.Migrations
                     b.Navigation("Capsule");
                 });
 
+            modelBuilder.Entity("Unseal.Entities.Groups.GroupMember", b =>
+                {
+                    b.HasOne("Unseal.Entities.Groups.Group", "Group")
+                        .WithMany("GroupMembers")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_group_members_groups_group_id");
+
+                    b.HasOne("Volo.Abp.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_group_members_users_user_id");
+
+                    b.Navigation("Group");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Unseal.Entities.Notifications.Notification", b =>
                 {
                     b.HasOne("Unseal.Entities.Notifications.NotificationEventType", "NotificationEventType")
@@ -2235,27 +2289,6 @@ namespace Unseal.Migrations
                     b.Navigation("NotificationEventType");
                 });
 
-            modelBuilder.Entity("Unseal.Entities.Users.GroupMember", b =>
-                {
-                    b.HasOne("Unseal.Entities.Users.Group", "Group")
-                        .WithMany("GroupMembers")
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("f_k_group_members_groups_group_id");
-
-                    b.HasOne("Volo.Abp.Identity.IdentityUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("f_k_group_members_users_user_id");
-
-                    b.Navigation("Group");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Unseal.Entities.Users.UserFollower", b =>
                 {
                     b.HasOne("Volo.Abp.Identity.IdentityUser", "Follower")
@@ -2275,6 +2308,27 @@ namespace Unseal.Migrations
                     b.Navigation("Follower");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Users.UserInteraction", b =>
+                {
+                    b.HasOne("Volo.Abp.Identity.IdentityUser", "SourceUser")
+                        .WithMany()
+                        .HasForeignKey("SourceUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_user_interactions_users_source_user_id");
+
+                    b.HasOne("Volo.Abp.Identity.IdentityUser", "TargetUser")
+                        .WithMany()
+                        .HasForeignKey("TargetUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_user_interactions_users_target_user_id");
+
+                    b.Navigation("SourceUser");
+
+                    b.Navigation("TargetUser");
                 });
 
             modelBuilder.Entity("Unseal.Entities.Users.UserProfile", b =>
@@ -2424,6 +2478,11 @@ namespace Unseal.Migrations
                     b.Navigation("CapsuleItems");
                 });
 
+            modelBuilder.Entity("Unseal.Entities.Groups.Group", b =>
+                {
+                    b.Navigation("GroupMembers");
+                });
+
             modelBuilder.Entity("Unseal.Entities.Lookups.CapsuleType", b =>
                 {
                     b.Navigation("Capsules");
@@ -2434,11 +2493,6 @@ namespace Unseal.Migrations
                     b.Navigation("NotificationTemplates");
 
                     b.Navigation("Notifications");
-                });
-
-            modelBuilder.Entity("Unseal.Entities.Users.Group", b =>
-                {
-                    b.Navigation("GroupMembers");
                 });
 
             modelBuilder.Entity("Volo.Abp.Identity.IdentityRole", b =>

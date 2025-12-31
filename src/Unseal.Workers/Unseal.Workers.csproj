@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Volo.Abp.Core" Version="10.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Unseal.Application.Contracts\Unseal.Application.Contracts.csproj" />
+      <ProjectReference Include="..\Unseal.Application\Unseal.Application.csproj" />
+      <ProjectReference Include="..\Unseal.Domain\Unseal.Domain.csproj" />
+    </ItemGroup>
+
+</Project>
