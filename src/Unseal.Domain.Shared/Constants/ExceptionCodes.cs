@@ -17,6 +17,7 @@ public static class ExceptionCodes
         private const string Prefix = $"{ExceptionCodePrefix}IdentityUser:";
         public const string NotFound = $"{Prefix}001";
         public const string AlreadyExists = $"{Prefix}002";
+        public const string CannotLoginIfMailNotConfirmed = $"{Prefix}003";
     }
     
     public static class Capsule

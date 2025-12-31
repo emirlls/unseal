@@ -74,7 +74,10 @@ public class AuthAppService : UnsealAppService, IAuthAppService
                 string.Equals(x.UserName, loginDto.UserName), 
             throwIfNull:true,
             cancellationToken: cancellationToken);
-        
+        if (!await IdentityUserManager.IsEmailConfirmedAsync(user))
+        {
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.CannotLoginIfMailNotConfirmed]);
+        }
         var tokenResponse = await GetTokenAsync(
             loginDto.UserName,
             loginDto.Password,
