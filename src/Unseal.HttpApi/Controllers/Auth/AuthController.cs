@@ -78,7 +78,7 @@ public class AuthController : UnsealController
     /// <param name="userId"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    [HttpPost("user-delete")]
+    [HttpDelete("{userId}")]
     public async Task<bool> UserDeleteAsync(
         Guid userId,
         CancellationToken cancellationToken = default

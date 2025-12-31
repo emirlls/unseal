@@ -9,6 +9,7 @@
 
     "Unseal:ExceptionCodes:IdentityUser:001": "Kullanıcı bulunamadı.",
     "Unseal:ExceptionCodes:IdentityUser:002": "Kullanıcı zaten mevcut.",
+    "Unseal:ExceptionCodes:IdentityUser:003": "E-posta adresiniz doğrulanmamıştır.",
 
     "Unseal:ExceptionCodes:Capsule:001": "Kapsül bulunamadı.",
     "Unseal:ExceptionCodes:Capsule:002": "Kapsül zaten mevcut.",
