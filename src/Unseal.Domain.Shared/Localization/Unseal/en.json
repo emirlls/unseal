@@ -9,6 +9,7 @@
 
     "Unseal:ExceptionCodes:IdentityUser:001": "User not found.",
     "Unseal:ExceptionCodes:IdentityUser:002": "User already exists.",
+    "Unseal:ExceptionCodes:IdentityUser:003": "Your email address has not been confirmed.",
 
     "Unseal:ExceptionCodes:Capsule:001": "Capsule not found.",
     "Unseal:ExceptionCodes:Capsule:002": "Capsule already exists.",
