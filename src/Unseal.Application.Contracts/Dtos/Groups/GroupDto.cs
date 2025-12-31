@@ -1,6 +1,6 @@
 using System;
 
-namespace Unseal.Dtos.Users;
+namespace Unseal.Dtos.Groups;
 
 public record GroupDto(
     Guid Id,

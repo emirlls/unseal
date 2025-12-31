@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Unseal.Constants;
-using Unseal.Entities.Users;
+using Unseal.Entities.Groups;
 using Unseal.Extensions;
 using Volo.Abp.EntityFrameworkCore.Modeling;
 
-namespace Unseal.Configurations.Users;
+namespace Unseal.Configurations.Groups;
 
 public class GroupMemberConfiguration : IEntityTypeConfiguration<GroupMember>
 {

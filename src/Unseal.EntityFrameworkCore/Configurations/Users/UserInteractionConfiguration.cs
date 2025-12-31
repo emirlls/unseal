@@ -7,21 +7,24 @@ using Volo.Abp.EntityFrameworkCore.Modeling;
 
 namespace Unseal.Configurations.Users;
 
-public class UserFollowerConfiguration : IEntityTypeConfiguration<UserFollower>
+public class UserInteractionConfiguration : IEntityTypeConfiguration<UserInteraction>
 {
-    public void Configure(EntityTypeBuilder<UserFollower> builder)
+    public void Configure(EntityTypeBuilder<UserInteraction> builder)
     {
         builder.ToTable(builder.GetTableName(),DatabaseConstants.SchemaName);
         builder.ConfigureByConvention();
 
-        builder.HasOne(x => x.User)
+        builder.Property(x => x.IsBlocked).HasDefaultValue(false);
+        builder.Property(x => x.IsMuted).HasDefaultValue(false);
+        
+        builder.HasOne(x => x.SourceUser)
             .WithMany()
-            .HasForeignKey(x => x.UserId)
+            .HasForeignKey(x => x.SourceUserId)
             .OnDelete(DeleteBehavior.Restrict);
         
-        builder.HasOne(x => x.Follower)
+        builder.HasOne(x => x.TargetUser)
             .WithMany()
-            .HasForeignKey(x => x.FollowerId)
+            .HasForeignKey(x => x.TargetUserId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

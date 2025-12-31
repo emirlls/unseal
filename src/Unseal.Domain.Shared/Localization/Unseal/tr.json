@@ -42,7 +42,10 @@
     "Unseal:ExceptionCodes:GroupMember:001": "Grup üyesi bulunamadı.",
     "Unseal:ExceptionCodes:GroupMember:002": "Grup üyesi zaten mevcut.",
     "Unseal:ExceptionCodes:GroupMember:003": "Gruba eklenme izni vermeyen kullanıcı eklenemez.",
-
+    
+    "Unseal:ExceptionCodes::UserInteraction::001": "Kullanıcı ilişkisi bulunamadı.",
+    "Unseal:ExceptionCodes::UserInteraction::002": "Kullanıcı ilişkisi zaten mevcut.",
+    
     "Unseal:ExceptionCodes:Mail:001": "Mail ayarları bulunamadı.",
     
     //Enums

@@ -1,9 +1,9 @@
-using Unseal.Entities.Users;
+using Unseal.Entities.Groups;
 using Unseal.EntityFrameworkCore;
 using Unseal.Repositories.Base;
 using Volo.Abp.EntityFrameworkCore;
 
-namespace Unseal.Repositories.Users;
+namespace Unseal.Repositories.Groups;
 
 public class EfGroupRepository : EfBaseRepository<Group>, IGroupRepository
 {

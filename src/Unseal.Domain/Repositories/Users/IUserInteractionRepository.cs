@@ -3,7 +3,7 @@ using Unseal.Repositories.Base;
 
 namespace Unseal.Repositories.Users;
 
-public interface IGroupMemberRepository : IBaseRepository<GroupMember>
+public interface IUserInteractionRepository : IBaseRepository<UserInteraction>
 {
     
 }

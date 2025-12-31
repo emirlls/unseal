@@ -14,4 +14,8 @@
     <ProjectReference Include="..\Unseal.Domain.Shared\Unseal.Domain.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Dtos\Users\" />
+  </ItemGroup>
+
 </Project>

@@ -35,7 +35,7 @@ public class BaseDomainService<TEntity> : DomainService, IBaseDomainService<TEnt
         AlreadyExistsException = alreadyExistsException;
     }
 
-    public async Task<TEntity> TryGetByAsync(
+    public async Task<TEntity?> TryGetByAsync(
         Expression<Func<TEntity, bool>> expression,
         bool throwIfNull = false,
         bool asNoTracking = false,

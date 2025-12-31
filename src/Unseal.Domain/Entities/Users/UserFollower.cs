@@ -9,8 +9,6 @@ public class UserFollower : Entity<Guid>
     public Guid UserId { get; set; }
     public Guid FollowerId { get; set; }
     
-    public bool IsMuted { get; set; }
-    public bool IsBlocked { get; set; }
     public virtual IdentityUser User { get; set; }
     public virtual IdentityUser Follower { get; set; }
 

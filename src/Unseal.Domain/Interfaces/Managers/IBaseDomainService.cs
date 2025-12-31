@@ -12,7 +12,7 @@ namespace Unseal.Interfaces.Managers;
 public interface IBaseDomainService<TEntity> : IDomainService
     where TEntity : class, IEntity<Guid>
 {
-    Task<TEntity> TryGetByAsync(
+    Task<TEntity?> TryGetByAsync(
         Expression<Func<TEntity, bool>> expression,
         bool throwIfNull = false,
         bool asNoTracking = false,

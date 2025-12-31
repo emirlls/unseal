@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Localization;
 using Unseal.Constants;
-using Unseal.Entities.Users;
-using Unseal.Interfaces.Managers.Users;
+using Unseal.Entities.Groups;
+using Unseal.Interfaces.Managers.Groups;
 using Unseal.Localization;
 using Unseal.Models.Users;
 using Unseal.Repositories.Base;
 
-namespace Unseal.Managers.Users;
+namespace Unseal.Managers.Groups;
 
 public class GroupManager : BaseDomainService<Group>, IGroupManager
 {

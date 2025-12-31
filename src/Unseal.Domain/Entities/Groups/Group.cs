@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Volo.Abp.Domain.Entities.Auditing;
 
-namespace Unseal.Entities.Users;
+namespace Unseal.Entities.Groups;
 
 public class Group : AuditedEntity<Guid>
 {

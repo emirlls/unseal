@@ -2,7 +2,7 @@ using System;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Identity;
 
-namespace Unseal.Entities.Users;
+namespace Unseal.Entities.Groups;
 
 public class GroupMember : Entity<Guid>
 {

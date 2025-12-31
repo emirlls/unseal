@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace Unseal.Dtos.Users;
+namespace Unseal.Dtos.Groups;
 
-public record GroupUpdateDto(
+public record GroupBaseDto(
     List<Guid> UserIds,
     string Name,
     string Description
-    ) : 
-    GroupBaseDto(UserIds, Name, Description);
+);

@@ -81,4 +81,10 @@ public static class ExceptionCodes
         public const string AlreadyExists = $"{Prefix}002";
         public const string UserNotAllowedToJoinGroup = $"{Prefix}003";
     }
+    public static class UserInteraction
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}:UserInteraction:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
 }

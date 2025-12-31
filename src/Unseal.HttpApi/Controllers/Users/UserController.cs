@@ -3,10 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Unseal.Dtos.Users;
-using Unseal.Filtering.Users;
 using Unseal.Services.Users;
-using Volo.Abp.Application.Dtos;
 using Volo.Abp.DependencyInjection;
 
 namespace Unseal.Controllers.Users;
@@ -57,57 +54,33 @@ public class UserController : UnsealController
     }
 
     /// <summary>
-    /// Use to create group
+    /// Use to block user.
     /// </summary>
-    /// <param name="groupCreateDto"></param>
+    /// <param name="userId"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    [HttpPost("group")]
-    public async Task<bool> CreateGroupAsync(
-        [FromForm]GroupCreateDto groupCreateDto,
-        CancellationToken cancellationToken = default)
-    {
-        return await UserAppService.CreateGroupAsync(
-            groupCreateDto, 
-            cancellationToken
-        );
-    }
-
-    /// <summary>
-    /// Use to update group
-    /// </summary>
-    /// <param name="groupId"></param>
-    /// <param name="groupUpdateDto"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpPut("group")]
-    public async Task<bool> UpdateGroupAsync(
-        Guid groupId,
-        GroupUpdateDto groupUpdateDto,
-        CancellationToken cancellationToken = default)
-    {
-        return await UserAppService.UpdateGroupAsync(
-            groupId,
-            groupUpdateDto, 
-            cancellationToken
-        );
-    }
-
-    /// <summary>
-    /// Use to filtered group list.
-    /// </summary>
-    /// <param name="groupFilters"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpGet("group")]
-    public async Task<PagedResultDto<GroupDto>> GetFilteredGroupListAsync(
-        [FromQuery]GroupFilters groupFilters,
+    [HttpGet("{userId}/block")]
+    public async Task<bool> BlockAsync(
+        Guid userId,
         CancellationToken cancellationToken = default
+
     )
     {
-        return await UserAppService.GetFilteredGroupListAsync(
-            groupFilters,
-            cancellationToken
-        );
+        return await UserAppService.BlockAsync(userId, cancellationToken);
+    }
+    /// <summary>
+    /// Use to unblock user
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("{userId}/unblock")]
+    public async Task<bool> UnBlockAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+
+    )
+    {
+        return await UserAppService.UnBlockAsync(userId, cancellationToken);
     }
 }

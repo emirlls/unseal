@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Volo.Abp.Content;
 
-namespace Unseal.Dtos.Users;
+namespace Unseal.Dtos.Groups;
 
 public record GroupCreateDto(
     List<Guid> UserIds,
