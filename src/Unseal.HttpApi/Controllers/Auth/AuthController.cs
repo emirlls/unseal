@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Unseal.Constants;
 using Unseal.Dtos.Auth;
 using Unseal.Services.Auth;
 using Volo.Abp.DependencyInjection;
@@ -51,13 +52,69 @@ public class AuthController : UnsealController
     }
 
     /// <summary>
-    /// Use to confirm mail
+    /// Used to resend the confirmation email if it could not be sent during registration. 
+    /// </summary>
+    /// <param name="mail"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("send-confirmation-mail")]
+    public async Task<bool> SendConfirmationMailAsync(
+        string mail,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await AuthAppService.SendConfirmationMailAsync(mail, cancellationToken);
+    }
+
+    /// <summary>
+    /// Use to change mail address.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="newMailAddress"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("change-mail")]
+    public async Task<bool> ChangeMailAsync(
+        Guid userId,
+        string newMailAddress,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await AuthAppService.ChangeMailAsync(userId, newMailAddress, cancellationToken);
+    }
+
+    /// <summary>
+    /// Used to confirm an mail address change.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="newMailAddress"></param>
+    /// <param name="token"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet(ApiConstants.Auth.ConfirmChangeMail)]
+    public async Task<bool> ConfirmChangeMailAsync(
+        Guid userId,
+        string newMailAddress,
+        string token,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await AuthAppService.ConfirmChangeMailAsync(
+            userId,
+            newMailAddress,
+            token,
+            cancellationToken
+        );
+    }
+
+    /// <summary>
+    /// Use to confirm mail.
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="token"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    [HttpGet("confirm-email")]
+    [HttpGet(ApiConstants.Auth.ConfirmMail)]
     [AllowAnonymous]
     public async Task<bool> ConfirmMailAsync(
         Guid userId,

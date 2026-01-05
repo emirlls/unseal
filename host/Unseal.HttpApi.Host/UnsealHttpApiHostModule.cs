@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
@@ -79,6 +81,7 @@ public class UnsealHttpApiHostModule : AbpModule
         context.Services.Configure<IdentityOptions>(options =>
         {
             options.SignIn.RequireConfirmedEmail = true;
+            options.Tokens.ChangeEmailTokenProvider = TokenOptions.DefaultProvider;
         });
     }
     public override void ConfigureServices(ServiceConfigurationContext context)
@@ -92,8 +95,26 @@ public class UnsealHttpApiHostModule : AbpModule
         });
         Configure<AbpRabbitMqEventBusOptions>(options =>
         {
-            options.ClientName = "UnsealClient";
-            options.ExchangeName = "UnsealExchange";
+            options.ClientName = configuration["DistributedEventBus:ClientName"]!;
+            options.ExchangeName = configuration["DistributedEventBus:ExchangeName"]!;;
+        });
+        context.Services.AddRateLimiter(options =>
+        {
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+            {
+                var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: ip,
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 60,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0
+                    });
+            });
+
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         });
         Configure<AbpDbContextOptions>(options =>
         {
@@ -208,6 +229,7 @@ public class UnsealHttpApiHostModule : AbpModule
         app.UseCorrelationId();
         app.MapAbpStaticAssets();
         app.UseRouting();
+        app.UseRateLimiter();
         app.UseCors();
         app.UseAuthentication();
         if (MultiTenancyConsts.IsEnabled)
