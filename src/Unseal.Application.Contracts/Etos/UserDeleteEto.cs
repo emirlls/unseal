@@ -1,9 +1,10 @@
+using Unseal.Constants;
 using Volo.Abp.Domain.Entities.Events.Distributed;
 using Volo.Abp.EventBus;
 
 namespace Unseal.Etos;
 
-[EventName("UserDelete")]
+[EventName(EventConstants.EventBus.UserDelete)]
 public class UserDeleteEto : EtoBase
 {
     public string Name { get; set; }

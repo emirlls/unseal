@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.RateLimiting;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
@@ -166,6 +167,21 @@ public class UnsealHttpApiHostModule : AbpModule
         context.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddAbpJwtBearer(options =>
             {
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = messageReceivedContext =>
+                    {
+                        var accessToken = messageReceivedContext.Request.Query["access_token"];
+                        var path = messageReceivedContext.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            path.StartsWithSegments("/api/server-sent-events"))
+                        {
+                            messageReceivedContext.Token = accessToken;
+                        }
+    
+                        return Task.CompletedTask;
+                    }
+                };
                 options.Authority = configuration["AuthServer:Authority"];
                 options.RequireHttpsMetadata = configuration.GetValue<bool>("AuthServer:RequireHttpsMetadata");
                 options.Audience = AuthConstants.Audience;
