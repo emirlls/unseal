@@ -15,4 +15,12 @@ public static class NotificationTemplateProperties
         public const string Name = "{{Name}}";
         public const string Surname = "{{Surname}}";
     }
+    
+    public static class ChangeMailTemplateParameters
+    {
+        public const string ApplicationName = "{{ApplicationName}}";
+        public const string Name = "{{Name}}";
+        public const string Surname = "{{Surname}}";
+        public const string VerifyEmailUrl = "{{VerifyEmailUrl}}";
+    }
 }

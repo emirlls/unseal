@@ -13,24 +13,23 @@ using Volo.Abp.EventBus.Distributed;
 
 namespace Unseal.Handlers;
 
-public class UserRegisterEventHandler :
-    IDistributedEventHandler<UserRegisterEto>, ITransientDependency
+public class ConfirmChangeMailEventHandler : IDistributedEventHandler<ConfirmChangeMailEto>, ITransientDependency
 {
     private readonly IServiceProvider _serviceProvider;
 
-    public UserRegisterEventHandler(IServiceProvider serviceProvider)
+    public ConfirmChangeMailEventHandler(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }
 
-    public async Task HandleEventAsync(UserRegisterEto eventData)
+    public async Task HandleEventAsync(ConfirmChangeMailEto eventData)
     {
         var notificationEventTypeManager = _serviceProvider
             .GetRequiredService<INotificationEventTypeManager>();
 
         var notificationEventType =
             await notificationEventTypeManager.TryGetByAsync(x =>
-                    x.Code == (int)NotificationEventTypes.UserRegister,
+                    x.Code == (int)NotificationEventTypes.ConfirmChangeMail,
                 throwIfNull: true);
 
         var notificationTemplateManager = _serviceProvider
@@ -43,19 +42,19 @@ public class UserRegisterEventHandler :
                     string.Equals(x.Culture, CultureInfo.CurrentCulture.Name),
                 throwIfNull: true);
 
-        var baseUrl = _serviceProvider.GetSelfUrlAsync();
+        var baseUrl = await _serviceProvider.GetSelfUrlAsync();
         var verifyUrl =
-            $"{baseUrl}/api/auth/{ApiConstants.Auth.ConfirmMail}?userId={eventData.UserId}&token={WebUtility.UrlEncode(eventData.ConfirmationToken)}";
+            $"{baseUrl}/api/auth/{ApiConstants.Auth.ConfirmChangeMail}?userId={eventData.UserId}&newMailAddress={eventData.NewMailAddress}&token={WebUtility.UrlEncode(eventData.Token)}";
 
         var replacedTemplate = notificationTemplate.Content
-            .Replace(NotificationTemplateProperties.UserRegisterTemplateParameters.Name, eventData.Name)
-            .Replace(NotificationTemplateProperties.UserRegisterTemplateParameters.Surname, eventData.Surname)
-            .Replace(NotificationTemplateProperties.UserRegisterTemplateParameters.VerifyEmailUrl, verifyUrl)
-            .Replace(NotificationTemplateProperties.UserRegisterTemplateParameters.ApplicationName,
+            .Replace(NotificationTemplateProperties.ChangeMailTemplateParameters.Name, eventData.Name)
+            .Replace(NotificationTemplateProperties.ChangeMailTemplateParameters.Surname, eventData.Surname)
+            .Replace(NotificationTemplateProperties.ChangeMailTemplateParameters.VerifyEmailUrl, verifyUrl)
+            .Replace(NotificationTemplateProperties.ChangeMailTemplateParameters.ApplicationName,
                 AppConstants.AppName);
 
         await _serviceProvider
-            .SendMailAsync(eventData.Email,
+            .SendMailAsync(eventData.NewMailAddress,
                 notificationTemplate.Subject ?? AppConstants.AppName,
                 replacedTemplate
             );
