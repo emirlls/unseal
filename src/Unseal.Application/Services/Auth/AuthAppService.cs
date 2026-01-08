@@ -24,24 +24,30 @@ public class AuthAppService : UnsealAppService, IAuthAppService
 {
     private IdentityUserManager IdentityUserManager =>
         LazyServiceProvider.LazyGetRequiredService<IdentityUserManager>();
+
     private ICustomIdentityUserManager CustomIdentityUserManager =>
         LazyServiceProvider.LazyGetRequiredService<ICustomIdentityUserManager>();
+
     private AuthMapper AuthMapper =>
         LazyServiceProvider.LazyGetRequiredService<AuthMapper>();
+
     private IConfiguration Configuration =>
         LazyServiceProvider.LazyGetRequiredService<IConfiguration>();
+
     private IDistributedEventBus DistributedEventBus =>
         LazyServiceProvider.LazyGetRequiredService<IDistributedEventBus>();
+
     private IStringLocalizer<UnsealResource> StringLocalizer =>
         LazyServiceProvider.LazyGetRequiredService<IStringLocalizer<UnsealResource>>();
+
     public async Task<bool> RegisterAsync(
         RegisterDto dto,
         CancellationToken cancellationToken = default
     )
     {
+        await CheckMailInUseAsync(dto.Email);
         var model = AuthMapper.MapRegisterDtoToRegisterModel(dto);
-        
-        var user =await CustomIdentityUserManager.Create(
+        var user = await CustomIdentityUserManager.Create(
             GuidGenerator.Create(),
             CurrentTenant.Id,
             model
@@ -49,8 +55,8 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         var result = await IdentityUserManager.CreateAsync(user, model.Password);
         result.CheckErrors();
         await IdentityUserManager.AddDefaultRolesAsync(user);
-        
-        var  mailConfirmationToken = await IdentityUserManager
+
+        var mailConfirmationToken = await IdentityUserManager
             .GenerateEmailConfirmationTokenAsync(user);
 
         var userRegisterEto = new UserRegisterEto
@@ -65,31 +71,39 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         return result.Succeeded;
     }
 
+    private async Task CheckMailInUseAsync(string email)
+    {
+        var existingUser = await IdentityUserManager.FindByEmailAsync(email);
+        if (existingUser is not null)
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.MailInUser]);
+    }
+
     public async Task<LoginResponseDto> LoginAsync(
         LoginDto loginDto,
         CancellationToken cancellationToken = default
     )
     {
-        var user = await CustomIdentityUserManager.TryGetByAsync(x=>
-                string.Equals(x.UserName, loginDto.UserName), 
-            throwIfNull:true,
+        var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                string.Equals(x.UserName, loginDto.UserName),
+            throwIfNull: true,
             cancellationToken: cancellationToken);
         if (!await IdentityUserManager.IsEmailConfirmedAsync(user))
         {
             throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.CannotLoginIfMailNotConfirmed]);
         }
+
         var tokenResponse = await GetTokenAsync(
             loginDto.UserName,
             loginDto.Password,
             cancellationToken
         );
-        
+
         var response = new LoginResponseDto(
             user.Id,
             tokenResponse.AccessToken,
             tokenResponse.RefreshToken,
             tokenResponse.ExpiresIn);
-        
+
         return response;
     }
 
@@ -99,13 +113,32 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default
     )
     {
-        var user = await CustomIdentityUserManager.TryGetByAsync(x=>
-            x.Id.Equals(userId) ,
-            throwIfNull:true,
+        var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                x.Id.Equals(userId),
+            throwIfNull: true,
             cancellationToken: cancellationToken
         );
         var result = await IdentityUserManager
             .ConfirmEmailAsync(user, token);
+        return result.Succeeded;
+    }
+
+    public async Task<bool> ConfirmChangeEmailAsync(
+        Guid userId,
+        string newEmail,
+        string token,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var user = await CustomIdentityUserManager.TryGetByAsync(
+            x => x.Id == userId,
+            throwIfNull: true,
+            cancellationToken: cancellationToken
+        );
+
+        var result = await IdentityUserManager
+            .ChangeEmailAsync(user, newEmail, token);
+
         return result.Succeeded;
     }
 
@@ -114,16 +147,15 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default
     )
     {
-        var user = await IdentityUserManager.FindByIdAsync(userId.ToString());
-        if (user is null)
-        {
-            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.NotFound]);
-        }
+        var user = await CustomIdentityUserManager.TryGetByAsync(x => x.Id.Equals(userId), throwIfNull: true,
+            cancellationToken: cancellationToken);
+
         var roles = await IdentityUserManager.GetRolesAsync(user);
         if (!roles.IsNullOrEmpty() && roles.Any())
         {
             await IdentityUserManager.RemoveFromRolesAsync(user, roles);
         }
+
         var result = await IdentityUserManager.DeleteAsync(user);
         if (result.Succeeded)
         {
@@ -135,6 +167,65 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             };
             await DistributedEventBus.PublishAsync(userDeleteEto);
         }
+
+        return result.Succeeded;
+    }
+
+    public async Task<bool> SendConfirmationMailAsync(
+        string mail,
+        CancellationToken cancellationToken = default)
+    {
+        var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                string.Equals(x.Email, mail, StringComparison.OrdinalIgnoreCase), throwIfNull: true,
+            cancellationToken: cancellationToken);
+        var mailConfirmationToken = await IdentityUserManager
+            .GenerateEmailConfirmationTokenAsync(user);
+        var userRegisterEto = new UserRegisterEto
+        {
+            UserId = user.Id,
+            Name = user.Name,
+            Surname = user.Surname,
+            Email = user.Email,
+            ConfirmationToken = mailConfirmationToken
+        };
+        await DistributedEventBus.PublishAsync(userRegisterEto);
+        return true;
+    }
+
+    public async Task<bool> ChangeMailAsync(
+        Guid userId,
+        string newMailAddress,
+        CancellationToken cancellationToken = default
+    )
+    {
+        await CheckMailInUseAsync(newMailAddress);
+        var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                x.Id.Equals(userId), throwIfNull: true,
+            cancellationToken: cancellationToken);
+        var token = await IdentityUserManager.GenerateChangeEmailTokenAsync(user, newMailAddress);
+        await DistributedEventBus.PublishAsync(new ConfirmChangeMailEto
+        {
+            UserId = user.Id,
+            Name = user.Name,
+            Surname = user.Surname,
+            NewMailAddress = newMailAddress,
+            Token = token
+        });
+        await IdentityUserManager.ChangeEmailAsync(user, newMailAddress, token);
+        return true;
+    }
+
+    public async Task<bool> ConfirmChangeMailAsync(
+        Guid userId,
+        string newMailAddress,
+        string token,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                x.Id.Equals(userId), throwIfNull: true,
+            cancellationToken: cancellationToken);
+        var result = await IdentityUserManager.ChangeEmailAsync(user, newMailAddress, token);
         return result.Succeeded;
     }
 
@@ -146,7 +237,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
     {
         var handler = new HttpClientHandler
         {
-            ServerCertificateCustomValidationCallback = 
+            ServerCertificateCustomValidationCallback =
                 HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
         };
         var client = new HttpClient(handler);
@@ -162,7 +253,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             UserName = username,
             Password = password,
             Scope = AuthConstants.Scope
-        }; 
+        };
         var tokenResponse = await client
             .RequestPasswordTokenAsync(
                 request,
@@ -173,7 +264,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         {
             throw new UserFriendlyException(tokenResponse.Error!);
         }
-    
+
         return tokenResponse;
     }
 }

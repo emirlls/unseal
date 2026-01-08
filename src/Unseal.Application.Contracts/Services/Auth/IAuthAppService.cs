@@ -20,11 +20,35 @@ public interface IAuthAppService : IApplicationService
     Task<bool> ConfirmMailAsync(
         Guid userId,
         string token,
-        CancellationToken cancellationToken =  default
+        CancellationToken cancellationToken = default
     );
+
+    Task<bool> ConfirmChangeEmailAsync(
+        Guid userId,
+        string newEmail,
+        string token,
+        CancellationToken cancellationToken = default);
 
     Task<bool> UserDeleteAsync(
         Guid userId,
-        CancellationToken cancellationToken=default
+        CancellationToken cancellationToken = default
+    );
+
+    Task<bool> SendConfirmationMailAsync(
+        string mail,
+        CancellationToken cancellationToken
+    );
+
+    Task<bool> ChangeMailAsync(
+        Guid userId,
+        string newMailAddress,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<bool> ConfirmChangeMailAsync(
+        Guid userId,
+        string newMailAddress,
+        string token,
+        CancellationToken cancellationToken = default
     );
 }
