@@ -7,7 +7,6 @@ using Unseal.Services.ServerSentEvents;
 
 namespace Unseal.Controllers.ServerSentEvents;
 
-[Authorize]
 [ApiController]
 [Route("api/server-sent-events")]
 public class ServerSentEventController : UnsealController
@@ -26,8 +25,8 @@ public class ServerSentEventController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpGet("capsule-feed-stream")]
+    [AllowAnonymous]
     public IResult GetCapsuleFeedStream(
-        [FromQuery] string? access_token,
         CancellationToken cancellationToken = default)
     {
         if (!Request.Headers.TryGetValue(EventConstants.ServerSentEvents.CapsuleCreate.LastEventId,
