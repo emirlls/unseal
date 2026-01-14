@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Duende.IdentityModel.Client;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using Unseal.Constants;
@@ -56,18 +59,23 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         result.CheckErrors();
         await IdentityUserManager.AddDefaultRolesAsync(user);
 
-        var mailConfirmationToken = await IdentityUserManager
-            .GenerateEmailConfirmationTokenAsync(user);
-
-        var userRegisterEto = new UserRegisterEto
+        using (CurrentTenant.Change(user.TenantId))
         {
-            UserId = user.Id,
-            Name = user.Name,
-            Surname = user.Surname,
-            Email = user.Email,
-            ConfirmationToken = mailConfirmationToken
-        };
-        await DistributedEventBus.PublishAsync(userRegisterEto);
+            var mailConfirmationToken = await IdentityUserManager
+                .GenerateEmailConfirmationTokenAsync(user);
+            var encodedToken =
+                WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(mailConfirmationToken));
+            var userRegisterEto = new UserRegisterEto
+            {
+                UserId = user.Id,
+                Name = user.Name,
+                Surname = user.Surname,
+                Email = user.Email,
+                ConfirmationToken = encodedToken
+            };
+            await DistributedEventBus.PublishAsync(userRegisterEto);
+        }
+        
         return result.Succeeded;
     }
 
@@ -118,9 +126,16 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             throwIfNull: true,
             cancellationToken: cancellationToken
         );
-        var result = await IdentityUserManager
-            .ConfirmEmailAsync(user, token);
-        return result.Succeeded;
+
+        var decodedToken = Encoding.UTF8.GetString(
+            WebEncoders.Base64UrlDecode(token));
+        using (CurrentTenant.Change(user!.TenantId))
+        {
+            var result =
+                await IdentityUserManager.ConfirmEmailAsync(user, decodedToken);
+
+            return result.Succeeded;
+        }
     }
 
     public async Task<bool> ConfirmChangeEmailAsync(
@@ -135,11 +150,14 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             throwIfNull: true,
             cancellationToken: cancellationToken
         );
+        var decodedToken = WebUtility.UrlDecode(token);
+        using (CurrentTenant.Change(user!.TenantId))
+        {
+            var result = await IdentityUserManager
+                .ChangeEmailAsync(user, newEmail, decodedToken);
 
-        var result = await IdentityUserManager
-            .ChangeEmailAsync(user, newEmail, token);
-
-        return result.Succeeded;
+            return result.Succeeded;
+        }
     }
 
     public async Task<bool> UserDeleteAsync(
@@ -176,19 +194,26 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default)
     {
         var user = await CustomIdentityUserManager.TryGetByAsync(x =>
-                string.Equals(x.Email, mail, StringComparison.OrdinalIgnoreCase), throwIfNull: true,
+                x.Email == mail, throwIfNull: true,
             cancellationToken: cancellationToken);
-        var mailConfirmationToken = await IdentityUserManager
-            .GenerateEmailConfirmationTokenAsync(user);
-        var userRegisterEto = new UserRegisterEto
+        using (CurrentTenant.Change(user.TenantId))
         {
-            UserId = user.Id,
-            Name = user.Name,
-            Surname = user.Surname,
-            Email = user.Email,
-            ConfirmationToken = mailConfirmationToken
-        };
-        await DistributedEventBus.PublishAsync(userRegisterEto);
+            var token = await IdentityUserManager
+                .GenerateEmailConfirmationTokenAsync(user);
+
+            var encodedToken =
+                WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+            var userRegisterEto = new UserRegisterEto
+            {
+                UserId = user.Id,
+                Name = user.Name,
+                Surname = user.Surname,
+                Email = user.Email,
+                ConfirmationToken = encodedToken
+            };
+            await DistributedEventBus.PublishAsync(userRegisterEto);
+        }
+        
         return true;
     }
 

@@ -1,10 +1,11 @@
 using System;
+using Unseal.Constants;
 using Volo.Abp.Domain.Entities.Events.Distributed;
 using Volo.Abp.EventBus;
 
 namespace Unseal.Etos;
 
-[EventName("UserRegister")]
+[EventName(EventConstants.EventBus.UserRegister)]
 public class UserRegisterEto : EtoBase
 {
     public Guid UserId { get; set; }

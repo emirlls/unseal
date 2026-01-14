@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.RateLimiting;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
@@ -18,6 +20,7 @@ using Unseal.EntityFrameworkCore;
 using Unseal.MultiTenancy;
 using StackExchange.Redis;
 using Microsoft.OpenApi.Models;
+using Npgsql;
 using Unseal.Constants;
 using Unseal.Workers;
 using Volo.Abp;
@@ -120,7 +123,14 @@ public class UnsealHttpApiHostModule : AbpModule
         {
             options.UseNpgsql();
         });
-
+        context.Services.AddTransient<IDbConnection>(sp =>
+        {
+            var connectionString = configuration.GetConnectionString("Default");
+            return new NpgsqlConnection(connectionString);
+        });
+        var redisConfiguration = configuration[CacheConstants.RedisConfigurationKey];
+        context.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+            ConnectionMultiplexer.Connect(redisConfiguration!));
         Configure<AbpMultiTenancyOptions>(options =>
         {
             options.IsEnabled = MultiTenancyConsts.IsEnabled;
@@ -166,6 +176,22 @@ public class UnsealHttpApiHostModule : AbpModule
         context.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddAbpJwtBearer(options =>
             {
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = messageReceivedContext =>
+                    {
+                        var accessToken = messageReceivedContext.Request.Query["access_token"];
+                        var path = messageReceivedContext.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            path.StartsWithSegments("/api/server-sent-events") ||
+                            path.StartsWithSegments("/signalr-hubs"))
+                        {
+                            messageReceivedContext.Token = accessToken;
+                        }
+    
+                        return Task.CompletedTask;
+                    }
+                };
                 options.Authority = configuration["AuthServer:Authority"];
                 options.RequireHttpsMetadata = configuration.GetValue<bool>("AuthServer:RequireHttpsMetadata");
                 options.Audience = AuthConstants.Audience;
@@ -183,7 +209,9 @@ public class UnsealHttpApiHostModule : AbpModule
             options.KeyPrefix = "Unseal:";
         });
 
-        var dataProtectionBuilder = context.Services.AddDataProtection().SetApplicationName("Unseal");
+        var dataProtectionBuilder = context.Services
+            .AddDataProtection()
+            .SetApplicationName(AppConstants.AppName);
         var redis = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]!);
         dataProtectionBuilder.PersistKeysToStackExchangeRedis(redis, "DataProtection-Keys");
         

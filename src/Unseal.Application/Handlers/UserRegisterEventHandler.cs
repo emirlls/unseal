@@ -43,9 +43,9 @@ public class UserRegisterEventHandler :
                     string.Equals(x.Culture, CultureInfo.CurrentCulture.Name),
                 throwIfNull: true);
 
-        var baseUrl = _serviceProvider.GetSelfUrlAsync();
+        var baseUrl = await _serviceProvider.GetSelfUrlAsync();
         var verifyUrl =
-            $"{baseUrl}/api/auth/{ApiConstants.Auth.ConfirmMail}?userId={eventData.UserId}&token={WebUtility.UrlEncode(eventData.ConfirmationToken)}";
+            $"{baseUrl}/api/auth/{ApiConstants.Auth.ConfirmMail}?userId={eventData.UserId}&token={eventData.ConfirmationToken}";
 
         var replacedTemplate = notificationTemplate.Content
             .Replace(NotificationTemplateProperties.UserRegisterTemplateParameters.Name, eventData.Name)
