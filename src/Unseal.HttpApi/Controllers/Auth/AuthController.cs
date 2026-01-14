@@ -92,6 +92,7 @@ public class AuthController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpGet(ApiConstants.Auth.ConfirmChangeMail)]
+    [AllowAnonymous]
     public async Task<bool> ConfirmChangeMailAsync(
         Guid userId,
         string newMailAddress,

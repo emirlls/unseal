@@ -31,7 +31,8 @@ public class CapsuleController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost]
-    public async Task<bool> CreateAsync(CapsuleCreateDto capsuleCreateDto,
+    public async Task<bool> CreateAsync(
+        [FromForm]CapsuleCreateDto capsuleCreateDto,
         CancellationToken cancellationToken = default)
     {
         return await CapsuleAppService.CreateAsync(capsuleCreateDto, cancellationToken);
