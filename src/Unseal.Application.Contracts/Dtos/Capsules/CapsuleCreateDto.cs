@@ -8,7 +8,17 @@ public record CapsuleCreateDto(
     Guid? ReceiverId,
     string Name,
     string TextContext,
+    string? GeoJson,
     bool? IsPublic,
     DateTime RevealDate,
     IRemoteStreamContent StreamContent) :
-    CapsuleBaseDto(CapsuleTypeId, ReceiverId, Name, TextContext, IsPublic, RevealDate, StreamContent);
+    CapsuleBaseDto(
+        CapsuleTypeId,
+        ReceiverId,
+        Name,
+        TextContext,
+        GeoJson,
+        IsPublic,
+        RevealDate,
+        StreamContent
+    );

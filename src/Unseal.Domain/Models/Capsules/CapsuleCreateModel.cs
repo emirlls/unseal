@@ -11,6 +11,7 @@ public record CapsuleCreateModel(
     string? TextContext,
     string? FileUrl,
     string? FileName,
+    string? GeoJson,
     DateTime RevealDate) :
     CapsuleBaseModel(CapsuleTypeId, ReceiverId, Name, IsPublic, ContentType, TextContext,
-        FileUrl, FileName, RevealDate);
+        FileUrl, FileName, GeoJson, RevealDate);

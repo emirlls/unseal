@@ -11,5 +11,6 @@ public record CapsuleBaseModel(
     string? TextContext,
     string? FileUrl,
     string? FileName,
+    string? GeoJson,
     DateTime RevealDate
 );

@@ -17,9 +17,10 @@ public partial class CapsuleMapper : ITransientDependency
     [MapProperty(nameof(Capsule.CapsuleType), nameof(CapsuleDto.Type), Use = nameof(ResolveType))]
     public partial CapsuleDto MapCapsuleToCapsuleDto(Capsule capsule);
     
-    protected string ResolveType(CapsuleType capsuleType)
+    protected string? ResolveType(CapsuleType? capsuleType)
     {
-        return ((CapsuleTypes)capsuleType.Code).GetDescription();
+        if (capsuleType is null) return null;
+        return ((CapsuleTypes)capsuleType?.Code!).GetDescription();
     }
     public CapsuleCreateModel MapCapsuleCreateDtoToCapsuleCreateModel(CapsuleCreateDto capsuleCreateDto)
     {
@@ -32,6 +33,7 @@ public partial class CapsuleMapper : ITransientDependency
             capsuleCreateDto.TextContext,
             string.Empty, // will be set after upload file.
             capsuleCreateDto.StreamContent.FileName,
+            capsuleCreateDto.GeoJson,
             capsuleCreateDto.RevealDate);
     }
 }

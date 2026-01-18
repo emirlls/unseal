@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unseal.Dtos.Capsules;
 using Unseal.Filtering.Capsules;
@@ -10,6 +11,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace Unseal.Controllers.Capsules;
 
+[Authorize]
 [ApiController]
 [Route("api/capsule")]
 public class CapsuleController : UnsealController
@@ -33,11 +35,10 @@ public class CapsuleController : UnsealController
     [HttpPost]
     public async Task<bool> CreateAsync(
         [FromForm]CapsuleCreateDto capsuleCreateDto,
-        CancellationToken cancellationToken = default)
-    {
-        return await CapsuleAppService.CreateAsync(capsuleCreateDto, cancellationToken);
-    }
-
+        CancellationToken cancellationToken = default
+    ) => await CapsuleAppService
+        .CreateAsync(capsuleCreateDto, cancellationToken);
+    
     /// <summary>
     /// Use to paged capsule list.
     /// To list own capsule, isAll must be false.
@@ -52,11 +53,12 @@ public class CapsuleController : UnsealController
         [FromQuery]CapsuleFilters capsuleFilters,
         bool isAll = true,
         CancellationToken cancellationToken = default
-    )
-    {
-        return await CapsuleAppService
-            .GetFilteredListAsync(capsuleFilters,isAll, cancellationToken);
-    }
+    ) => await CapsuleAppService
+        .GetFilteredListAsync(
+            capsuleFilters,
+            isAll,
+            cancellationToken
+        );
 
     /// <summary>
     /// Use to get base64 qr code of the capsule
@@ -68,8 +70,60 @@ public class CapsuleController : UnsealController
     public async Task<string> GetQrCodeAsync(
         Guid capsuleId,
         CancellationToken cancellationToken = default
-    )
-    {
-        return await CapsuleAppService.GetQrCodeAsync(capsuleId, cancellationToken);
-    }
+    ) => await CapsuleAppService
+        .GetQrCodeAsync(capsuleId, cancellationToken);
+    
+    /// <summary>
+    /// Use to like a capsule.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("{id}/like")]
+    public async Task<bool> LikeAsync(
+        Guid id,
+        CancellationToken cancellationToken = default
+    ) => await CapsuleAppService
+        .LikeAsync(id,cancellationToken);
+    
+    /// <summary>
+    /// Use to undo likes on a capsule.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("{id}/unlike")]
+    public async Task<bool> UnLikeAsync(
+        Guid id,
+        CancellationToken cancellationToken = default
+    ) => await CapsuleAppService
+        .UnLikeAsync(id,cancellationToken);
+    
+    /// <summary>
+    /// Use to leave comments on capsules.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="comment"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("{id}/comment")]
+    public async Task<bool> CommentAsync(
+        Guid id,
+        string comment,
+        CancellationToken cancellationToken = default
+    ) => await CapsuleAppService
+        .CommentAsync(id, comment, cancellationToken);
+    
+    /// <summary>
+    /// Use to delete comments from a capsule.
+    /// </summary>
+    /// <param name="commentId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpDelete("{commentId}/uncomment")]
+    public async Task<bool> UnCommentAsync(
+        Guid commentId,
+        CancellationToken cancellationToken = default
+    ) => await CapsuleAppService
+        .UnCommentAsync(commentId,cancellationToken);
 }

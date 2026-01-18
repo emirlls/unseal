@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Unseal.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
@@ -22,6 +23,7 @@ namespace Unseal.Migrations
                 .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Unseal.Entities.Capsules.Capsule", b =>
@@ -111,6 +113,51 @@ namespace Unseal.Migrations
                     b.ToTable("capsules", "unseal");
                 });
 
+            modelBuilder.Entity("Unseal.Entities.Capsules.CapsuleComment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CapsuleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("capsule_id");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("comment");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("creation_time");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("last_modification_time");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifier_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_capsule_comments");
+
+                    b.HasIndex("CapsuleId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("capsule_comments", "unseal");
+                });
+
             modelBuilder.Entity("Unseal.Entities.Capsules.CapsuleItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -186,6 +233,85 @@ namespace Unseal.Migrations
                     b.HasIndex("CapsuleId");
 
                     b.ToTable("capsule_items", "unseal");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Capsules.CapsuleLike", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CapsuleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("capsule_id");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("creation_time");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("last_modification_time");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifier_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_capsule_likes");
+
+                    b.HasIndex("CapsuleId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("capsule_likes", "unseal");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Capsules.CapsuleMapFeature", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CapsuleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("capsule_id");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("creation_time");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<Geometry>("Geom")
+                        .IsRequired()
+                        .HasColumnType("geometry")
+                        .HasColumnName("geom");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("last_modification_time");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifier_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_capsule_map_features");
+
+                    b.HasIndex("CapsuleId");
+
+                    b.ToTable("capsule_map_features", "unseal");
                 });
 
             modelBuilder.Entity("Unseal.Entities.Groups.Group", b =>
@@ -2232,6 +2358,27 @@ namespace Unseal.Migrations
                     b.Navigation("CapsuleType");
                 });
 
+            modelBuilder.Entity("Unseal.Entities.Capsules.CapsuleComment", b =>
+                {
+                    b.HasOne("Unseal.Entities.Capsules.Capsule", "Capsule")
+                        .WithMany("CapsuleComments")
+                        .HasForeignKey("CapsuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("f_k_capsule_comments_capsules_capsule_id");
+
+                    b.HasOne("Volo.Abp.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_capsule_comments_users_user_id");
+
+                    b.Navigation("Capsule");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Unseal.Entities.Capsules.CapsuleItem", b =>
                 {
                     b.HasOne("Unseal.Entities.Capsules.Capsule", "Capsule")
@@ -2240,6 +2387,39 @@ namespace Unseal.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("f_k_capsule_items_capsules_capsule_id");
+
+                    b.Navigation("Capsule");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Capsules.CapsuleLike", b =>
+                {
+                    b.HasOne("Unseal.Entities.Capsules.Capsule", "Capsule")
+                        .WithMany("CapsuleLikes")
+                        .HasForeignKey("CapsuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("f_k_capsule_likes_capsules_capsule_id");
+
+                    b.HasOne("Volo.Abp.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_capsule_likes_users_user_id");
+
+                    b.Navigation("Capsule");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Capsules.CapsuleMapFeature", b =>
+                {
+                    b.HasOne("Unseal.Entities.Capsules.Capsule", "Capsule")
+                        .WithMany("CapsuleMapFeatures")
+                        .HasForeignKey("CapsuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("f_k_capsule_map_features_capsules_capsule_id");
 
                     b.Navigation("Capsule");
                 });
@@ -2475,7 +2655,13 @@ namespace Unseal.Migrations
 
             modelBuilder.Entity("Unseal.Entities.Capsules.Capsule", b =>
                 {
+                    b.Navigation("CapsuleComments");
+
                     b.Navigation("CapsuleItems");
+
+                    b.Navigation("CapsuleLikes");
+
+                    b.Navigation("CapsuleMapFeatures");
                 });
 
             modelBuilder.Entity("Unseal.Entities.Groups.Group", b =>

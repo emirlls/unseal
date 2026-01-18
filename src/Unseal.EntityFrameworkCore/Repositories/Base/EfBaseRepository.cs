@@ -11,8 +11,8 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Unseal.EntityFrameworkCore;
 using Unseal.Extensions;
+using Unseal.Filtering.Base;
 using Volo.Abp;
-using Volo.Abp.Application.Dtos;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
@@ -177,42 +177,50 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
     }
 
     public async Task<List<TEntity>> GetDynamicListAsync<TFilters>(
-        TFilters filters,
+        TFilters? filters,
         Func<IQueryable<TEntity>, IQueryable<TEntity>>? queryBuilder, 
         bool asNoTracking = false,
         CancellationToken cancellationToken = default
 
-    ) where TFilters : PagedAndSortedResultRequestDto
+    ) where TFilters : DynamicFilterRequest
     {
         var dbSet = await GetDbSetAsync();
+    
+        var query = dbSet.AsQueryable()
+            .ApplyDynamicFilters(filters);
+
+        if (asNoTracking)
+        {
+            query = query.AsNoTracking();
+        }
+        query = SortStrategyExecutor.ApplySorting<TEntity, TFilters>(query, filters?.Sorting);
+
         var currentUser = ServiceProvider.GetRequiredService<ICurrentUser>();
         var distributedCache = ServiceProvider.GetRequiredService<IDistributedCache>();
+    
         var cacheCountKey = CacheExtension.GenerateCacheKeyToCount(
             CultureInfo.CurrentCulture,
             currentUser.Id,
             typeof(TFilters).Name
         );
-        var cacheOptions = new DistributedCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(int.MaxValue)
-        };
-        var response= dbSet
-            .ApplyDynamicFilters(filters)
-            .AsQueryable();
-        if (asNoTracking)
-        {
-            response = response
-                .AsNoTracking();
-        }
-        if(queryBuilder is not null) response = queryBuilder(response);
-        var count = await response.CountAsync(cancellationToken: cancellationToken);
+
+        var count = await query.CountAsync(cancellationToken);
+    
         await distributedCache.SetStringAsync(
             cacheCountKey,
             count.ToString(),
-            cacheOptions,
+            new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
+            },
             token: cancellationToken);
-        return await response
-            .PageBy(filters.SkipCount, filters.MaxResultCount)
+
+        var skipCount = filters?.SkipCount ?? 0;
+        var maxResultCount = filters?.MaxResultCount ?? 10;
+
+        return await query
+            .Skip(skipCount)
+            .Take(maxResultCount)
             .ToListAsync(cancellationToken);
     }
 
@@ -220,7 +228,7 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
         TFilters filters,
         CancellationToken cancellationToken = default
 
-    ) where TFilters : PagedAndSortedResultRequestDto
+    ) where TFilters : DynamicFilterRequest
     {
         var currentUser = ServiceProvider.GetRequiredService<ICurrentUser>();
         var distributedCache = ServiceProvider.GetRequiredService<IDistributedCache>();

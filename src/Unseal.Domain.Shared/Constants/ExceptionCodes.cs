@@ -34,7 +34,24 @@ public static class ExceptionCodes
         public const string NotFound = $"{Prefix}001";
         public const string AlreadyExists = $"{Prefix}002";
     }
-    
+    public static class CapsuleComment
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}CapsuleComment:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
+    public static class CapsuleLike
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}CapsuleLike:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
+    public static class CapsuleMapFeature
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}CapsuleMapFeature:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
     public static class NotificationTemplate
     {
         private const string Prefix = $"{ExceptionCodePrefix}NotificationTemplate:";

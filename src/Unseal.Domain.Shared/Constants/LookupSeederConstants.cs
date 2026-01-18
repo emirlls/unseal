@@ -57,7 +57,11 @@ public class LookupSeederConstants
             "d5961c50-522f-4bea-a641-ab88ae983985",
             "UserDelete",
             (int)(NotificationEventTypes.UserDelete));
-
+        
+        public static readonly NotificationEventTypeInfo ConfirmChangeMail = new(
+            "b91d42b6-fae7-4376-a2e5-8cdca52402a0",
+            "ConfirmChangeMail",
+            (int)(NotificationEventTypes.ConfirmChangeMail));
     }
     
     public class NotificationEventTypeInfo

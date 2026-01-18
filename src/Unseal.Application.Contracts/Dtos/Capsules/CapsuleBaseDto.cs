@@ -8,6 +8,7 @@ public record CapsuleBaseDto(
     Guid? ReceiverId,
     string Name,
     string TextContext,
+    string? GeoJson,
     bool? IsPublic,
     DateTime RevealDate,
     IRemoteStreamContent StreamContent

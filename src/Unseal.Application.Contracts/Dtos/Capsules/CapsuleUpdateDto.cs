@@ -9,6 +9,16 @@ public record CapsuleUpdateDto(
     string Name,
     bool? IsPublic,
     string TextContext,
+    string? GeoJson,
     DateTime RevealDate,
     IRemoteStreamContent StreamContent) :
-    CapsuleBaseDto(CapsuleTypeId, ReceiverId, Name, TextContext, IsPublic, RevealDate, StreamContent);
+    CapsuleBaseDto(
+        CapsuleTypeId,
+        ReceiverId,
+        Name,
+        TextContext,
+        GeoJson,
+        IsPublic,
+        RevealDate,
+        StreamContent
+    );
