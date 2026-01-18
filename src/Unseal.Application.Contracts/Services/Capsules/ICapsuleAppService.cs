@@ -25,4 +25,22 @@ public interface ICapsuleAppService : IApplicationService
         Guid capsuleId,
         CancellationToken cancellationToken = default
     );
+
+    Task<bool> LikeAsync(
+        Guid id,
+        CancellationToken cancellationToken = default
+    );
+    Task<bool> UnLikeAsync(
+        Guid id,
+        CancellationToken cancellationToken = default
+    );
+    Task<bool> CommentAsync(
+        Guid id,
+        string comment,
+        CancellationToken cancellationToken = default
+    );
+    Task<bool> UnCommentAsync(
+        Guid commentId,
+        CancellationToken cancellationToken = default
+    );
 }

@@ -34,10 +34,7 @@ public class AuthController : UnsealController
     public async Task<bool> RegisterAsync(
         RegisterDto registerDto,
         CancellationToken cancellationToken = default
-    )
-    {
-        return await AuthAppService.RegisterAsync(registerDto, cancellationToken);
-    }
+    ) => await AuthAppService.RegisterAsync(registerDto, cancellationToken);
 
     /// <summary>
     /// Use to login
@@ -46,10 +43,10 @@ public class AuthController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost("login")]
-    public async Task<LoginResponseDto> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken = default)
-    {
-        return await AuthAppService.LoginAsync(loginDto, cancellationToken);
-    }
+    public async Task<LoginResponseDto> LoginAsync(
+        LoginDto loginDto,
+        CancellationToken cancellationToken = default
+    ) => await AuthAppService.LoginAsync(loginDto, cancellationToken);
 
     /// <summary>
     /// Used to resend the confirmation email if it could not be sent during registration. 
@@ -61,10 +58,7 @@ public class AuthController : UnsealController
     public async Task<bool> SendConfirmationMailAsync(
         string mail,
         CancellationToken cancellationToken = default
-    )
-    {
-        return await AuthAppService.SendConfirmationMailAsync(mail, cancellationToken);
-    }
+    ) => await AuthAppService.SendConfirmationMailAsync(mail, cancellationToken);
 
     /// <summary>
     /// Use to change mail address.
@@ -78,11 +72,8 @@ public class AuthController : UnsealController
         Guid userId,
         string newMailAddress,
         CancellationToken cancellationToken = default
-    )
-    {
-        return await AuthAppService.ChangeMailAsync(userId, newMailAddress, cancellationToken);
-    }
-
+    ) => await AuthAppService.ChangeMailAsync(userId, newMailAddress, cancellationToken);
+    
     /// <summary>
     /// Used to confirm an mail address change.
     /// </summary>
@@ -98,15 +89,12 @@ public class AuthController : UnsealController
         string newMailAddress,
         string token,
         CancellationToken cancellationToken = default
-    )
-    {
-        return await AuthAppService.ConfirmChangeMailAsync(
-            userId,
-            newMailAddress,
-            token,
-            cancellationToken
-        );
-    }
+    ) => await AuthAppService.ConfirmChangeMailAsync(
+        userId,
+        newMailAddress,
+        token,
+        cancellationToken
+    );
 
     /// <summary>
     /// Use to confirm mail.
@@ -121,14 +109,11 @@ public class AuthController : UnsealController
         Guid userId,
         string token,
         CancellationToken cancellationToken = default
-    )
-    {
-        return await AuthAppService.ConfirmMailAsync(
-            userId,
-            token,
-            cancellationToken
-        );
-    }
+    ) => await AuthAppService.ConfirmMailAsync(
+        userId,
+        token,
+        cancellationToken
+    );
 
     /// <summary>
     /// Use to delete user.
@@ -140,8 +125,5 @@ public class AuthController : UnsealController
     public async Task<bool> UserDeleteAsync(
         Guid userId,
         CancellationToken cancellationToken = default
-    )
-    {
-        return await AuthAppService.UserDeleteAsync(userId, cancellationToken);
-    }
+    ) => await AuthAppService.UserDeleteAsync(userId, cancellationToken);
 }

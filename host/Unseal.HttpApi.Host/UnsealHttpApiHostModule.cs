@@ -4,23 +4,22 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.RateLimiting;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Tokens;
 using Unseal.EntityFrameworkCore;
 using Unseal.MultiTenancy;
 using StackExchange.Redis;
 using Microsoft.OpenApi.Models;
 using Npgsql;
+using OpenIddict.Validation.AspNetCore;
 using Unseal.Constants;
 using Unseal.Workers;
 using Volo.Abp;
@@ -63,30 +62,6 @@ namespace Unseal;
     )]
 public class UnsealHttpApiHostModule : AbpModule
 {
-    public override void PreConfigureServices(ServiceConfigurationContext context)
-    {
-        PreConfigure<OpenIddictBuilder>(builder =>
-        {
-            builder.AddValidation(options =>
-            {
-                options.UseLocalServer();
-                options.UseAspNetCore();
-            });
-        });
-
-        PreConfigure<OpenIddictServerBuilder>(builder =>
-        {
-            builder.SetAccessTokenLifetime(TimeSpan.FromDays(1));
-            builder.AddDevelopmentEncryptionCertificate();
-            builder.AddDevelopmentSigningCertificate();
-        });
-        
-        context.Services.Configure<IdentityOptions>(options =>
-        {
-            options.SignIn.RequireConfirmedEmail = true;
-            options.Tokens.ChangeEmailTokenProvider = TokenOptions.DefaultProvider;
-        });
-    }
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var hostingEnvironment = context.Services.GetHostingEnvironment();
@@ -110,7 +85,7 @@ public class UnsealHttpApiHostModule : AbpModule
                     partitionKey: ip,
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = 60,
+                        PermitLimit = 20,
                         Window = TimeSpan.FromMinutes(1),
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                         QueueLimit = 0
@@ -121,7 +96,10 @@ public class UnsealHttpApiHostModule : AbpModule
         });
         Configure<AbpDbContextOptions>(options =>
         {
-            options.UseNpgsql();
+            options.UseNpgsql(opts =>
+            {
+                opts.UseNetTopologySuite();
+            });
         });
         context.Services.AddTransient<IDbConnection>(sp =>
         {
@@ -172,38 +150,31 @@ public class UnsealHttpApiHostModule : AbpModule
             options.Languages.Add(new LanguageInfo("en", "en", "English"));
             options.Languages.Add(new LanguageInfo("tr", "tr", "Türkçe"));
         });
-        context.Services.AddAbpIdentity();
-        context.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddAbpJwtBearer(options =>
+        Configure<OpenIddictServerBuilder>(builder =>
+        {
+            builder.AddDevelopmentEncryptionCertificate();
+            builder.AddDevelopmentSigningCertificate();
+            builder.SetIssuer(new Uri(configuration["AuthServer:Authority"]));
+        });
+
+        context.Services.AddOpenIddict()
+            .AddValidation(options =>
             {
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = messageReceivedContext =>
-                    {
-                        var accessToken = messageReceivedContext.Request.Query["access_token"];
-                        var path = messageReceivedContext.HttpContext.Request.Path;
-                        if (!string.IsNullOrEmpty(accessToken) &&
-                            path.StartsWithSegments("/api/server-sent-events") ||
-                            path.StartsWithSegments("/signalr-hubs"))
-                        {
-                            messageReceivedContext.Token = accessToken;
-                        }
-    
-                        return Task.CompletedTask;
-                    }
-                };
-                options.Authority = configuration["AuthServer:Authority"];
-                options.RequireHttpsMetadata = configuration.GetValue<bool>("AuthServer:RequireHttpsMetadata");
-                options.Audience = AuthConstants.Audience;
-                options.MapInboundClaims = false;
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    NameClaimType = "sub", 
-                    RoleClaimType = "role",
-                    ValidateAudience = true,
-                    AuthenticationType = "Bearer"
-                };
+                options.UseLocalServer();
+                options.UseAspNetCore();
             });
+        context.Services.Configure<IdentityOptions>(options =>
+        {
+            options.SignIn.RequireConfirmedEmail = true;
+            options.Tokens.ChangeEmailTokenProvider = TokenOptions.DefaultProvider;
+        });
+        context.Services.AddAbpIdentity();
+        context.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+        });
+        
         Configure<AbpDistributedCacheOptions>(options =>
         {
             options.KeyPrefix = "Unseal:";

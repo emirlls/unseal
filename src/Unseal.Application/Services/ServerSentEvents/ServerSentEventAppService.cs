@@ -78,7 +78,8 @@ public class ServerSentEventAppService : UnsealAppService, IServerSentEventAppSe
         finally
         {
             channel.Writer.TryComplete();
-            await subscriber.UnsubscribeAsync(EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdates);
+            await subscriber
+                .UnsubscribeAsync(EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdates);
         }
     }
 }

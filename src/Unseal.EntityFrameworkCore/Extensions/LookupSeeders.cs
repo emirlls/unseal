@@ -46,7 +46,11 @@ public static class LookupSeeders
             
             new NotificationEventType(Guid.Parse(LookupSeederConstants.NotificationEventTypesConstants.UserDelete.Id),
                 LookupSeederConstants.NotificationEventTypesConstants.UserDelete.Name,
-                LookupSeederConstants.NotificationEventTypesConstants.UserDelete.Code)
+                LookupSeederConstants.NotificationEventTypesConstants.UserDelete.Code),
+            
+            new NotificationEventType(Guid.Parse(LookupSeederConstants.NotificationEventTypesConstants.ConfirmChangeMail.Id),
+                LookupSeederConstants.NotificationEventTypesConstants.ConfirmChangeMail.Name,
+                LookupSeederConstants.NotificationEventTypesConstants.ConfirmChangeMail.Code)
         );
         #endregion
     }

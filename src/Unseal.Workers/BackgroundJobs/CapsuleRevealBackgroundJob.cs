@@ -1,4 +1,7 @@
+using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
+using Unseal.Constants;
+using Unseal.Filtering.Base;
 using Unseal.Filtering.Capsules;
 using Unseal.Repositories.Capsules;
 using Volo.Abp.DependencyInjection;
@@ -16,9 +19,21 @@ public class CapsuleRevealBackgroundJob : ITransientDependency
         var now = DateTime.Now;
         var capsuleFilters = new CapsuleFilters
         {
-            IsOpened = false,
-            RevealDateMin = now.AddMinutes(-5),
-            RevealDateMax = now
+            Filters = new List<FilterItem>()
+            {
+                new FilterItem
+                {
+                    Prop = CapsuleFilters.GetIsOpened(),
+                    Strategy = FilterOperators.Equals,
+                    Value = false.ToString()
+                },
+                new FilterItem
+                {
+                    Prop = CapsuleFilters.GetRevealDate(),
+                    Strategy = FilterOperators.GreaterThanOrEqual,
+                    Value = now.AddMinutes(-5).ToString(CultureInfo.InvariantCulture)
+                }
+            }
         };
         var notOpenedCapsules = await capsuleRepository
             .GetDynamicListAsync(

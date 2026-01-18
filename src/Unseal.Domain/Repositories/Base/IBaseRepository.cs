@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Volo.Abp.Application.Dtos;
+using Unseal.Filtering.Base;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
@@ -68,14 +68,14 @@ public interface IBaseRepository<TEntity> : IRepository<TEntity>, ITransientDepe
     );
 
     Task<List<TEntity>> GetDynamicListAsync<TFilters>(
-        TFilters filters,
+        TFilters? filters,
         Func<IQueryable<TEntity>, IQueryable<TEntity>>? queryBuilder, 
         bool asNoTracking = false,
         CancellationToken cancellationToken = default)
-        where TFilters : PagedAndSortedResultRequestDto;
+        where TFilters : DynamicFilterRequest;
     
     Task<long> GetDynamicListCountAsync<TFilters>(
-        TFilters filters,
+        TFilters? filters,
         CancellationToken cancellationToken = default)
-        where TFilters : PagedAndSortedResultRequestDto;
+        where TFilters : DynamicFilterRequest;
 }
