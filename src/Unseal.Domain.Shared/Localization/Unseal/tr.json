@@ -18,6 +18,15 @@
     "Unseal:ExceptionCodes:CapsuleItem:001": "Kapsül içeriği bulunamadı.",
     "Unseal:ExceptionCodes:CapsuleItem:002": "Kapsül içeriği zaten mevcut.",
 
+    "Unseal:ExceptionCodes:CapsuleComment:001": "Kapsül yorumu bulunamadı.",
+    "Unseal:ExceptionCodes:CapsuleComment:002": "Kapsül yorumu zaten mevcut.",
+
+    "Unseal:ExceptionCodes:CapsuleLike:001": "Kapsül beğenisi bulunamadı.",
+    "Unseal:ExceptionCodes:CapsuleLike:002": "Kapsül beğenisi zaten mevcut.",
+
+    "Unseal:ExceptionCodes:CapsuleMapFeature:001": "Kapsül konumu bulunamadı.",
+    "Unseal:ExceptionCodes:CapsuleMapFeature:002": "Kapsül konumu zaten mevcut.",
+
     "Unseal:ExceptionCodes:CapsuleType:001": "Kapsül tipi bulunamadı.",
     "Unseal:ExceptionCodes:CapsuleType:002": "Kapsül tipi zaten mevcut.",
     

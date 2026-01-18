@@ -33,13 +33,10 @@ public class GroupController : UnsealController
     public async Task<PagedResultDto<GroupDto>> GetFilteredGroupListAsync(
         [FromQuery]GroupFilters groupFilters,
         CancellationToken cancellationToken = default
-    )
-    {
-        return await GroupAppService.GetFilteredGroupListAsync(
-            groupFilters,
-            cancellationToken
-        );
-    }
+    ) => await GroupAppService.GetFilteredGroupListAsync(
+        groupFilters,
+        cancellationToken
+    );
     
     /// <summary>
     /// Use to group detail.
@@ -51,10 +48,7 @@ public class GroupController : UnsealController
     public async Task<GroupDetailDto> GetDetailAsync(
         Guid groupId,
         CancellationToken cancellationToken = default
-    )
-    {
-        return await GroupAppService.GetDetailAsync(groupId, cancellationToken);
-    }
+    ) => await GroupAppService.GetDetailAsync(groupId, cancellationToken);
     
     /// <summary>
     /// Use to create group
@@ -65,13 +59,11 @@ public class GroupController : UnsealController
     [HttpPost]
     public async Task<bool> CreateGroupAsync(
         [FromForm]GroupCreateDto groupCreateDto,
-        CancellationToken cancellationToken = default)
-    {
-        return await GroupAppService.CreateGroupAsync(
-            groupCreateDto, 
-            cancellationToken
-        );
-    }
+        CancellationToken cancellationToken = default
+    ) => await GroupAppService.CreateGroupAsync(
+        groupCreateDto, 
+        cancellationToken
+    );
 
     /// <summary>
     /// Use to update group
@@ -84,14 +76,12 @@ public class GroupController : UnsealController
     public async Task<bool> UpdateGroupAsync(
         Guid groupId,
         GroupUpdateDto groupUpdateDto,
-        CancellationToken cancellationToken = default)
-    {
-        return await GroupAppService.UpdateGroupAsync(
-            groupId,
-            groupUpdateDto, 
-            cancellationToken
-        );
-    }
+        CancellationToken cancellationToken = default
+    ) => await GroupAppService.UpdateGroupAsync(
+        groupId,
+        groupUpdateDto, 
+        cancellationToken
+    );
 
     /// <summary>
     /// Use to leave the group
@@ -103,9 +93,6 @@ public class GroupController : UnsealController
     public async Task<bool> LeaveAsync(
         Guid groupId,
         CancellationToken cancellationToken = default
-    )
-    {
-        return await GroupAppService.LeaveAsync(groupId,cancellationToken);
-    }
+    ) => await GroupAppService.LeaveAsync(groupId,cancellationToken);
     
 }

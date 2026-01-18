@@ -38,6 +38,9 @@ public static class UnsealTableNameProvider
         {nameof(Group),"Groups"},
         {nameof(GroupMember),"GroupMembers"},
         {nameof(UserInteraction),"UserInteractions"},
+        {nameof(CapsuleLike),"CapsuleLikes"},
+        {nameof(CapsuleComment),"CapsuleComments"},
+        {nameof(CapsuleMapFeature),"CapsuleMapFeatures"},
     };
     
     public static void SetAbpTablePrefix(this ModelBuilder builder)

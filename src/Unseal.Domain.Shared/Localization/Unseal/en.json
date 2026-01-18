@@ -18,6 +18,15 @@
     "Unseal:ExceptionCodes:CapsuleItem:001": "Capsule item not found.",
     "Unseal:ExceptionCodes:CapsuleItem:002": "Capsule item already exists.",
 
+    "Unseal:ExceptionCodes:CapsuleComment:001": "Capsule comment not found.",
+    "Unseal:ExceptionCodes:CapsuleComment:002": "Capsule comment already exists.",
+
+    "Unseal:ExceptionCodes:CapsuleLike:001": "Capsule like not found.",
+    "Unseal:ExceptionCodes:CapsuleLike:002": "Capsule like already exists.",
+
+    "Unseal:ExceptionCodes:CapsuleMapFeature:001": "Capsule map feature not found.",
+    "Unseal:ExceptionCodes:CapsuleMapFeature:002": "Capsule map feature already exists.",
+
     "Unseal:ExceptionCodes:CapsuleType:001": "Capsule type not found.",
     "Unseal:ExceptionCodes:CapsuleType:002": "Capsule type already exists.",
 

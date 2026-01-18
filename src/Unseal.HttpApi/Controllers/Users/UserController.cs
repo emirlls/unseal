@@ -33,10 +33,7 @@ public class UserController : UnsealController
     public async Task<bool> FollowAsync(
         Guid userId,
         CancellationToken cancellationToken = default
-    )
-    {
-        return await UserAppService.FollowAsync(userId, cancellationToken);
-    }
+    ) => await UserAppService.FollowAsync(userId, cancellationToken);
     
     /// <summary>
     /// Use to unfollow the user
@@ -48,10 +45,7 @@ public class UserController : UnsealController
     public async Task<bool> UnfollowAsync(
         Guid userId,
         CancellationToken cancellationToken = default
-    )
-    {
-        return await UserAppService.UnfollowAsync(userId, cancellationToken);
-    }
+    ) => await UserAppService.UnfollowAsync(userId, cancellationToken);
 
     /// <summary>
     /// Use to block user.
@@ -64,10 +58,8 @@ public class UserController : UnsealController
         Guid userId,
         CancellationToken cancellationToken = default
 
-    )
-    {
-        return await UserAppService.BlockAsync(userId, cancellationToken);
-    }
+    ) => await UserAppService.BlockAsync(userId, cancellationToken);
+    
     /// <summary>
     /// Use to unblock user
     /// </summary>
@@ -79,8 +71,5 @@ public class UserController : UnsealController
         Guid userId,
         CancellationToken cancellationToken = default
 
-    )
-    {
-        return await UserAppService.UnBlockAsync(userId, cancellationToken);
-    }
+    ) => await UserAppService.UnBlockAsync(userId, cancellationToken);
 }

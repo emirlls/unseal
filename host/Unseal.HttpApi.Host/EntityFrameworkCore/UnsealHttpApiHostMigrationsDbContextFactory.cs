@@ -3,6 +3,7 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using Unseal.Constants;
 
 namespace Unseal.EntityFrameworkCore;
 
@@ -13,7 +14,8 @@ public class UnsealHttpApiHostMigrationsDbContextFactory : IDesignTimeDbContextF
         var configuration = BuildConfiguration();
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         var builder = new DbContextOptionsBuilder<UnsealDbContext>()
-            .UseNpgsql(configuration.GetConnectionString("Default"));
+            .UseNpgsql(configuration.GetConnectionString("Default"),
+                opts => { opts.UseNetTopologySuite(); });
 
         return new UnsealDbContext(builder.Options);
     }
@@ -21,8 +23,17 @@ public class UnsealHttpApiHostMigrationsDbContextFactory : IDesignTimeDbContextF
     private static IConfigurationRoot BuildConfiguration()
     {
         var builder = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: false);
+            .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "../../host/Unseal.HttpApi.Host"))
+            .AddJsonFile(
+                $"{MultiEnvironmentConstants.AspNetCoreEnvironmentAppSettingFile}{MultiEnvironmentConstants.AspNetCoreEnvironmentExtention}",
+                optional: false)
+            .AddJsonFile(
+                $"{MultiEnvironmentConstants.AspNetCoreEnvironmentAppSettingFile}." +
+                $"{Environment.GetEnvironmentVariable($"{MultiEnvironmentConstants.AspNetCoreEnvironment}")}" +
+                $"{MultiEnvironmentConstants.AspNetCoreEnvironmentExtention}",
+                true,
+                true
+            ).AddEnvironmentVariables();
 
         return builder.Build();
     }

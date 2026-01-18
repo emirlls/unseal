@@ -74,6 +74,9 @@ public class UnsealDbContext :
     public DbSet<Capsule> Capsules { get; set; }
     public DbSet<CapsuleItem> CapsuleItems { get; set; }
     public DbSet<CapsuleType> CapsuleTypes { get; set; }
+    public DbSet<CapsuleComment> CapsuleComments { get; set; }
+    public DbSet<CapsuleLike> CapsuleLikes { get; set; }
+    public DbSet<CapsuleMapFeature> CapsuleMapFeatures { get; set; }
     //Notifications
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<NotificationEventType> NotificationEventTypes { get; set; }
