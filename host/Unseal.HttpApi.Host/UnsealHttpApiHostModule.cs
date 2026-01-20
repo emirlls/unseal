@@ -15,12 +15,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Unseal.EntityFrameworkCore;
-using Unseal.MultiTenancy;
 using StackExchange.Redis;
 using Microsoft.OpenApi.Models;
 using Npgsql;
 using OpenIddict.Validation.AspNetCore;
 using Unseal.Constants;
+using Unseal.Middlewares;
 using Unseal.Workers;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Authentication.JwtBearer;
@@ -235,6 +235,8 @@ public class UnsealHttpApiHostModule : AbpModule
         {
             app.UseMultiTenancy();
         }
+        app.UseMiddleware<CustomTenantMiddleware>();
+        
         app.UseAbpRequestLocalization();
         app.UseAuthorization();
         app.UseSwagger();
@@ -244,7 +246,7 @@ public class UnsealHttpApiHostModule : AbpModule
 
             var configuration = context.GetConfiguration();
             options.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);
-            options.OAuthScopes("Unseal");
+            options.OAuthScopes(AppConstants.AppName);
         });
         app.UseMiddleware<GenericResponseMiddleware>();
         

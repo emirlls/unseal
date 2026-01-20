@@ -67,6 +67,8 @@ public class AuthController : UnsealController
     /// <param name="newMailAddress"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
+    
+    [Authorize]
     [HttpPost("change-mail")]
     public async Task<bool> ChangeMailAsync(
         Guid userId,
@@ -115,12 +117,32 @@ public class AuthController : UnsealController
         cancellationToken
     );
 
+
+    /// <summary>
+    /// Use to change password.
+    /// </summary>
+    /// <param name="changePasswordInputDto"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<bool> ChangePasswordAsync(
+        ChangePasswordInputDto changePasswordInputDto,
+        CancellationToken cancellationToken=default
+    ) => await AuthAppService.ChangePasswordAsync(
+        changePasswordInputDto,
+        cancellationToken
+    );
+    
     /// <summary>
     /// Use to delete user.
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
+    
+    [Authorize]
     [HttpDelete("{userId}")]
     public async Task<bool> UserDeleteAsync(
         Guid userId,

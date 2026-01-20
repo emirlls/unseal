@@ -1,10 +1,8 @@
-using System.Linq;
-using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Unseal.Extensions;
 
-public static class StringExtension
+public static class EntityExtension
 {
     public static void ToSnakeCase(this ModelBuilder builder)
     {
@@ -37,33 +35,5 @@ public static class StringExtension
                 foreignKey.SetConstraintName(foreignKey.GetConstraintName().ConvertToSnakeCase());
             }
         }
-    }
-    public static string ConvertToSnakeCase(this string? name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return string.Empty;
-        }
-
-        if (name.Contains('_') && name.All(c => char.IsLower(c) || c == '_'))
-        {
-            return name;
-        }
-
-        // ex: UserId -> _User_Id
-        var snakeCase = Regex.Replace(
-            name, 
-            "([A-Z])", 
-            "_$1", 
-            RegexOptions.Compiled
-        );
-
-        // ex: _User_Id -> User_Id
-        snakeCase = snakeCase.Trim('_');
-
-        // ex: User__ID -> User_ID
-        snakeCase = Regex.Replace(snakeCase, "_+", "_");
-        
-        return snakeCase.ToLowerInvariant();
     }
 }
