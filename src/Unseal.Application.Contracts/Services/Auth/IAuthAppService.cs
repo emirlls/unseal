@@ -51,4 +51,9 @@ public interface IAuthAppService : IApplicationService
         string token,
         CancellationToken cancellationToken = default
     );
+    
+    Task<bool> ChangePasswordAsync(
+        ChangePasswordInputDto changePasswordInputDto,
+        CancellationToken cancellationToken = default
+    );
 }

@@ -63,7 +63,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
     {
         var fileUrl = await LazyServiceProvider.UploadFileAsync(capsuleCreateDto.StreamContent);
         var encryptedFileUrl = LazyServiceProvider.GetEncryptedFileUrlAsync(fileUrl);
-        var capsuleCreateModel = CapsuleMapper.MapCapsuleCreateDtoToCapsuleCreateModel(capsuleCreateDto);
+        var capsuleCreateModel = CapsuleMapper.MaptoModel(capsuleCreateDto);
         var capsule = CapsuleManager.Create(capsuleCreateModel, CurrentUser.Id!);
         capsuleCreateModel = capsuleCreateModel with { FileUrl = encryptedFileUrl };
         var capsuleItem = CapsuleItemManager.Create(capsuleCreateModel, capsule.Id);
@@ -135,7 +135,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
             .GetDynamicListAsync(capsuleFilters, queryBuilder, true, cancellationToken);
         var count = await CapsuleRepository
             .GetDynamicListCountAsync(capsuleFilters, cancellationToken);
-        var dto = CapsuleMapper.MapCapsuleListToCapsuleDtoList(capsules);
+        var dto = CapsuleMapper.MapToDto(capsules);
         var response = new PagedResultDto<CapsuleDto>
         {
             Items = dto,

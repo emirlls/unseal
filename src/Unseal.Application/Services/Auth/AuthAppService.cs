@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Duende.IdentityModel.Client;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
@@ -18,8 +19,11 @@ using Unseal.Interfaces.Managers.Auth;
 using Unseal.Localization;
 using Unseal.Profiles.Auth;
 using Volo.Abp;
+using Volo.Abp.Data;
 using Volo.Abp.EventBus.Distributed;
 using Volo.Abp.Identity;
+using Volo.Abp.MultiTenancy;
+using Volo.Abp.Users;
 
 namespace Unseal.Services.Auth;
 
@@ -43,13 +47,22 @@ public class AuthAppService : UnsealAppService, IAuthAppService
     private IStringLocalizer<UnsealResource> StringLocalizer =>
         LazyServiceProvider.LazyGetRequiredService<IStringLocalizer<UnsealResource>>();
 
+    private readonly IDataFilter<IMultiTenant> _dataFilter;
+
+    public AuthAppService(
+        IDataFilter<IMultiTenant> dataFilter
+    )
+    {
+        _dataFilter = dataFilter;
+    }
+
     public async Task<bool> RegisterAsync(
         RegisterDto dto,
         CancellationToken cancellationToken = default
     )
     {
         await CheckMailInUseAsync(dto.Email);
-        var model = AuthMapper.MapRegisterDtoToRegisterModel(dto);
+        var model = AuthMapper.MapToDto(dto);
         var user = await CustomIdentityUserManager.Create(
             GuidGenerator.Create(),
             CurrentTenant.Id,
@@ -75,7 +88,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             };
             await DistributedEventBus.PublishAsync(userRegisterEto);
         }
-        
+
         return result.Succeeded;
     }
 
@@ -83,7 +96,9 @@ public class AuthAppService : UnsealAppService, IAuthAppService
     {
         var existingUser = await IdentityUserManager.FindByEmailAsync(email);
         if (existingUser is not null)
+        {
             throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.MailInUser]);
+        }
     }
 
     public async Task<LoginResponseDto> LoginAsync(
@@ -91,30 +106,35 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default
     )
     {
-        var user = await CustomIdentityUserManager.TryGetByAsync(x =>
-                string.Equals(x.UserName, loginDto.UserName),
-            throwIfNull: true,
-            cancellationToken: cancellationToken);
-        if (!await IdentityUserManager.IsEmailConfirmedAsync(user))
+        using (_dataFilter.Disable())
         {
-            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.CannotLoginIfMailNotConfirmed]);
+            var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                    string.Equals(x.UserName, loginDto.UserName),
+                true,
+                cancellationToken: cancellationToken);
+            if (!await IdentityUserManager.IsEmailConfirmedAsync(user))
+            {
+                throw new UserFriendlyException(
+                    StringLocalizer[ExceptionCodes.IdentityUser.CannotLoginIfMailNotConfirmed]);
+            }
+
+            var tokenResponse = await GetTokenAsync(
+                loginDto.UserName,
+                loginDto.Password,
+                user.TenantId?.ToString(),
+                cancellationToken
+            );
+
+            var response = new LoginResponseDto(
+                user.Id,
+                tokenResponse.AccessToken,
+                tokenResponse.RefreshToken,
+                tokenResponse.ExpiresIn);
+
+            return response;
         }
-
-        var tokenResponse = await GetTokenAsync(
-            loginDto.UserName,
-            loginDto.Password,
-            cancellationToken
-        );
-
-        var response = new LoginResponseDto(
-            user.Id,
-            tokenResponse.AccessToken,
-            tokenResponse.RefreshToken,
-            tokenResponse.ExpiresIn);
-
-        return response;
     }
-
+    
     public async Task<bool> ConfirmMailAsync(
         Guid userId,
         string token,
@@ -123,7 +143,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
     {
         var user = await CustomIdentityUserManager.TryGetByAsync(x =>
                 x.Id.Equals(userId),
-            throwIfNull: true,
+            true,
             cancellationToken: cancellationToken
         );
 
@@ -137,7 +157,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             return result.Succeeded;
         }
     }
-
+    
     public async Task<bool> ConfirmChangeEmailAsync(
         Guid userId,
         string newEmail,
@@ -147,7 +167,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
     {
         var user = await CustomIdentityUserManager.TryGetByAsync(
             x => x.Id == userId,
-            throwIfNull: true,
+            true,
             cancellationToken: cancellationToken
         );
         var decodedToken = WebUtility.UrlDecode(token);
@@ -165,7 +185,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default
     )
     {
-        var user = await CustomIdentityUserManager.TryGetByAsync(x => x.Id.Equals(userId), throwIfNull: true,
+        var user = await CustomIdentityUserManager.TryGetByAsync(x => x.Id.Equals(userId), true,
             cancellationToken: cancellationToken);
 
         var roles = await IdentityUserManager.GetRolesAsync(user);
@@ -194,7 +214,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default)
     {
         var user = await CustomIdentityUserManager.TryGetByAsync(x =>
-                x.Email == mail, throwIfNull: true,
+                x.Email == mail, true,
             cancellationToken: cancellationToken);
         using (CurrentTenant.Change(user.TenantId))
         {
@@ -213,7 +233,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             };
             await DistributedEventBus.PublishAsync(userRegisterEto);
         }
-        
+
         return true;
     }
 
@@ -225,7 +245,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
     {
         await CheckMailInUseAsync(newMailAddress);
         var user = await CustomIdentityUserManager.TryGetByAsync(x =>
-                x.Id.Equals(userId), throwIfNull: true,
+                x.Id.Equals(userId), true,
             cancellationToken: cancellationToken);
         var token = await IdentityUserManager.GenerateChangeEmailTokenAsync(user, newMailAddress);
         await DistributedEventBus.PublishAsync(new ConfirmChangeMailEto
@@ -248,15 +268,32 @@ public class AuthAppService : UnsealAppService, IAuthAppService
     )
     {
         var user = await CustomIdentityUserManager.TryGetByAsync(x =>
-                x.Id.Equals(userId), throwIfNull: true,
+                x.Id.Equals(userId), true,
             cancellationToken: cancellationToken);
         var result = await IdentityUserManager.ChangeEmailAsync(user, newMailAddress, token);
         return result.Succeeded;
     }
 
+    public async Task<bool> ChangePasswordAsync(
+        ChangePasswordInputDto changePasswordInputDto,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var userId = CurrentUser.GetId();
+        var user = await IdentityUserManager.GetByIdAsync(userId);
+        (await IdentityUserManager
+            .ChangePasswordAsync(
+                user,
+                changePasswordInputDto.OldPassword,
+                changePasswordInputDto.NewPassword
+            )).CheckErrors();
+        return true;
+    }
+
     private async Task<TokenResponse> GetTokenAsync(
         string username,
         string password,
+        string? tenantId,
         CancellationToken cancellationToken = default
     )
     {
@@ -270,7 +307,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         {
             Address = Configuration[AuthConstants.Authority],
             Policy = { RequireHttps = false }
-        }, cancellationToken: cancellationToken);
+        }, cancellationToken);
         var request = new PasswordTokenRequest
         {
             Address = discovery.TokenEndpoint,
@@ -279,10 +316,11 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             Password = password,
             Scope = AuthConstants.Scope
         };
+        SetRequestHeaders(request, tenantId);
         var tokenResponse = await client
             .RequestPasswordTokenAsync(
                 request,
-                cancellationToken: cancellationToken
+                cancellationToken
             );
 
         if (tokenResponse.IsError)
@@ -291,5 +329,13 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         }
 
         return tokenResponse;
+    }
+
+    private void SetRequestHeaders(PasswordTokenRequest request, string? tenantId)
+    {
+        if (!string.IsNullOrWhiteSpace(tenantId))
+        {
+            request.Address = request.Address + "?__tenant=" + tenantId;
+        }
     }
 }

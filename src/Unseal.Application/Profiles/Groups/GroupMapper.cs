@@ -19,24 +19,24 @@ public partial class GroupMapper : ITransientDependency
         _serviceProvider = serviceProvider;
     }
 
-    public partial GroupCreateModel MapGroupCreateDtoToModel(GroupCreateDto dto);
+    public partial GroupCreateModel MapToModel(GroupCreateDto dto);
     
     [MapperIgnoreTarget(nameof(GroupCreateModel.StreamContent))]
-    public partial GroupCreateModel MapGroupUpdateDtoToModel(GroupUpdateDto dto);
+    public partial GroupCreateModel MapToModel(GroupUpdateDto dto);
 
-    public List<GroupDto> MapGroupToGroupDtoList(List<Group> groups)
+    public List<GroupDto> MapToDto(List<Group> groups)
     {
-        return groups.Select(MapGroupToGroupDto).ToList();
+        return groups.Select(MapToDto).ToList();
     }
 
-    private GroupDto MapGroupToGroupDto(Group group)
+    private GroupDto MapToDto(Group group)
     {
         var decryptedFileUrl = _serviceProvider.GetDecryptedFileUrlAsync(group.GroupImageUrl!);
         var dto = new GroupDto(group.Id, group.Name, group.Description, decryptedFileUrl);
         return dto;
     }
     
-    public GroupDetailDto MapGroupToGroupDetailDto(Group group)
+    public GroupDetailDto MapToDetailDto(Group group)
     {
         var decryptedFileUrl = _serviceProvider.GetDecryptedFileUrlAsync(group.GroupImageUrl!);
         var members = GetGroupMembers(group);

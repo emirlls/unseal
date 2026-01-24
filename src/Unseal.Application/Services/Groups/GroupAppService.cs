@@ -53,7 +53,7 @@ public class GroupAppService : UnsealAppService, IGroupAppService
             groupCreateDto.UserIds.ToHashSet(),
             cancellationToken
         );
-        var groupCreateModel = GroupMapper.MapGroupCreateDtoToModel(groupCreateDto);
+        var groupCreateModel = GroupMapper.MapToModel(groupCreateDto);
         var group = GroupManager.Create(groupCreateModel);
         if (groupCreateDto.StreamContent is not null)
         {
@@ -85,7 +85,7 @@ public class GroupAppService : UnsealAppService, IGroupAppService
             throwIfNull: true,
             cancellationToken: cancellationToken);
 
-        var groupUpdateModel = GroupMapper.MapGroupUpdateDtoToModel(groupUpdateDto);
+        var groupUpdateModel = GroupMapper.MapToModel(groupUpdateDto);
         var updatedGroup = GroupManager.Update(group, groupUpdateModel);
         var groupMembers = GroupMemberManager.Create(
             groupUpdateModel,
@@ -115,7 +115,7 @@ public class GroupAppService : UnsealAppService, IGroupAppService
             cancellationToken
         );
 
-        var dto = GroupMapper.MapGroupToGroupDtoList(groups);
+        var dto = GroupMapper.MapToDto(groups);
         var response = new PagedResultDto<GroupDto>
         {
             Items = dto,
@@ -136,7 +136,7 @@ public class GroupAppService : UnsealAppService, IGroupAppService
                     .ThenInclude(x => x.User),
             throwIfNull: true,
             cancellationToken: cancellationToken);
-        var dto = GroupMapper.MapGroupToGroupDetailDto(group);
+        var dto = GroupMapper.MapToDetailDto(group);
         return dto;
     }
 

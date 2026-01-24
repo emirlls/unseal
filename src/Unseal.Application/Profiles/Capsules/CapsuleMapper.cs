@@ -13,16 +13,22 @@ namespace Unseal.Profiles.Capsules;
 [Mapper]
 public partial class CapsuleMapper : ITransientDependency
 {
-    public partial List<CapsuleDto> MapCapsuleListToCapsuleDtoList(List<Capsule> capsules);
+    public partial List<CapsuleDto> MapToDto(List<Capsule> capsules);
+
     [MapProperty(nameof(Capsule.CapsuleType), nameof(CapsuleDto.Type), Use = nameof(ResolveType))]
-    public partial CapsuleDto MapCapsuleToCapsuleDto(Capsule capsule);
-    
+    public partial CapsuleDto MapToDto(Capsule capsule);
+
     protected string? ResolveType(CapsuleType? capsuleType)
     {
-        if (capsuleType is null) return null;
+        if (capsuleType is null)
+        {
+            return null;
+        }
+
         return ((CapsuleTypes)capsuleType?.Code!).GetDescription();
     }
-    public CapsuleCreateModel MapCapsuleCreateDtoToCapsuleCreateModel(CapsuleCreateDto capsuleCreateDto)
+
+    public CapsuleCreateModel MaptoModel(CapsuleCreateDto capsuleCreateDto)
     {
         return new CapsuleCreateModel(
             capsuleCreateDto.CapsuleTypeId,
