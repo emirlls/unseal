@@ -8,7 +8,7 @@ using Microsoft.Extensions.Localization;
 using Unseal.Constants;
 using Unseal.Dtos.Groups;
 using Unseal.Extensions;
-using Unseal.Filtering.Users;
+using Unseal.Filtering.Groups;
 using Unseal.Interfaces.Managers.Groups;
 using Unseal.Interfaces.Managers.Users;
 using Unseal.Localization;
@@ -112,6 +112,7 @@ public class GroupAppService : UnsealAppService, IGroupAppService
 
         var count = await GroupRepository.GetDynamicListCountAsync(
             groupFilters,
+            useCache:true,
             cancellationToken
         );
 

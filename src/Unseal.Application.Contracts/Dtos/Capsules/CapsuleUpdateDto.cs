@@ -7,7 +7,6 @@ public record CapsuleUpdateDto(
     Guid? CapsuleTypeId,
     Guid? ReceiverId,
     string Name,
-    bool? IsPublic,
     string TextContext,
     string? GeoJson,
     DateTime RevealDate,
@@ -18,7 +17,6 @@ public record CapsuleUpdateDto(
         Name,
         TextContext,
         GeoJson,
-        IsPublic,
         RevealDate,
         StreamContent
     );

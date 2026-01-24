@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Http;
 using Unseal.Constants;
 using Volo.Abp.MultiTenancy;
 using Volo.Abp.Security.Claims;
-using Volo.Abp.Users;
 
 namespace Unseal.Middlewares;
 

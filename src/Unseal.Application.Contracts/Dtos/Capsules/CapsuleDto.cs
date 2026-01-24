@@ -4,7 +4,11 @@ namespace Unseal.Dtos.Capsules;
 
 public record CapsuleDto(
     Guid Id,
+    Guid CreatorId,
     string Name,
     string? Type,
-    DateTime RevealDate
+    string Username,
+    string? ProfilePictureUrl,
+    DateTime RevealDate,
+    DateTime CreationTime
     );

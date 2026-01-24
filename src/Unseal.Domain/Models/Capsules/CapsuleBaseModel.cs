@@ -6,7 +6,6 @@ public record CapsuleBaseModel(
     Guid? CapsuleTypeId,
     Guid? ReceiverId,
     string Name,
-    bool? IsPublic,
     string ContentType,
     string? TextContext,
     string? FileUrl,

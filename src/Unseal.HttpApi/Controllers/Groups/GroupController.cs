@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Unseal.Dtos.Groups;
-using Unseal.Filtering.Users;
+using Unseal.Filtering.Groups;
 using Unseal.Services.Groups;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.DependencyInjection;

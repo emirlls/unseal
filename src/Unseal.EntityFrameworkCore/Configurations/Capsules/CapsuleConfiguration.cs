@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Unseal.Constants;
@@ -15,7 +16,6 @@ public class CapsuleConfiguration : IEntityTypeConfiguration<Capsule>
         builder.ConfigureByConvention();
 
         builder.Property(x => x.ReceiverId).IsRequired(false);
-        builder.Property(x => x.IsPublic).IsRequired(false);
         builder.Property(x => x.IsOpened).HasDefaultValue(false);
 
         builder.HasOne(x=>x.CapsuleType)

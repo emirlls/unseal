@@ -1,9 +1,8 @@
-
 using System;
 using Unseal.Attributes;
 using Unseal.Filtering.Base;
 
-namespace Unseal.Filtering.Users;
+namespace Unseal.Filtering.Groups;
 
 public class GroupFilters: DynamicFilterRequest
 {

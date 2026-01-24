@@ -23,5 +23,10 @@ public class UserFollowerConfiguration : IEntityTypeConfiguration<UserFollower>
             .WithMany()
             .HasForeignKey(x => x.FollowerId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasOne(x=>x.Status)
+            .WithMany(x=>x.UserFollowers)
+            .HasForeignKey(x=>x.StatusId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

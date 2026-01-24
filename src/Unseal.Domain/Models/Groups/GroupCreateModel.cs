@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Volo.Abp.Content;
 
-namespace Unseal.Models.Users;
+namespace Unseal.Models.Groups;
 
 public record GroupCreateModel(
     List<Guid> UserIds,

@@ -1,5 +1,5 @@
 using Unseal.Entities.Groups;
-using Unseal.Models.Users;
+using Unseal.Models.Groups;
 
 namespace Unseal.Interfaces.Managers.Groups;
 

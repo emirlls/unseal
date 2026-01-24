@@ -6,12 +6,11 @@ public record CapsuleCreateModel(
     Guid? CapsuleTypeId,
     Guid? ReceiverId,
     string Name,
-    bool? IsPublic,
     string ContentType,
     string? TextContext,
     string? FileUrl,
     string? FileName,
     string? GeoJson,
     DateTime RevealDate) :
-    CapsuleBaseModel(CapsuleTypeId, ReceiverId, Name, IsPublic, ContentType, TextContext,
+    CapsuleBaseModel(CapsuleTypeId, ReceiverId, Name, ContentType, TextContext,
         FileUrl, FileName, GeoJson, RevealDate);

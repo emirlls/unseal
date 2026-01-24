@@ -9,7 +9,6 @@ public record CapsuleCreateDto(
     string Name,
     string TextContext,
     string? GeoJson,
-    bool? IsPublic,
     DateTime RevealDate,
     IRemoteStreamContent StreamContent) :
     CapsuleBaseDto(
@@ -18,7 +17,6 @@ public record CapsuleCreateDto(
         Name,
         TextContext,
         GeoJson,
-        IsPublic,
         RevealDate,
         StreamContent
     );

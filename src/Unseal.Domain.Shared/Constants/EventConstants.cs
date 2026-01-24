@@ -7,6 +7,7 @@ public static class EventConstants
         public const string MailConfirmation = nameof(MailConfirmation);
         public const string UserDelete = nameof(UserDelete);
         public const string UserRegister = nameof(UserRegister);
+        public const string CreateUserProfile = nameof(CreateUserProfile);
     }
 
     public static class ServerSentEvents

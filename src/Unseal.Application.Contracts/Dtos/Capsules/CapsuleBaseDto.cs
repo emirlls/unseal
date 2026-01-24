@@ -9,7 +9,6 @@ public record CapsuleBaseDto(
     string Name,
     string TextContext,
     string? GeoJson,
-    bool? IsPublic,
     DateTime RevealDate,
     IRemoteStreamContent StreamContent
 );
