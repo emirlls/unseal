@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Unseal.Entities.Capsules;
-using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Entities.Auditing;
 using Volo.Abp.Identity;
 

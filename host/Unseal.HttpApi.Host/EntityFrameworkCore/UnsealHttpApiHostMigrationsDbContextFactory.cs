@@ -15,7 +15,11 @@ public class UnsealHttpApiHostMigrationsDbContextFactory : IDesignTimeDbContextF
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         var builder = new DbContextOptionsBuilder<UnsealDbContext>()
             .UseNpgsql(configuration.GetConnectionString("Default"),
-                opts => { opts.UseNetTopologySuite(); });
+                opts =>
+                {
+                    opts.UseNetTopologySuite();
+                    opts.MigrationsHistoryTable("__EFMigrationsHistory", "public");
+                });
 
         return new UnsealDbContext(builder.Options);
     }
