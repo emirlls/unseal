@@ -75,11 +75,19 @@ public static class FilterStrategyExecutor
 
     private static object? ConvertValue(string? value, Type targetType)
     {
-        if (string.IsNullOrEmpty(value)) return null;
+        if (string.IsNullOrWhiteSpace(value)) return null;
 
         if (targetType.IsEnum) return Enum.Parse(targetType, value, true);
 
         if (targetType == typeof(bool)) return value.ToLower() is "true" or "1";
+
+        if (targetType == typeof(Guid))
+        {
+            if (Guid.TryParse(value, out var guidValue))
+                return guidValue;
+        
+            throw new ArgumentException($"'{value} is invalid Guid format.");
+        }
 
         return Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
     }

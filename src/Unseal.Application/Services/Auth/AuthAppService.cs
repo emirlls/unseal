@@ -4,10 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Duende.IdentityModel.Client;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
@@ -61,37 +61,51 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default
     )
     {
+        await CheckMailFormatAsync(dto.Email);
         await CheckMailInUseAsync(dto.Email);
         var model = AuthMapper.MapToDto(dto);
         var user = await CustomIdentityUserManager.Create(
             GuidGenerator.Create(),
-            CurrentTenant.Id,
+            Guid.Parse(TenantConstants.TenantId),
             model
         );
         var result = await IdentityUserManager.CreateAsync(user, model.Password);
         result.CheckErrors();
         await IdentityUserManager.AddDefaultRolesAsync(user);
 
-        using (CurrentTenant.Change(user.TenantId))
+        var mailConfirmationToken = await IdentityUserManager
+            .GenerateEmailConfirmationTokenAsync(user);
+        var encodedToken =
+            WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(mailConfirmationToken));
+        var userRegisterEto = new UserRegisterEto
         {
-            var mailConfirmationToken = await IdentityUserManager
-                .GenerateEmailConfirmationTokenAsync(user);
-            var encodedToken =
-                WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(mailConfirmationToken));
-            var userRegisterEto = new UserRegisterEto
-            {
-                UserId = user.Id,
-                Name = user.Name,
-                Surname = user.Surname,
-                Email = user.Email,
-                ConfirmationToken = encodedToken
-            };
-            await DistributedEventBus.PublishAsync(userRegisterEto);
-        }
+            UserId = user.Id,
+            Name = user.Name,
+            Surname = user.Surname,
+            Email = user.Email,
+            ConfirmationToken = encodedToken
+        };
+        await DistributedEventBus.PublishAsync(userRegisterEto);
 
+        var userProfile = new UserProfileEto()
+        {
+            UserId = user.Id,
+        };
+        await DistributedEventBus.PublishAsync(userProfile);
+        
         return result.Succeeded;
     }
 
+    private async Task CheckMailFormatAsync(string email)
+    { 
+        var emailRegex = new Regex(
+        RegexConstants.MailRegexFormat,
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        if (!emailRegex.IsMatch(email))
+        {
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.MailIsInvalid]);
+        }
+    }
     private async Task CheckMailInUseAsync(string email)
     {
         var existingUser = await IdentityUserManager.FindByEmailAsync(email);

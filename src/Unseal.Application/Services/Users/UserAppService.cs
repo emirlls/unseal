@@ -1,13 +1,23 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Unseal.Constants;
+using Unseal.Dtos.Users;
+using Unseal.Extensions;
+using Unseal.Filtering.Users;
 using Unseal.Interfaces.Managers.Auth;
 using Unseal.Interfaces.Managers.Users;
 using Unseal.Localization;
+using Unseal.Models.Users;
+using Unseal.Repositories.Capsules;
 using Unseal.Repositories.Users;
 using Volo.Abp;
+using Volo.Abp.Application.Dtos;
+using Volo.Abp.Users;
 
 namespace Unseal.Services.Users;
 
@@ -15,43 +25,76 @@ public class UserAppService : UnsealAppService, IUserAppService
 {
     private ICustomIdentityUserManager CustomIdentityUserManager =>
         LazyServiceProvider.LazyGetRequiredService<ICustomIdentityUserManager>();
+
     private IUserFollowerManager UserFollowerManager =>
         LazyServiceProvider.LazyGetRequiredService<IUserFollowerManager>();
+
     private IUserFollowerRepository UserFollowerRepository =>
         LazyServiceProvider.LazyGetRequiredService<IUserFollowerRepository>();
+
     private IUserInteractionManager UserInteractionManager =>
         LazyServiceProvider.LazyGetRequiredService<IUserInteractionManager>();
+
+    private IUserProfileManager UserProfileManager =>
+        LazyServiceProvider.LazyGetRequiredService<IUserProfileManager>();
+    
+    private IUserProfileRepository UserProfileRepository =>
+        LazyServiceProvider.LazyGetRequiredService<IUserProfileRepository>();
+    
     private IUserInteractionRepository UserInteractionRepository =>
         LazyServiceProvider.LazyGetRequiredService<IUserInteractionRepository>();
+    
+    private ICapsuleRepository CapsuleRepository =>
+        LazyServiceProvider.LazyGetRequiredService<ICapsuleRepository>();
+
     private IStringLocalizer<UnsealResource> StringLocalizer =>
         LazyServiceProvider.LazyGetRequiredService<IStringLocalizer<UnsealResource>>();
+
     public async Task<bool> FollowAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var user = await CustomIdentityUserManager
-            .TryGetByAsync(x => 
+            .TryGetByAsync(x =>
                     x.Id.Equals(userId), throwIfNull: true,
-            cancellationToken: cancellationToken);
-        var isBlocked = await UserInteractionManager.CheckUserBlockedAsync(user.Id, (Guid)CurrentUser.Id!, cancellationToken);
-        if (isBlocked)
+                cancellationToken: cancellationToken);
+        var userProfile = await UserProfileManager.TryGetByAsync(x =>
+            x.Id.Equals(user.Id), cancellationToken: cancellationToken);
+        var userFollowerStatusId =
+            Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Accepted.Id);
+        if (userProfile.IsLocked)
         {
-            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.UserFollower.UserIsBanned]);
+            userFollowerStatusId =
+                Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Pending.Id);
         }
 
-        var userFollower = UserFollowerManager.Create(user.Id, (Guid)CurrentUser.Id!);
+        var currentUserId = CurrentUser.GetId();
+
+        await CheckUserIsBlocked(userId, cancellationToken);
+        await UserFollowerManager.TryGetByAsync(x =>
+                x.UserId.Equals(user.Id) && x.FollowerId.Equals(currentUserId),
+            throwIfExists: true,
+            cancellationToken: cancellationToken
+        );
+        var userFollower = UserFollowerManager
+            .Create(
+                user.Id,
+                currentUserId,
+                userFollowerStatusId
+            );
         await UserFollowerRepository.InsertAsync(userFollower, cancellationToken: cancellationToken);
         return true;
     }
 
     public async Task<bool> UnfollowAsync(Guid userId, CancellationToken cancellationToken = default)
     {
+        await CheckUserIsBlocked(userId, cancellationToken);
         var user = await CustomIdentityUserManager
-            .TryGetByAsync(x => 
+            .TryGetByAsync(x =>
                     x.Id.Equals(userId), throwIfNull: true,
                 cancellationToken: cancellationToken);
-
+        var currentUserId = CurrentUser.GetId();
         var userFollower = await UserFollowerManager.TryGetByAsync(x =>
-            x.UserId.Equals(user.Id) && 
-            x.FollowerId.Equals((Guid)CurrentUser.Id!),
+                x.UserId.Equals(user.Id) &&
+                x.FollowerId.Equals(currentUserId),
             cancellationToken: cancellationToken
         );
         await UserFollowerRepository.HardDeleteAsync(userFollower, cancellationToken);
@@ -60,11 +103,13 @@ public class UserAppService : UnsealAppService, IUserAppService
 
     public async Task<bool> BlockAsync(Guid userId, CancellationToken cancellationToken = default)
     {
+        var currentUserId = CurrentUser.GetId();
         var userInteraction = await UserInteractionManager.TryGetByAsync(x =>
-            x.SourceUserId.Equals(CurrentUser.Id) && x.TargetUserId.Equals(userId), cancellationToken: cancellationToken);
+                x.SourceUserId.Equals(currentUserId) && x.TargetUserId.Equals(userId),
+            cancellationToken: cancellationToken);
         if (userInteraction is null)
         {
-            var entity = UserInteractionManager.Create((Guid)CurrentUser.Id!, userId);
+            var entity = UserInteractionManager.Create(currentUserId, userId);
             entity.IsBlocked = true;
             await UserInteractionRepository.InsertAsync(entity, cancellationToken: cancellationToken);
             return true;
@@ -72,17 +117,28 @@ public class UserAppService : UnsealAppService, IUserAppService
 
         userInteraction.IsBlocked = true;
         await UserInteractionRepository.UpdateAsync(userInteraction, cancellationToken: cancellationToken);
+        var userFollowers = await UserFollowerManager.TryGetListByAsync(x =>
+                (x.UserId.Equals(currentUserId) && x.FollowerId.Equals(userId)) ||
+                (x.UserId.Equals(userId) && x.FollowerId.Equals(currentUserId)),
+            cancellationToken: cancellationToken);
+        if (!userFollowers.IsNullOrEmpty())
+        {
+            await UserFollowerRepository.HardDeleteManyAsync(userFollowers, cancellationToken);
+        }
+
         return true;
     }
 
     public async Task<bool> UnBlockAsync(Guid userId, CancellationToken cancellationToken = default)
     {
+        var currentUserId = CurrentUser.GetId();
         var userInteraction = await UserInteractionManager.TryGetByAsync(x =>
-            x.SourceUserId.Equals(CurrentUser.Id) && x.TargetUserId.Equals(userId), cancellationToken: cancellationToken);
-        
+                x.SourceUserId.Equals(currentUserId) && x.TargetUserId.Equals(userId),
+            cancellationToken: cancellationToken);
+
         if (userInteraction is null)
         {
-            var entity = UserInteractionManager.Create((Guid)CurrentUser.Id!, userId);
+            var entity = UserInteractionManager.Create(currentUserId, userId);
             await UserInteractionRepository.InsertAsync(entity, cancellationToken: cancellationToken);
             return true;
         }
@@ -90,5 +146,267 @@ public class UserAppService : UnsealAppService, IUserAppService
         userInteraction.IsBlocked = false;
         await UserInteractionRepository.UpdateAsync(userInteraction, cancellationToken: cancellationToken);
         return true;
+    }
+
+    public async Task<UserDetailDto> GetProfileAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var currentUser = CurrentUser.GetId();
+        if (!userId.Equals(currentUser))
+        {
+            await CheckUserIsBlocked(userId, cancellationToken);
+        }
+        var userProfile = await UserProfileManager.TryGetByQueryableAsync(x => x
+                .Include(x=>x.User)
+                .Where(c=>c.UserId.Equals(userId)),
+            throwIfNull:true,
+            cancellationToken: cancellationToken
+        );
+        var capsuleUrls = await CapsuleRepository
+            .GetCapsuleUrlsByUserIdAsync(
+                userId,
+                cancellationToken
+            );
+        var followCounts = await UserFollowerRepository
+            .GetFollowCountsAsync(
+                userId,
+                cancellationToken
+            );
+        var response = new UserDetailDto
+        {
+            UserDto = new UserDto
+            {
+                Id = userId,
+                Username = userProfile.User.UserName,
+                ProfilePictureUrl = userProfile.ProfilePictureUrl
+            },
+            CapsuleUrls = capsuleUrls,
+            FollowerCount = followCounts.followerCount,
+            FollowCount = followCounts.followCount,
+            LastActivity = userProfile.LastActivityTime
+        };
+        return response;
+    }
+
+    public async Task<bool> AcceptFollowRequestAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        await UpdateUserFollowStatusAsync(
+            userId,
+            Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Accepted.Id),
+            cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> RejectFollowRequestAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        await UpdateUserFollowStatusAsync(
+            userId,
+            Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Rejected.Id),
+            cancellationToken);
+        return true;
+    }
+
+    public async Task<PagedResultDto<UserDto>> GetFollowRequestsAsync(
+        CancellationToken cancellationToken = default
+    )
+    {
+        var pendingUserFollowers = await UserFollowerManager.TryGetListByAsync(x =>
+                x.UserId.Equals(CurrentUser.GetId()) &&
+                x.StatusId == Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Pending.Id),
+            cancellationToken: cancellationToken
+        );
+        var pendingUserIds = pendingUserFollowers
+            .Select(x => x.FollowerId)
+            .ToHashSet();
+
+        var userProfiles = await UserProfileRepository
+            .GetDynamicListAsync(new UserProfileFilters(),
+                q => q
+                .Include(x => x.User)
+                .Where(x => pendingUserIds.Contains(x.Id)
+                ), cancellationToken: cancellationToken);
+        
+        var count = await UserProfileRepository
+            .GetDynamicListCountAsync(
+                new UserProfileFilters(),
+                cancellationToken: cancellationToken
+            );
+
+        var userDto = userProfiles
+            .Select(x => new UserDto
+            {
+                Id = x.UserId!,
+                Username = x.User.UserName,
+                ProfilePictureUrl = x.ProfilePictureUrl
+            })
+            .ToList();
+
+        var response = new PagedResultDto<UserDto>
+        {
+            Items = userDto,
+            TotalCount = count
+        };
+        return response;
+    }
+
+    public async Task<PagedResultDto<UserDto>> GetFollowersAsync(
+        CancellationToken cancellationToken = default
+    )
+    {
+        var userFollowers = await UserFollowerManager.TryGetListByAsync(x =>
+                x.UserId.Equals(CurrentUser.GetId()) &&
+                x.StatusId == Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Accepted.Id),
+            cancellationToken: cancellationToken
+        );
+        var followerIds = userFollowers
+            .Select(x => x.FollowerId)
+            .ToHashSet();
+
+        var userProfiles = await UserProfileRepository
+            .GetDynamicListAsync(new UserProfileFilters
+                {
+                    SkipCount = 0,
+                    MaxResultCount = 100,
+                },
+                q => q
+                    .Include(x => x.User)
+                    .Where(x => followerIds.Contains(x.Id)
+                    ), cancellationToken: cancellationToken);
+        
+        var count = await UserProfileRepository
+            .GetDynamicListCountAsync(
+                new UserProfileFilters(),
+                cancellationToken: cancellationToken
+            );
+
+        var userDto = userProfiles
+            .Select(x => new UserDto
+            {
+                Id = x.UserId!,
+                Username = x.User.UserName,
+                ProfilePictureUrl = x.ProfilePictureUrl
+            })
+            .ToList();
+
+        var response = new PagedResultDto<UserDto>
+        {
+            Items = userDto,
+            TotalCount = count
+        };
+        return response;
+    }
+
+    public async Task<bool> UpdateProfileAsync(
+        UserProfileUpdateDto userProfileUpdateDto,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var currentUserId = CurrentUser.GetId();
+        var userProfile = await UserProfileManager.TryGetByAsync(x =>
+            x.UserId.Equals(currentUserId), cancellationToken: cancellationToken);
+        var userProfileUpdateModel = new UserProfileUpdateModel(
+            userProfileUpdateDto.IsLocked,
+            userProfileUpdateDto.AllowJoinGroup,
+            userProfileUpdateDto.Content,
+            null
+        );
+        if (userProfileUpdateDto.StreamContent != null)
+        {
+            var fileUrl = await LazyServiceProvider.UploadFileAsync(userProfileUpdateDto.StreamContent);
+            var encryptedFileUrl = LazyServiceProvider.GetEncryptedFileUrlAsync(fileUrl);
+            userProfileUpdateModel = userProfileUpdateModel with { ProfilePictureUrl = encryptedFileUrl };
+        }
+        
+        UserProfileManager.UpdateUserProfile(userProfile, userProfileUpdateModel);
+        await UserProfileRepository.UpdateAsync(userProfile, cancellationToken: cancellationToken);
+        return true;
+    }
+
+    public async Task<PagedResultDto<UserDto>> GetBlockedUsersAsync(
+        CancellationToken cancellationToken = default
+    )
+    {
+        var blockedUsers = await UserInteractionRepository.GetDynamicListAsync(
+            new UserInteractionFilters
+            {
+                SourceUserId = CurrentUser.GetId()
+            },
+            null,
+            asNoTracking:true,
+            cancellationToken: cancellationToken
+        );
+        var blockedUserCount = await UserInteractionRepository.GetDynamicListCountAsync(
+            new UserInteractionFilters
+            {
+                SourceUserId = CurrentUser.GetId()
+            },
+            cancellationToken: cancellationToken
+        );
+        var blockedUserIds = blockedUsers
+            .Select(x => x.TargetUserId)
+            .ToHashSet();
+
+        var userProfilePictureUrls = await UserProfileRepository.GetProfilePictureUrlsByUserIdsAsync(blockedUserIds, cancellationToken);
+        var userDtos = blockedUsers.Select(x => new UserDto
+            {
+                Id = x.TargetUserId,
+                Username = x.TargetUser.UserName,
+                ProfilePictureUrl = userProfilePictureUrls.GetValueOrDefault(x.TargetUserId)?.ToString()
+            })
+            .ToList();
+        var response = new PagedResultDto<UserDto>
+        {
+            Items = userDtos,
+            TotalCount = blockedUserCount
+        };
+        return response;
+    }
+
+    private async Task UpdateUserFollowStatusAsync(
+        Guid userId,
+        Guid newStatusId,
+        CancellationToken cancellationToken = default)
+    {
+        var user = await CustomIdentityUserManager
+            .TryGetByAsync(x =>
+                    x.Id.Equals(userId), throwIfNull: true,
+                cancellationToken: cancellationToken);
+
+        await CheckUserIsBlocked(userId, cancellationToken);
+        var userFollower = await UserFollowerManager.TryGetByAsync(x =>
+                x.UserId.Equals(user.Id) && x.FollowerId.Equals(CurrentUser.GetId()),
+            throwIfNull: true,
+            cancellationToken: cancellationToken
+        );
+        userFollower.StatusId = newStatusId;
+        await UserFollowerRepository.UpdateAsync(userFollower, cancellationToken: cancellationToken);
+    }
+
+    private async Task CheckUserIsBlocked(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var isCurrentUserBlocked = await UserInteractionManager
+            .CheckUserBlockedAsync(
+                userId,
+                CurrentUser.GetId(),
+                cancellationToken
+            );
+        var isTargetUserBlocked = await UserInteractionManager
+            .CheckUserBlockedAsync(
+                CurrentUser.GetId(),
+                userId,
+                cancellationToken
+            );
+        if (isCurrentUserBlocked || isTargetUserBlocked)
+        {
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.UserFollower.UserIsBanned]);
+        }
     }
 }

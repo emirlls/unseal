@@ -11,10 +11,8 @@ public class Capsule : FullAuditedAggregateRoot<Guid>, IMultiTenant
     public Guid? TenantId { get; set; }
     public Guid? ReceiverId { get; set; }
     public string Name { get; set; }
-    public bool? IsPublic { get; set; }
     public bool? IsOpened { get; set; }
     public DateTime RevealDate { get; set; }
-
     public Guid? CapsuleTypeId { get; set; }
 
     public virtual CapsuleType CapsuleType { get; set; }
@@ -30,7 +28,6 @@ public class Capsule : FullAuditedAggregateRoot<Guid>, IMultiTenant
         Guid? capsuleTypeId,
         Guid? creatorId,
         string name,
-        bool? isPublic,
         DateTime revealDate
     )
     {
@@ -38,7 +35,6 @@ public class Capsule : FullAuditedAggregateRoot<Guid>, IMultiTenant
         TenantId = tenantId;
         ReceiverId = receiverId;
         Name = name;
-        IsPublic = isPublic;
         RevealDate = revealDate;
         CapsuleTypeId = capsuleTypeId;
         CreatorId = creatorId;

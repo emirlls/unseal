@@ -6,13 +6,14 @@ using Unseal.Constants;
 using Unseal.Entities.Users;
 using Unseal.Interfaces.Managers.Users;
 using Unseal.Localization;
-using Unseal.Repositories.Base;
+using Unseal.Repositories.Users;
 
 namespace Unseal.Managers.Users;
 
 public class UserInteractionManager : BaseDomainService<UserInteraction>, IUserInteractionManager
 {
-    public UserInteractionManager(IBaseRepository<UserInteraction> baseRepository,
+    public UserInteractionManager(
+        IUserInteractionRepository baseRepository,
         IStringLocalizer<UnsealResource> stringLocalizer
     ) 
         : base(baseRepository, stringLocalizer, 
@@ -28,8 +29,12 @@ public class UserInteractionManager : BaseDomainService<UserInteraction>, IUserI
     )
     {
         var isBlocked =
-            await ExistsAsync(x => x.SourceUserId.Equals(sourceUserId) && x.TargetUserId.Equals(targetUserId) && x.IsBlocked,
-                cancellationToken);
+            await ExistsAsync(x => 
+                    x.SourceUserId.Equals(sourceUserId) && 
+                    x.TargetUserId.Equals(targetUserId) && 
+                    x.IsBlocked,
+                cancellationToken
+            );
         return isBlocked;
     }
 

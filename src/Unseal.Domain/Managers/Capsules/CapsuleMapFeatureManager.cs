@@ -5,14 +5,14 @@ using Unseal.Entities.Capsules;
 using Unseal.Extensions;
 using Unseal.Interfaces.Managers.Capsules;
 using Unseal.Localization;
-using Unseal.Repositories.Base;
+using Unseal.Repositories.Capsules;
 
 namespace Unseal.Managers.Capsules;
 
 public class CapsuleMapFeatureManager : BaseDomainService<CapsuleMapFeature>, ICapsuleMapFeatureManager
 {
     public CapsuleMapFeatureManager(
-        IBaseRepository<CapsuleMapFeature> baseRepository,
+        ICapsuleMapFeatureRepository baseRepository,
         IStringLocalizer<UnsealResource> stringLocalizer
     ) : base(
         baseRepository,

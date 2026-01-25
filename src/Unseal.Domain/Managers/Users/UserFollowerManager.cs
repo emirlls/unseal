@@ -4,13 +4,14 @@ using Unseal.Constants;
 using Unseal.Entities.Users;
 using Unseal.Interfaces.Managers.Users;
 using Unseal.Localization;
-using Unseal.Repositories.Base;
+using Unseal.Repositories.Users;
 
 namespace Unseal.Managers.Users;
 
 public class UserFollowerManager : BaseDomainService<UserFollower>, IUserFollowerManager
 {
-    public UserFollowerManager(IBaseRepository<UserFollower> baseRepository,
+    public UserFollowerManager(
+        IUserFollowerRepository baseRepository,
         IStringLocalizer<UnsealResource> stringLocalizer) :
         base(baseRepository,
             stringLocalizer,
@@ -20,12 +21,18 @@ public class UserFollowerManager : BaseDomainService<UserFollower>, IUserFollowe
     {
     }
 
-    public UserFollower Create(Guid userId, Guid followerId)
+    public UserFollower Create(
+        Guid userId,
+        Guid followerId,
+        Guid statusId
+    )
     {
         var userFollower = new UserFollower(
             GuidGenerator.Create(),
             userId,
-            followerId
+            followerId,
+            statusId,
+            DateTime.Now
         );
 
         return userFollower;

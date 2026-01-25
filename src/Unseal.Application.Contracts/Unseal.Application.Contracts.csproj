@@ -9,13 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.9" />
     <PackageReference Include="Volo.Abp.Ddd.Application.Contracts" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.Authorization" Version="10.0.1" />
     <ProjectReference Include="..\Unseal.Domain.Shared\Unseal.Domain.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Dtos\Users\" />
   </ItemGroup>
 
 </Project>

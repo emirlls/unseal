@@ -5,7 +5,7 @@ using Riok.Mapperly.Abstractions;
 using Unseal.Dtos.Groups;
 using Unseal.Entities.Groups;
 using Unseal.Extensions;
-using Unseal.Models.Users;
+using Unseal.Models.Groups;
 using Volo.Abp.DependencyInjection;
 
 namespace Unseal.Profiles.Groups;

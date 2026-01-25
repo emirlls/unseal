@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Unseal.Dtos.Groups;
-using Unseal.Filtering.Users;
+using Unseal.Filtering.Groups;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 

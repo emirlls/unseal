@@ -4,11 +4,14 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.RateLimiting;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +22,7 @@ using StackExchange.Redis;
 using Microsoft.OpenApi.Models;
 using Npgsql;
 using OpenIddict.Validation.AspNetCore;
+using Unseal.ActionFilters;
 using Unseal.Constants;
 using Unseal.Middlewares;
 using Unseal.Workers;
@@ -109,6 +113,10 @@ public class UnsealHttpApiHostModule : AbpModule
         var redisConfiguration = configuration[CacheConstants.RedisConfigurationKey];
         context.Services.AddSingleton<IConnectionMultiplexer>(sp =>
             ConnectionMultiplexer.Connect(redisConfiguration!));
+        Configure<MvcOptions>(options =>
+        {
+            options.Filters.AddService<LastActivityActionFilter>();
+        });
         Configure<AbpMultiTenancyOptions>(options =>
         {
             options.IsEnabled = MultiTenancyConsts.IsEnabled;
@@ -173,8 +181,29 @@ public class UnsealHttpApiHostModule : AbpModule
         {
             options.DefaultAuthenticateScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+        }).AddJwtBearer(options =>
+        {
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = httpContext =>
+                {
+                    var accessToken = httpContext.Request.Query["access_token"];
+
+                    var path = httpContext.HttpContext.Request.Path;
+                    if (!string.IsNullOrEmpty(accessToken) &&
+                        (path.StartsWithSegments("/signalr-hubs")))
+                    {
+                        httpContext.Token = accessToken;
+                    }
+
+                    return Task.CompletedTask;
+                }
+            };
         });
-        
+        context.Services.AddSignalR(options =>
+        {
+            options.ClientTimeoutInterval = TimeSpan.FromMinutes(5);
+        });
         Configure<AbpDistributedCacheOptions>(options =>
         {
             options.KeyPrefix = "Unseal:";

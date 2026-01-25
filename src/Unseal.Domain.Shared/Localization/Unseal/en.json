@@ -11,6 +11,7 @@
     "Unseal:ExceptionCodes:IdentityUser:002": "User already exists.",
     "Unseal:ExceptionCodes:IdentityUser:003": "Your email address has not been confirmed.",
     "Unseal:ExceptionCodes:IdentityUser:004": "This mail address is in use.",
+    "Unseal:ExceptionCodes:IdentityUser:005": "This mail address is invalid.",
 
     "Unseal:ExceptionCodes:Capsule:001": "Capsule not found.",
     "Unseal:ExceptionCodes:Capsule:002": "Capsule already exists.",
@@ -54,17 +55,23 @@
     "Unseal:ExceptionCodes:GroupMember:002": "Group member already exists.",
     "Unseal:ExceptionCodes:GroupMember:003": "Users who do not give permission cannot be added to the group.",
     
-    "Unseal:ExceptionCodes::UserInteraction::001": "User interaction not found.",
-    "Unseal:ExceptionCodes::UserInteraction::002": "User interaction already exists.",
+    "Unseal:ExceptionCodes:UserInteraction::001": "User interaction not found.",
+    "Unseal:ExceptionCodes:UserInteraction::002": "User interaction already exists.",
+
+    "Unseal:ExceptionCodes:ChatMessage::001": "Message not found.",
+    "Unseal:ExceptionCodes:ChatMessage::002": "Message already exists.",
+
+    "Unseal:ExceptionCodes:ChatType::001": "Chat type not found.",
+    "Unseal:ExceptionCodes:ChatType::002": "Chat type already exists.",
+
+    "Unseal:ExceptionCodes:UserFollowStatus::001": "Follow status type not found.",
+    "Unseal:ExceptionCodes:UserFollowStatus::002": "Follow status already exists.",
     
     "Unseal:ExceptionCodes:Mail:001": "Mail settings not found.",
 
     //Enums
 
     "CapsuleTypes:00":"Personal",
-    "CapsuleTypes:01":"Direct",
-    "CapsuleTypes:02":"Followers",
-    "CapsuleTypes:03":"Collaborative",
-    "CapsuleTypes:04":"Public"
+    "CapsuleTypes:01":"Public"
   }
 }

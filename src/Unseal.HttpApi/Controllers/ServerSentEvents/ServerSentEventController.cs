@@ -19,7 +19,7 @@ public class ServerSentEventController : UnsealController
     }
 
     /// <summary>
-    /// USe to refresh capsule feed stream.
+    /// Use to refresh capsule feed stream.
     /// </summary>
     /// <param name="access_token"></param>
     /// <param name="cancellationToken"></param>

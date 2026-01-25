@@ -17,10 +17,10 @@ namespace Unseal.Managers;
 public class BaseDomainService<TEntity> : DomainService, IBaseDomainService<TEntity>
     where TEntity : class, IEntity<Guid>
 {
-    private readonly IBaseRepository<TEntity> _baseRepository;
-    private readonly IStringLocalizer<UnsealResource> _stringLocalizer;
-    private readonly string NotFoundException;
-    private readonly string AlreadyExistsException;
+    protected readonly IBaseRepository<TEntity> _baseRepository;
+    protected readonly IStringLocalizer<UnsealResource> _stringLocalizer;
+    protected readonly string NotFoundException;
+    protected readonly string AlreadyExistsException;
 
     public BaseDomainService(
         IBaseRepository<TEntity> baseRepository,
@@ -64,7 +64,12 @@ public class BaseDomainService<TEntity> : DomainService, IBaseDomainService<TEnt
         CancellationToken cancellationToken = default
     )
     {
-        var response = await _baseRepository.GetListByAsync(expression, asNoTracking, cancellationToken);
+        var response = await _baseRepository
+            .GetListByAsync(
+                expression,
+                asNoTracking,
+                cancellationToken
+            );
         if (throwIfNull && response is null)
         {
             throw new UserFriendlyException(_stringLocalizer[NotFoundException]);
@@ -84,6 +89,33 @@ public class BaseDomainService<TEntity> : DomainService, IBaseDomainService<TEnt
         var response = await _baseRepository
             .TryGetByQueryableAsync(queryBuilder, asNoTracking, cancellationToken);
         
+        if (throwIfNull && response is null)
+        {
+            throw new UserFriendlyException(_stringLocalizer[NotFoundException]);
+        }
+
+        if (throwIfExists && response is not null)
+        {
+            throw new UserFriendlyException(_stringLocalizer[AlreadyExistsException]);
+        }
+
+        return response;
+    }
+
+    public async Task<List<TEntity>> TryGetListByQueryableAsync(
+        Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
+        bool throwIfNull = false,
+        bool asNoTracking = false,
+        bool throwIfExists = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var response = await _baseRepository
+            .TryGetListQueryableAsync(
+                queryBuilder, 
+                asNoTracking,
+                cancellationToken
+            );
         if (throwIfNull && response is null)
         {
             throw new UserFriendlyException(_stringLocalizer[NotFoundException]);

@@ -39,7 +39,7 @@ public class CapsuleRevealBackgroundJob : ITransientDependency
             .GetDynamicListAsync(
                 capsuleFilters,
                 null,
-                true,
+                false,
                 cancellationToken
             );
         await Parallel.ForEachAsync(notOpenedCapsules, cancellationToken,

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Unseal.Entities.Capsules;
 using Unseal.Entities.Lookups;
+using Unseal.Entities.Messages;
 using Unseal.Entities.Notifications;
 using Unseal.Entities.Users;
 using Unseal.Extensions;
@@ -84,7 +85,10 @@ public class UnsealDbContext :
     //Users
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<UserFollower> UserFollowers { get; set; }
-    
+    public DbSet<UserFollowStatus> UserFollowStatuses { get; set; }
+    //Messages
+    public DbSet<ChatMessage> ChatMessages { get; set; }
+    public DbSet<ChatType> ChatTypes { get; set; }
     public UnsealDbContext(DbContextOptions<UnsealDbContext> options)
         : base(options)
     {

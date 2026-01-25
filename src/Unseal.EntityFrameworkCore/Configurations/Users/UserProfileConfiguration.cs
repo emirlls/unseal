@@ -16,6 +16,8 @@ public class UserProfileConfiguration : IEntityTypeConfiguration<UserProfile>
 
         builder.Property(x => x.IsLocked).HasDefaultValue(false);
         builder.Property(x => x.AllowJoinGroup).HasDefaultValue(true);
+        builder.Property(x => x.Content).IsRequired(false).HasMaxLength(256);
+        builder.Property(x => x.ProfilePictureUrl).IsRequired(false);
 
         builder.HasOne(x => x.User)
             .WithOne()

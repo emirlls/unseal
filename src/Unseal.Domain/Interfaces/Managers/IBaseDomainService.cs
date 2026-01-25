@@ -34,7 +34,13 @@ public interface IBaseDomainService<TEntity> : IDomainService
         bool throwIfExists = false,
         CancellationToken cancellationToken = default
     );
-    
+    Task<List<TEntity>> TryGetListByQueryableAsync(
+        Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
+        bool throwIfNull = false,
+        bool asNoTracking = false,
+        bool throwIfExists = false,
+        CancellationToken cancellationToken = default
+    );
     Task<IQueryable<TEntity>?> TryGetQueryableAsync(
         Func<IQueryable<TEntity>, IQueryable<TEntity>> queryBuilder,
         bool throwIfNull = false,
