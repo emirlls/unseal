@@ -29,18 +29,21 @@ public class CustomTenantMiddleware
         {
             try
             {
-                var token = authHeader.Substring($"{AuthConstants.Authorization} ".Length).Trim();
+                var token = authHeader.Substring($"{AuthConstants.Bearer} ".Length).Trim();
+                token = token.Trim((char)65279);
                 var handler = new JwtSecurityTokenHandler();
-                var jwtToken = handler.ReadJwtToken(token);
-
-                var tenantIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == AbpClaimTypes.TenantId)?.Value;
-
-                if (!string.IsNullOrEmpty(tenantIdClaim) && Guid.TryParse(tenantIdClaim, out var tenantId))
+                if (handler.CanReadToken(token))
                 {
-                    using (_currentTenant.Change(tenantId))
+                    var jwtToken = handler.ReadJwtToken(token);
+                    var tenantIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == AbpClaimTypes.TenantId)?.Value;
+
+                    if (!string.IsNullOrEmpty(tenantIdClaim) && Guid.TryParse(tenantIdClaim, out var tenantId))
                     {
-                        await _next(context);
-                        return;
+                        using (_currentTenant.Change(tenantId))
+                        {
+                            await _next(context);
+                            return;
+                        }
                     }
                 }
             }
