@@ -123,7 +123,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         using (_dataFilter.Disable())
         {
             var user = await CustomIdentityUserManager.TryGetByAsync(x =>
-                    string.Equals(x.UserName, loginDto.UserName),
+                    string.Equals(x.Email, loginDto.Email),
                 true,
                 cancellationToken: cancellationToken);
             if (!await IdentityUserManager.IsEmailConfirmedAsync(user))
@@ -133,7 +133,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             }
 
             var tokenResponse = await GetTokenAsync(
-                loginDto.UserName,
+                user.UserName,
                 loginDto.Password,
                 user.TenantId?.ToString(),
                 cancellationToken
@@ -155,45 +155,23 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default
     )
     {
-        var user = await CustomIdentityUserManager.TryGetByAsync(x =>
-                x.Id.Equals(userId),
-            true,
-            cancellationToken: cancellationToken
-        );
-
-        var decodedToken = Encoding.UTF8.GetString(
-            WebEncoders.Base64UrlDecode(token));
-        using (CurrentTenant.Change(user!.TenantId))
+        using (_dataFilter.Disable())
         {
+            var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                    x.Id.Equals(userId),
+                true,
+                cancellationToken: cancellationToken
+            );
+
+            var decodedToken = Encoding.UTF8.GetString(
+                WebEncoders.Base64UrlDecode(token));
             var result =
                 await IdentityUserManager.ConfirmEmailAsync(user, decodedToken);
 
-            return result.Succeeded;
+            return result.Succeeded;  
         }
     }
     
-    public async Task<bool> ConfirmChangeEmailAsync(
-        Guid userId,
-        string newEmail,
-        string token,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var user = await CustomIdentityUserManager.TryGetByAsync(
-            x => x.Id == userId,
-            true,
-            cancellationToken: cancellationToken
-        );
-        var decodedToken = WebUtility.UrlDecode(token);
-        using (CurrentTenant.Change(user!.TenantId))
-        {
-            var result = await IdentityUserManager
-                .ChangeEmailAsync(user, newEmail, decodedToken);
-
-            return result.Succeeded;
-        }
-    }
-
     public async Task<bool> UserDeleteAsync(
         Guid userId,
         CancellationToken cancellationToken = default
@@ -227,11 +205,11 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         string mail,
         CancellationToken cancellationToken = default)
     {
-        var user = await CustomIdentityUserManager.TryGetByAsync(x =>
-                x.Email == mail, true,
-            cancellationToken: cancellationToken);
-        using (CurrentTenant.Change(user.TenantId))
+        using (_dataFilter.Disable())
         {
+            var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                    x.Email == mail, true,
+                cancellationToken: cancellationToken);
             var token = await IdentityUserManager
                 .GenerateEmailConfirmationTokenAsync(user);
 
@@ -246,9 +224,8 @@ public class AuthAppService : UnsealAppService, IAuthAppService
                 ConfirmationToken = encodedToken
             };
             await DistributedEventBus.PublishAsync(userRegisterEto);
+            return true;
         }
-
-        return true;
     }
 
     public async Task<bool> ChangeMailAsync(
@@ -281,15 +258,23 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default
     )
     {
-        var user = await CustomIdentityUserManager.TryGetByAsync(x =>
-                x.Id.Equals(userId), true,
-            cancellationToken: cancellationToken);
-        var result = await IdentityUserManager.ChangeEmailAsync(user, newMailAddress, token);
-        return result.Succeeded;
+        using (_dataFilter.Disable())
+        {
+            var user = await CustomIdentityUserManager.TryGetByAsync(
+                x => x.Id == userId,
+                true,
+                cancellationToken: cancellationToken
+            );
+            var decodedToken = WebUtility.UrlDecode(token);
+            var result = await IdentityUserManager
+                .ChangeEmailAsync(user, newMailAddress, decodedToken);
+
+            return result.Succeeded;
+        }
     }
 
     public async Task<bool> ChangePasswordAsync(
-        ChangePasswordInputDto changePasswordInputDto,
+        ChangePasswordDto changePasswordDto,
         CancellationToken cancellationToken = default
     )
     {
@@ -298,8 +283,8 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         (await IdentityUserManager
             .ChangePasswordAsync(
                 user,
-                changePasswordInputDto.OldPassword,
-                changePasswordInputDto.NewPassword
+                changePasswordDto.OldPassword,
+                changePasswordDto.NewPassword
             )).CheckErrors();
         return true;
     }

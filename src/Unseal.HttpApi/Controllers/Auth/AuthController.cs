@@ -121,17 +121,17 @@ public class AuthController : UnsealController
     /// <summary>
     /// Use to change password.
     /// </summary>
-    /// <param name="changePasswordInputDto"></param>
+    /// <param name="changePasswordDto"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     
     [Authorize]
     [HttpPost("change-password")]
     public async Task<bool> ChangePasswordAsync(
-        ChangePasswordInputDto changePasswordInputDto,
+        ChangePasswordDto changePasswordDto,
         CancellationToken cancellationToken=default
     ) => await AuthAppService.ChangePasswordAsync(
-        changePasswordInputDto,
+        changePasswordDto,
         cancellationToken
     );
     

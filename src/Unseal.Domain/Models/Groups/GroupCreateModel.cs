@@ -7,6 +7,6 @@ namespace Unseal.Models.Groups;
 public record GroupCreateModel(
     List<Guid> UserIds,
     string Name,
-    string Description,
+    string? Description,
     IRemoteStreamContent? StreamContent = null
     );

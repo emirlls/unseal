@@ -151,7 +151,7 @@ public class UserController : UnsealController
     /// <returns></returns>
     [HttpPut("{userId}/profile")]
     public async Task<bool> UpdateProfileAsync(
-        UserProfileUpdateDto userProfileUpdateDto,
+        [FromForm] UserProfileUpdateDto userProfileUpdateDto,
         CancellationToken cancellationToken = default
     ) => await UserAppService.UpdateProfileAsync(
         userProfileUpdateDto, 

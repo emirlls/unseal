@@ -15,5 +15,6 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
         builder.ConfigureByConvention();
         
         builder.Property(g => g.GroupImageUrl).IsRequired(false);
+        builder.Property(g => g.Description).IsRequired(false);
     }
 }

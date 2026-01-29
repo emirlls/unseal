@@ -72,6 +72,39 @@
     //Enums
     
     "CapsuleTypes:00":"Gelecekteki Kendime",
-    "CapsuleTypes:01":"Herkese"
+    "CapsuleTypes:01":"Herkese",
+    
+    //Validations
+    
+    "Validation:RegisterDto:EmailIsRequired":"Mail alanı zorunludur.",
+    "Validation:RegisterDto:InvalidEmailFormat":"Geçersiz mail formatı !",
+    "Validation:RegisterDto:PasswordIsRequired":"Şifre alanı zorunludur.",
+    "Validation:RegisterDto:InvalidPasswordFormat":"Şifre formatı yanlış. Lütfen en az 8 karakter ve en az 1 tane büyük harf, özel karakter ve sayı girdiğinizden emin olun.",
+    "Validation:RegisterDto:ConfirmPasswordIsRequired":"Şifre doğrulama alanı zorunludur.",
+    "Validation:RegisterDto:FirstNameIsRequired":"Ad alanı zorunludur.",
+    "Validation:RegisterDto:LastNameIsRequired":"Soyad alanı zorunludur.",
+    "Validation:RegisterDto:PasswordsDontMatch":"Şifreler eşleşmiyor !",
+
+    "Validation:LoginDto:EmailIsRequired":"Mail alanı zorunludur.",
+    "Validation:LoginDto:PasswordIsRequired":"Şifre alanı zorunludur.",
+
+    "Validation:ChangePasswordDto:OldPasswordIsRequired":"Eski şifre alanı zorunludur.",
+    "Validation:ChangePasswordDto:NewPasswordIsRequired":"Yeni şifre alanı zorunludur.",
+    "Validation:ChangePasswordDto:InvalidPasswordFormat":"Şifre formatı yanlış. Lütfen en az 8 karakter ve en az 1 tane büyük harf, özel karakter ve sayı girdiğinizden emin olun.",
+    
+    "Validation:CapsuleCreateDto:NameIsRequired":"İsim alanı zorunludur.",
+    "Validation:CapsuleCreateDto:RevealDateIsRequired":"Tarih alanı zorunludur.",
+    "Validation:CapsuleCreateDto:RevealDateMustBeInFuture":"Tarih alanı geçmiş zamanda olamaz.",
+    "Validation:CapsuleCreateDto:InvalidDateFormat":"Tarih formatı geçersiz !.",
+
+    "Validation:GroupCreateDto:UsersIsRequired":"Kullanıcı seçimi zorunludur.",
+    "Validation:GroupCreateDto:NameIsRequired":"İsim alanı zorunludur.",
+    
+    "Validation:ChatMessageCreateDto:TargetIsRequired":"Hedef zorunludur.",
+    "Validation:ChatMessageCreateDto:ChatTypeIsRequired":"Mesaj tipi zorunludur.",
+    "Validation:ChatMessageCreateDto:ContentIsRequired":"Mesaj içeriği zorunludur.",
+    
+    "Validation:UserProfileUpdateDto:IsLockedIsRequired":"Hesap gizlilik durumu zorunludur.",
+    "Validation:UserProfileUpdateDto:AllowJoinGroupIsRequired":"Gruplara eklenme izni zorunludur."
   }
 }
