@@ -7,7 +7,7 @@ public record CapsuleCreateDto(
     Guid? CapsuleTypeId,
     Guid? ReceiverId,
     string Name,
-    string TextContext,
+    string? TextContext,
     string? GeoJson,
     DateTime RevealDate,
     IRemoteStreamContent StreamContent) :

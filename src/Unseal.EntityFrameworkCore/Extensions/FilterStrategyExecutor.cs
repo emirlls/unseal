@@ -29,18 +29,15 @@ public static class FilterStrategyExecutor
             if (!DateTime.TryParse(filterItem.Value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateValue))
                 throw new ArgumentException($"Invalid date format: {filterItem.Value}");
 
-            var startOfDay = dateValue.Date;
-            var endOfDay = dateValue.Date.AddDays(1).AddTicks(-1);
-
             return filterItem.Strategy switch
             {
                 FilterOperators.Equals => Expression.AndAlso(
-                    Expression.GreaterThanOrEqual(property, Expression.Constant(startOfDay, propType)),
-                    Expression.LessThanOrEqual(property, Expression.Constant(endOfDay, propType))),
-                FilterOperators.GreaterThanOrEqual => Expression.GreaterThanOrEqual(property, Expression.Constant(startOfDay, propType)),
-                FilterOperators.LessThanOrEqual => Expression.LessThanOrEqual(property, Expression.Constant(endOfDay, propType)),
-                FilterOperators.GreaterThan => Expression.GreaterThan(property, Expression.Constant(endOfDay, propType)),
-                FilterOperators.LessThan => Expression.LessThan(property, Expression.Constant(startOfDay, propType)),
+                    Expression.GreaterThanOrEqual(property, Expression.Constant(dateValue.Date, propType)),
+                    Expression.LessThanOrEqual(property, Expression.Constant(dateValue.Date.AddDays(1).AddTicks(-1), propType))),
+                FilterOperators.GreaterThanOrEqual => Expression.GreaterThanOrEqual(property, Expression.Constant(dateValue, propType)),
+                FilterOperators.LessThanOrEqual => Expression.LessThanOrEqual(property, Expression.Constant(dateValue, propType)),
+                FilterOperators.GreaterThan => Expression.GreaterThan(property, Expression.Constant(dateValue, propType)),
+                FilterOperators.LessThan => Expression.LessThan(property, Expression.Constant(dateValue, propType)),
                 _ => throw new NotSupportedException($"{filterItem.Strategy} is not supported for date time.")
             };
         }

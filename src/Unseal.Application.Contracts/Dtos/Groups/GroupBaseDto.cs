@@ -6,5 +6,5 @@ namespace Unseal.Dtos.Groups;
 public record GroupBaseDto(
     List<Guid> UserIds,
     string Name,
-    string Description
+    string? Description
 );

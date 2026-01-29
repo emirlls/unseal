@@ -13,7 +13,7 @@ namespace Unseal.Overrides.Permissions;
 
 [Dependency(ReplaceServices = true)]
 [ExposeServices(typeof(PermissionChecker), typeof(IPermissionChecker))]
-public class CustomPermissionChecker : PermissionChecker, IPermissionChecker
+public class CustomPermissionChecker : PermissionChecker
 {
     private readonly IDataFilter<IMultiTenant> _tenantFilter;
 
@@ -36,7 +36,7 @@ public class CustomPermissionChecker : PermissionChecker, IPermissionChecker
     }
 
 
-    public override async Task<bool> IsGrantedAsync(ClaimsPrincipal claimsPrincipal, string name)
+    public override async Task<bool> IsGrantedAsync(ClaimsPrincipal? claimsPrincipal, string name)
     {
         var permission = await PermissionDefinitionManager.GetOrNullAsync(name);
         if (permission is not { IsEnabled: true })

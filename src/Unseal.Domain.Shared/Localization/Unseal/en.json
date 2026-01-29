@@ -72,6 +72,39 @@
     //Enums
 
     "CapsuleTypes:00":"Personal",
-    "CapsuleTypes:01":"Public"
+    "CapsuleTypes:01":"Public",
+
+    //Validations
+
+    "Validation:RegisterDto:EmailIsRequired":"Mail is required.",
+    "Validation:RegisterDto:InvalidEmailFormat":"Invalid mail format !",
+    "Validation:RegisterDto:PasswordIsRequired":"Password is required.",
+    "Validation:RegisterDto:InvalidPasswordFormat":"Invalid password format ! Please ensure you enter at least 8 characters and at least one uppercase letter, special character, and number.",
+    "Validation:RegisterDto:ConfirmPasswordIsRequired":"Confirm password is required.",
+    "Validation:RegisterDto:FirstNameIsRequired":"Name is required.",
+    "Validation:RegisterDto:LastNameIsRequired":"Surname is required.",
+    "Validation:RegisterDto:PasswordsDontMatch":"Passwords must be the same. !",
+
+    "Validation:LoginDto:EmailIsRequired":"Mail is required.",
+    "Validation:LoginDto:PasswordIsRequired":"Password is required.",
+    
+    "Validation:ChangePasswordDto:OldPasswordIsRequired":"Old password is required.",
+    "Validation:ChangePasswordDto:NewPasswordIsRequired":"New password is required.",
+    "Validation:ChangePasswordDto:InvalidPasswordFormat":"Invalid password format ! Please ensure you enter at least 8 characters and at least one uppercase letter, special character, and number.",
+
+    "Validation:CapsuleCreateDto:NameIsRequired":"Name is required.",
+    "Validation:CapsuleCreateDto:RevealDateIsRequired":"Reveal date is required.",
+    "Validation:CapsuleCreateDto:RevealDateMustBeInFuture":"Reveal date must be in future.",
+    "Validation:CapsuleCreateDto:InvalidDateFormat":"Invalid date format.",
+    
+    "Validation:GroupCreateDto:UsersIsRequired":"User is required.",
+    "Validation:GroupCreateDto:NameIsRequired":"Name is required.",
+    
+    "Validation:ChatMessageCreateDto:TargetIsRequired":"Target is required.",
+    "Validation:ChatMessageCreateDto:ChatTypeIsRequired":"Chat type is required.",
+    "Validation:ChatMessageCreateDto:ContentIsRequired":"Content is required.",
+
+    "Validation:UserProfileUpdateDto:IsLockedIsRequired":"Account privacy is required.",
+    "Validation:UserProfileUpdateDto:AllowJoinGroupIsRequired":"Allow join to groups is required."
   }
 }

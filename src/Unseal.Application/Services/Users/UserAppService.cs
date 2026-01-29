@@ -37,13 +37,13 @@ public class UserAppService : UnsealAppService, IUserAppService
 
     private IUserProfileManager UserProfileManager =>
         LazyServiceProvider.LazyGetRequiredService<IUserProfileManager>();
-    
+
     private IUserProfileRepository UserProfileRepository =>
         LazyServiceProvider.LazyGetRequiredService<IUserProfileRepository>();
-    
+
     private IUserInteractionRepository UserInteractionRepository =>
         LazyServiceProvider.LazyGetRequiredService<IUserInteractionRepository>();
-    
+
     private ICapsuleRepository CapsuleRepository =>
         LazyServiceProvider.LazyGetRequiredService<ICapsuleRepository>();
 
@@ -158,10 +158,11 @@ public class UserAppService : UnsealAppService, IUserAppService
         {
             await CheckUserIsBlocked(userId, cancellationToken);
         }
+
         var userProfile = await UserProfileManager.TryGetByQueryableAsync(x => x
-                .Include(x=>x.User)
-                .Where(c=>c.UserId.Equals(userId)),
-            throwIfNull:true,
+                .Include(x => x.User)
+                .Where(c => c.UserId.Equals(userId)),
+            throwIfNull: true,
             cancellationToken: cancellationToken
         );
         var capsuleUrls = await CapsuleRepository
@@ -174,13 +175,15 @@ public class UserAppService : UnsealAppService, IUserAppService
                 userId,
                 cancellationToken
             );
+        var decryptedProfilePictureUrl = LazyServiceProvider
+            .GetDecryptedFileUrlAsync(userProfile.ProfilePictureUrl);
         var response = new UserDetailDto
         {
             UserDto = new UserDto
             {
                 Id = userId,
                 Username = userProfile.User.UserName,
-                ProfilePictureUrl = userProfile.ProfilePictureUrl
+                ProfilePictureUrl = decryptedProfilePictureUrl
             },
             CapsuleUrls = capsuleUrls,
             FollowerCount = followCounts.followerCount,
@@ -227,22 +230,28 @@ public class UserAppService : UnsealAppService, IUserAppService
         var userProfiles = await UserProfileRepository
             .GetDynamicListAsync(new UserProfileFilters(),
                 q => q
-                .Include(x => x.User)
-                .Where(x => pendingUserIds.Contains(x.Id)
-                ), cancellationToken: cancellationToken);
-        
+                    .Include(x => x.User)
+                    .Where(x => pendingUserIds.Contains(x.Id)
+                    ), cancellationToken: cancellationToken);
+
         var count = await UserProfileRepository
             .GetDynamicListCountAsync(
                 new UserProfileFilters(),
                 cancellationToken: cancellationToken
             );
 
+
         var userDto = userProfiles
-            .Select(x => new UserDto
+            .Select(x =>
             {
-                Id = x.UserId!,
-                Username = x.User.UserName,
-                ProfilePictureUrl = x.ProfilePictureUrl
+                var decryptedProfilePictureUrl = LazyServiceProvider
+                    .GetDecryptedFileUrlAsync(x.ProfilePictureUrl);
+                return new UserDto
+                {
+                    Id = x.UserId!,
+                    Username = x.User.UserName,
+                    ProfilePictureUrl = decryptedProfilePictureUrl
+                };
             })
             .ToList();
 
@@ -277,7 +286,7 @@ public class UserAppService : UnsealAppService, IUserAppService
                     .Include(x => x.User)
                     .Where(x => followerIds.Contains(x.Id)
                     ), cancellationToken: cancellationToken);
-        
+
         var count = await UserProfileRepository
             .GetDynamicListCountAsync(
                 new UserProfileFilters(),
@@ -285,11 +294,16 @@ public class UserAppService : UnsealAppService, IUserAppService
             );
 
         var userDto = userProfiles
-            .Select(x => new UserDto
+            .Select(x =>
             {
-                Id = x.UserId!,
-                Username = x.User.UserName,
-                ProfilePictureUrl = x.ProfilePictureUrl
+                var decryptedProfilePictureUrl = LazyServiceProvider
+                    .GetDecryptedFileUrlAsync(x.ProfilePictureUrl);
+                return new UserDto
+                {
+                    Id = x.UserId!,
+                    Username = x.User.UserName,
+                    ProfilePictureUrl = decryptedProfilePictureUrl
+                };
             })
             .ToList();
 
@@ -321,7 +335,7 @@ public class UserAppService : UnsealAppService, IUserAppService
             var encryptedFileUrl = LazyServiceProvider.GetEncryptedFileUrlAsync(fileUrl);
             userProfileUpdateModel = userProfileUpdateModel with { ProfilePictureUrl = encryptedFileUrl };
         }
-        
+
         UserProfileManager.UpdateUserProfile(userProfile, userProfileUpdateModel);
         await UserProfileRepository.UpdateAsync(userProfile, cancellationToken: cancellationToken);
         return true;
@@ -337,7 +351,7 @@ public class UserAppService : UnsealAppService, IUserAppService
                 SourceUserId = CurrentUser.GetId()
             },
             null,
-            asNoTracking:true,
+            asNoTracking: true,
             cancellationToken: cancellationToken
         );
         var blockedUserCount = await UserInteractionRepository.GetDynamicListCountAsync(
@@ -351,12 +365,21 @@ public class UserAppService : UnsealAppService, IUserAppService
             .Select(x => x.TargetUserId)
             .ToHashSet();
 
-        var userProfilePictureUrls = await UserProfileRepository.GetProfilePictureUrlsByUserIdsAsync(blockedUserIds, cancellationToken);
-        var userDtos = blockedUsers.Select(x => new UserDto
+        var userProfilePictureUrls =
+            await UserProfileRepository.GetProfilePictureUrlsByUserIdsAsync(blockedUserIds, cancellationToken);
+        var userDtos = blockedUsers.Select(x =>
             {
-                Id = x.TargetUserId,
-                Username = x.TargetUser.UserName,
-                ProfilePictureUrl = userProfilePictureUrls.GetValueOrDefault(x.TargetUserId)?.ToString()
+                var targetProfilePictureUrl = userProfilePictureUrls
+                    .GetValueOrDefault(x.TargetUserId)?
+                    .ToString();
+                var decryptedProfilePictureUrl = LazyServiceProvider
+                    .GetDecryptedFileUrlAsync(targetProfilePictureUrl);
+                return new UserDto
+                {
+                    Id = x.TargetUserId,
+                    Username = x.TargetUser.UserName,
+                    ProfilePictureUrl = decryptedProfilePictureUrl
+                };
             })
             .ToList();
         var response = new PagedResultDto<UserDto>

@@ -158,13 +158,14 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         {
             var capsuleType = CapsuleMapper.ResolveType(x.CapsuleType);
             var userProfile =  userProfiles.FirstOrDefault(u=>u.UserId.Equals(x.CreatorId));
+            var decryptedProfilePictureUrl = LazyServiceProvider.GetDecryptedFileUrlAsync(userProfile?.ProfilePictureUrl);
             return new CapsuleDto(
                 x.Id,
                 (Guid)x.CreatorId!,
                 x.Name,
                 capsuleType,
                 userProfile.User.UserName,
-                userProfile.ProfilePictureUrl,
+                decryptedProfilePictureUrl,
                 x.RevealDate,
                 x.CreationTime);
         })

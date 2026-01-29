@@ -14,12 +14,12 @@ namespace Unseal.Overrides.Roles;
 
 [Dependency(ReplaceServices = true)]
 [ExposeServices(typeof(RolePermissionValueProvider))]
-public class CustomRolePermissionChecker : RolePermissionValueProvider
+public class CustomRolePermissionValueProvider : RolePermissionValueProvider
 {
     private readonly ICustomIdentityUserManager _customIdentityUserManager;
     private readonly IDataFilter<IMultiTenant> _tenantFilter;
 
-    public CustomRolePermissionChecker(
+    public CustomRolePermissionValueProvider(
         IPermissionStore permissionStore,
         ICustomIdentityUserManager customIdentityUserManager,
         IDataFilter<IMultiTenant> tenantFilter

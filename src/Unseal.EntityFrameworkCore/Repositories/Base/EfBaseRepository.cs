@@ -185,10 +185,15 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
     ) where TFilters : DynamicFilterRequest
     {
         var dbSet = await GetDbSetAsync();
-    
-        var query = dbSet.AsQueryable()
-            .ApplyDynamicFilters(filters);
-
+        var query = dbSet.AsQueryable();
+        
+        if (queryBuilder != null)
+        {
+            query = queryBuilder(query);
+        }
+        
+        query = query.ApplyDynamicFilters(filters);
+        
         if (asNoTracking)
         {
             query = query.AsNoTracking();
