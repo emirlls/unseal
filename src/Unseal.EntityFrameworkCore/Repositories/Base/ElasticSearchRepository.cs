@@ -43,7 +43,7 @@ public class ElasticSearchRepository<T, TKey> : IElasticSearchRepository<T, TKey
         return existsResponse.Exists;
     }
 
-    public async Task<CreateResponse> CreateDocumentAsync(
+    public async Task<IndexResponse> CreateDocumentAsync(
         T document,
         string indexName = ElasticSearchConstants.DefaultIndex,
         CancellationToken cancellationToken = default
@@ -52,7 +52,7 @@ public class ElasticSearchRepository<T, TKey> : IElasticSearchRepository<T, TKey
         var idProperty = document.GetType().GetProperty(ElasticSearchConstants.IdPropertyName);
         var idValue = idProperty?.GetValue(document)?.ToString();
 
-        var response = await Client.CreateAsync(document, indexName, idValue, cancellationToken);
+        var response = await Client.IndexAsync(document, indexName, idValue, cancellationToken);
     
         return response;
     }

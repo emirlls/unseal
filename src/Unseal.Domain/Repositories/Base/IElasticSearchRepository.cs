@@ -22,7 +22,7 @@ public interface IElasticSearchRepository<T, TKey> where T : class
     /// <param name="indexName">Name of the Elasticsearch index.</param>
     /// <param name="cancellationToken">Cancellation token for async operations.</param>
     /// <returns>True if the document is successfully indexed; otherwise, false.</returns>
-    Task<CreateResponse> CreateDocumentAsync(
+    Task<IndexResponse> CreateDocumentAsync(
         T document,
         string indexName = ElasticSearchConstants.DefaultIndex,
         CancellationToken cancellationToken = default

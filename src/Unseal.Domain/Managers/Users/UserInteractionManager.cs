@@ -55,7 +55,27 @@ public class UserInteractionManager : BaseDomainService<UserInteraction>, IUserI
     {
         var response = new List<Guid>();
         var userInteractions = (await _baseRepository.TryGetQueryableAsync(q => q
-                .Where(x => x.TargetUserId.Equals(userId)),
+                .Where(x => x.TargetUserId.Equals(userId) && x.IsBlocked),
+            cancellationToken: cancellationToken));
+
+        if (userInteractions.Any() && userInteractions.Count() != 0)
+        {
+            response = userInteractions
+                .Select(c => c.SourceUserId)
+                .ToList();
+        }
+
+        return response;
+    }
+
+    public async Task<List<Guid>?> GetUserBlockedUserIdsAsync(
+        Guid sourceUserId, 
+        CancellationToken cancellationToken = default
+    )
+    {
+        var response = new List<Guid>();
+        var userInteractions = (await _baseRepository.TryGetQueryableAsync(q => q
+                .Where(x => x.SourceUserId.Equals(sourceUserId) && x.IsBlocked),
             cancellationToken: cancellationToken));
 
         if (userInteractions.Any() && userInteractions.Count() != 0)

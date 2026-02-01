@@ -7,16 +7,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Unseal.Constants;
 using Unseal.Dtos.Users;
+using Unseal.Enums;
+using Unseal.Etos;
 using Unseal.Extensions;
 using Unseal.Filtering.Users;
 using Unseal.Interfaces.Managers.Auth;
 using Unseal.Interfaces.Managers.Users;
 using Unseal.Localization;
+using Unseal.Models.ElasticSearch;
 using Unseal.Models.Users;
 using Unseal.Repositories.Capsules;
 using Unseal.Repositories.Users;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.EventBus.Distributed;
 using Volo.Abp.Users;
 
 namespace Unseal.Services.Users;
@@ -46,7 +50,11 @@ public class UserAppService : UnsealAppService, IUserAppService
 
     private ICapsuleRepository CapsuleRepository =>
         LazyServiceProvider.LazyGetRequiredService<ICapsuleRepository>();
-
+    private IEsUserRepository EsUserRepository =>
+        LazyServiceProvider.LazyGetRequiredService<IEsUserRepository>();
+    private IDistributedEventBus DistributedEventBus =>
+        LazyServiceProvider.LazyGetRequiredService<IDistributedEventBus>();
+    
     private IStringLocalizer<UnsealResource> StringLocalizer =>
         LazyServiceProvider.LazyGetRequiredService<IStringLocalizer<UnsealResource>>();
 
@@ -126,6 +134,13 @@ public class UserAppService : UnsealAppService, IUserAppService
             await UserFollowerRepository.HardDeleteManyAsync(userFollowers, cancellationToken);
         }
 
+        var userElasticEto = new UserElasticEto
+        {
+            UserId = currentUserId,
+            BlockedUserId = userId,
+            UserElasticQueryTpe = (int)UserElasticQueryTypes.Update
+        };
+        await DistributedEventBus.PublishAsync(userElasticEto);
         return true;
     }
 
@@ -334,6 +349,14 @@ public class UserAppService : UnsealAppService, IUserAppService
             var fileUrl = await LazyServiceProvider.UploadFileAsync(userProfileUpdateDto.StreamContent);
             var encryptedFileUrl = LazyServiceProvider.GetEncryptedFileUrlAsync(fileUrl);
             userProfileUpdateModel = userProfileUpdateModel with { ProfilePictureUrl = encryptedFileUrl };
+
+            var userElasticEto = new UserElasticEto
+            {
+                UserId = userProfile.UserId,
+                ProfilePictureUrl = encryptedFileUrl,
+                UserElasticQueryTpe = (int)UserElasticQueryTypes.Update
+            };
+            await DistributedEventBus.PublishAsync(userElasticEto);
         }
 
         UserProfileManager.UpdateUserProfile(userProfile, userProfileUpdateModel);
@@ -386,6 +409,39 @@ public class UserAppService : UnsealAppService, IUserAppService
         {
             Items = userDtos,
             TotalCount = blockedUserCount
+        };
+        return response;
+    }
+
+    public async Task<PagedResultDto<UserDto>> SearchAsync(
+        string userName,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var currentUserId = CurrentUser.GetId();
+        var blockedUserIds = await UserInteractionManager
+            .GetUserBlockedUserIdsAsync(currentUserId, cancellationToken);
+        var users = await EsUserRepository.SearchUsersAsync(
+            blockedUserIds,
+            currentUserId,
+            userName,
+            cancellationToken: cancellationToken);
+        var userDtos = users.Select(x =>
+        {
+            var profilePictureUrl = LazyServiceProvider.GetDecryptedFileUrlAsync(x.ProfilePictureUrl);
+            return new UserDto
+            {
+                Id = x.Id,
+                Username = x.UserName,
+                ProfilePictureUrl = profilePictureUrl
+            };
+        })
+        .ToList();
+
+        var response = new PagedResultDto<UserDto>
+        {
+            Items = userDtos,
+            TotalCount = userDtos.Count
         };
         return response;
     }
