@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,7 +62,6 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default
     )
     {
-        await CheckMailFormatAsync(dto.Email);
         await CheckMailInUseAsync(dto.Email);
         var model = AuthMapper.MapToDto(dto);
         var user = await CustomIdentityUserManager.Create(
@@ -87,11 +87,11 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         };
         await DistributedEventBus.PublishAsync(userRegisterEto);
 
-        var userProfile = new UserProfileEto()
+        var userProfileEto = new UserProfileEto()
         {
             UserId = user.Id,
         };
-        await DistributedEventBus.PublishAsync(userProfile);
+        await DistributedEventBus.PublishAsync(userProfileEto);
         
         return result.Succeeded;
     }
@@ -138,12 +138,26 @@ public class AuthAppService : UnsealAppService, IAuthAppService
                 user.TenantId?.ToString(),
                 cancellationToken
             );
+            var response = new LoginResponseDto();
+            if (!string.IsNullOrEmpty(tokenResponse.Raw))
+            {
+                using var doc = JsonDocument.Parse(tokenResponse.Raw);
+    
+                if (doc.RootElement.TryGetProperty("data", out var data))
+                {
+                    var accessToken = data.GetProperty("access_token").GetString();
+                    var refreshToken = data.TryGetProperty("refresh_token", out var rt) ? rt.GetString() : null;
+                    var expiresIn = data.GetProperty("expires_in").GetInt32();
 
-            var response = new LoginResponseDto(
-                user.Id,
-                tokenResponse.AccessToken,
-                tokenResponse.RefreshToken,
-                tokenResponse.ExpiresIn);
+                    response = new LoginResponseDto
+                    {
+                        UserId = user.Id,
+                        AccessToken = accessToken,
+                        RefreshToken = refreshToken,
+                        ExpireIn = expiresIn
+                    };
+                }
+            }
 
             return response;
         }

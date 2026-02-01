@@ -12,7 +12,6 @@ public record CapsuleUpdateDto(
     DateTime RevealDate,
     IRemoteStreamContent StreamContent) :
     CapsuleBaseDto(
-        CapsuleTypeId,
         ReceiverId,
         Name,
         TextContext,

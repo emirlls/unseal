@@ -10,11 +10,16 @@ public static class QrCodeExtension
 {
     extension(IServiceProvider serviceProvider)
     {
-        public async Task<string> GenerateQrCodeAsync(Guid id)
+        public async Task<string> GenerateQrCodeAsync(
+            Guid id
+        )
         {
+            var baseUrl = await serviceProvider.GetSelfUrlAsync();
+            var detailApiPath = $"{baseUrl}/api/capsule?id={id}";
+
             using var qrGenerator = new QRCodeGenerator();
             using var qrData = qrGenerator
-                .CreateQrCode(id.ToString(), QRCodeGenerator.ECCLevel.Q);
+                .CreateQrCode(detailApiPath, QRCodeGenerator.ECCLevel.Q);
             using var qrCode = new QRCode(qrData);
             using var bitmap = qrCode.GetGraphic(20);
 

@@ -7,8 +7,9 @@ public record CapsuleDto(
     Guid CreatorId,
     string Name,
     string? Type,
-    string Username,
+    string? Username,
     string? ProfilePictureUrl,
+    string? FileUrl,
     DateTime RevealDate,
     DateTime CreationTime
     );

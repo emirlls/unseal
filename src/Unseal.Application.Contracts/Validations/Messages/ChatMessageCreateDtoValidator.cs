@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 using Unseal.Constants.Validations;

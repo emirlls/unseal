@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Unseal.Constants;
 using Volo.Abp.Json;
 using Volo.Abp.SettingManagement;
+using Volo.Abp.Settings;
 
 namespace Unseal.Settings.Custom;
 
@@ -13,15 +14,18 @@ public class CustomSettingManager<TSetting> : ICustomSettingManager<TSetting>
 where TSetting : class
 {
     private readonly ISettingManager _settingManager;
+    private readonly ISettingDefinitionManager _settingDefinitionManager;
     private readonly IJsonSerializer _jsonSerializer;
 
     public CustomSettingManager(
         IJsonSerializer jsonSerializer,
-        ISettingManager settingManager
+        ISettingManager settingManager,
+        ISettingDefinitionManager settingDefinitionManager
     )
     {
         _jsonSerializer = jsonSerializer;
         _settingManager = settingManager;
+        _settingDefinitionManager = settingDefinitionManager;
     }
 
     private string GetSettingName(string description) => $"{SettingConstants.Prefix}{description}";
@@ -61,6 +65,11 @@ where TSetting : class
         var description = typeof(TSetting).GetCustomAttribute<DescriptionAttribute>()?.Description 
                           ?? typeof(TSetting).Name;
         var settingName = GetSettingName(description);
+        var settingDefinition = await _settingDefinitionManager.GetOrNullAsync(settingName);
+        if (settingDefinition is null)
+        {
+            return false;
+        }
         var settings = await _settingManager.GetOrNullGlobalAsync(settingName);
         return !settings.IsNullOrWhiteSpace();
     }

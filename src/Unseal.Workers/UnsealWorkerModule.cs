@@ -15,5 +15,6 @@ public class UnsealWorkerModule : AbpModule
     {
         await context.AddBackgroundWorkerAsync<CapsuleRevealWorker>();
         await context.AddBackgroundWorkerAsync<UserLastActivityUpdateWorker>();
+        await context.AddBackgroundWorkerAsync<UserViewTrackingWorker>();
     }
 }

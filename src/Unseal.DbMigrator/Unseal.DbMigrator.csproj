@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Unseal.Application.Contracts\Unseal.Application.Contracts.csproj" />
+      <ProjectReference Include="..\Unseal.EntityFrameworkCore\Unseal.EntityFrameworkCore.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Volo.Abp.Autofac" Version="10.0.1" />
+    </ItemGroup>
+
+</Project>

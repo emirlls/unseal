@@ -24,8 +24,4 @@
     <Content Remove="Localization\Unseal\*.json" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Constants\Validations\Auth\" />
-  </ItemGroup>
-
 </Project>

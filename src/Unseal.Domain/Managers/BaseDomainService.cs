@@ -10,6 +10,7 @@ using Unseal.Localization;
 using Unseal.Repositories.Base;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities;
+using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Domain.Services;
 
 namespace Unseal.Managers;
@@ -154,10 +155,24 @@ public class BaseDomainService<TEntity> : DomainService, IBaseDomainService<TEnt
 
     public async Task<bool> ExistsAsync(
         Expression<Func<TEntity, bool>> expression,
+        bool throwIfNotExists = false,
         CancellationToken cancellationToken = default
     )
     {
         var response = await _baseRepository.ExistsAsync(expression, cancellationToken);
+        if (throwIfNotExists && !response)
+        {
+            throw new UserFriendlyException(_stringLocalizer[NotFoundException]);
+        }
+        return response;
+    }
+
+    public async Task<long> CountAsync(
+        Expression<Func<TEntity, bool>> expression, 
+        CancellationToken cancellationToken = default
+    )
+    {
+        var response = await _baseRepository.CountAsync(expression, cancellationToken);
         return response;
     }
 }

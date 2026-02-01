@@ -15,6 +15,7 @@
 
     "Unseal:ExceptionCodes:Capsule:001": "Capsule not found.",
     "Unseal:ExceptionCodes:Capsule:002": "Capsule already exists.",
+    "Unseal:ExceptionCodes:Capsule:003": "Can not generate QR if capsule is not public.",
 
     "Unseal:ExceptionCodes:CapsuleItem:001": "Capsule item not found.",
     "Unseal:ExceptionCodes:CapsuleItem:002": "Capsule item already exists.",
@@ -55,17 +56,20 @@
     "Unseal:ExceptionCodes:GroupMember:002": "Group member already exists.",
     "Unseal:ExceptionCodes:GroupMember:003": "Users who do not give permission cannot be added to the group.",
     
-    "Unseal:ExceptionCodes:UserInteraction::001": "User interaction not found.",
-    "Unseal:ExceptionCodes:UserInteraction::002": "User interaction already exists.",
+    "Unseal:ExceptionCodes:UserInteraction:001": "User interaction not found.",
+    "Unseal:ExceptionCodes:UserInteraction:002": "User interaction already exists.",
 
-    "Unseal:ExceptionCodes:ChatMessage::001": "Message not found.",
-    "Unseal:ExceptionCodes:ChatMessage::002": "Message already exists.",
+    "Unseal:ExceptionCodes:ChatMessage:001": "Message not found.",
+    "Unseal:ExceptionCodes:ChatMessage:002": "Message already exists.",
 
-    "Unseal:ExceptionCodes:ChatType::001": "Chat type not found.",
-    "Unseal:ExceptionCodes:ChatType::002": "Chat type already exists.",
+    "Unseal:ExceptionCodes:ChatType:001": "Chat type not found.",
+    "Unseal:ExceptionCodes:ChatType:002": "Chat type already exists.",
 
-    "Unseal:ExceptionCodes:UserFollowStatus::001": "Follow status type not found.",
-    "Unseal:ExceptionCodes:UserFollowStatus::002": "Follow status already exists.",
+    "Unseal:ExceptionCodes:UserFollowStatus:001": "Follow status type not found.",
+    "Unseal:ExceptionCodes:UserFollowStatus:002": "Follow status already exists.",
+    
+    "Unseal:ExceptionCodes:UserViewTracking:001": "User view tracking not found.",
+    "Unseal:ExceptionCodes:UserViewTracking::002": "User view tracking already exists.",
     
     "Unseal:ExceptionCodes:Mail:001": "Mail settings not found.",
 

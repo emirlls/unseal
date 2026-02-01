@@ -6,17 +6,26 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using StackExchange.Redis;
 using Unseal.Constants;
 using Unseal.Dtos.Capsules;
 using Unseal.Entities.Capsules;
+using Unseal.Entities.Users;
+using Unseal.Enums;
+using Unseal.Etos;
 using Unseal.Extensions;
 using Unseal.Filtering.Capsules;
 using Unseal.Interfaces.Managers.Capsules;
 using Unseal.Interfaces.Managers.Users;
+using Unseal.Localization;
+using Unseal.Models.ServerSentEvents;
 using Unseal.Profiles.Capsules;
 using Unseal.Repositories.Capsules;
+using Volo.Abp;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.EventBus.Distributed;
+using Volo.Abp.Users;
 
 namespace Unseal.Services.Capsules;
 
@@ -57,8 +66,19 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
 
     private ICapsuleMapFeatureManager CapsuleMapFeatureManager =>
         LazyServiceProvider.LazyGetRequiredService<ICapsuleMapFeatureManager>();
+
     private IUserProfileManager UserProfileManager =>
         LazyServiceProvider.LazyGetRequiredService<IUserProfileManager>();
+
+    private IUserViewTrackingManager UserViewTrackingManager =>
+        LazyServiceProvider.LazyGetRequiredService<IUserViewTrackingManager>();
+    
+    private IDistributedEventBus DistributedEventBus =>
+        LazyServiceProvider.LazyGetRequiredService<IDistributedEventBus>();
+    
+    private IStringLocalizer<UnsealResource> StringLocalizer =>
+        LazyServiceProvider.LazyGetRequiredService<IStringLocalizer<UnsealResource>>();
+
     public async Task<bool> CreateAsync(CapsuleCreateDto capsuleCreateDto,
         CancellationToken cancellationToken = default)
     {
@@ -73,13 +93,29 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         await CreateCapsuleMapFeatureAsync(capsule.Id, capsuleCreateModel.GeoJson, cancellationToken);
         var redis = LazyServiceProvider.GetRequiredService<IConnectionMultiplexer>();
         var subscriber = redis.GetSubscriber();
-
-        var payload = JsonSerializer.Serialize(new
+        
+        var userProfile = (await UserProfileManager
+            .TryGetQueryableAsync(x=>x
+                    .Include(c=>c.User)
+                    .Where(c=>c.User.Equals(CurrentUser.GetId())),
+                cancellationToken: cancellationToken
+            ))!.FirstOrDefault();
+        
+        var decryptedProfilePictureUrl =
+            LazyServiceProvider.GetDecryptedFileUrlAsync(userProfile?.ProfilePictureUrl);
+        
+        var eventModel = new CapsuleCreatedEventModel
         {
-            type = EventConstants.ServerSentEvents.CapsuleCreate.Type,
-            capsuleId = capsule.Id,
-            creationTime = DateTime.Now
-        });
+            Id = capsule.Id,
+            CreatorId = (Guid)capsule.CreatorId!,
+            Name = capsule.Name,
+            Username = userProfile?.User.UserName,
+            FileUrl = fileUrl,
+            ProfilePictureUrl = decryptedProfilePictureUrl,
+            RevealDate = capsule.RevealDate,
+            CreationTime = capsule.CreationTime
+        };
+        var payload = JsonSerializer.Serialize(eventModel);
 
         await subscriber.PublishAsync(
             EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdates,
@@ -116,7 +152,8 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         {
             queryBuilder = capsule => capsule
                 .Include(x => x.CapsuleType)
-                .Where(c => c.CreatorId == CurrentUser.Id);
+                .Include(x => x.CapsuleItems)
+                .Where(c => (Guid)c.CreatorId == CurrentUser.GetId());
         }
         else
         {
@@ -133,6 +170,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
                     : null;
             queryBuilder = capsule => capsule
                 .Include(x => x.CapsuleType)
+                .Include(x => x.CapsuleItems)
                 .WhereIf(!capsuleCreators.IsNullOrEmpty(),
                     x => !capsuleCreators.Contains((Guid)x.CreatorId!));
         }
@@ -141,8 +179,8 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
             .GetDynamicListAsync(capsuleFilters, queryBuilder, true, cancellationToken);
         var count = await CapsuleRepository
             .GetDynamicListCountAsync(
-                capsuleFilters, 
-                useCache:false,
+                capsuleFilters,
+                useCache: false,
                 cancellationToken
             );
         var capsuleCreatorIds = capsules
@@ -153,23 +191,27 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
                 .Where(x => capsuleCreatorIds.Contains(x.UserId)),
             asNoTracking: true,
             cancellationToken: cancellationToken);
-        
+
         var dto = capsules.Select(x =>
-        {
-            var capsuleType = CapsuleMapper.ResolveType(x.CapsuleType);
-            var userProfile =  userProfiles.FirstOrDefault(u=>u.UserId.Equals(x.CreatorId));
-            var decryptedProfilePictureUrl = LazyServiceProvider.GetDecryptedFileUrlAsync(userProfile?.ProfilePictureUrl);
-            return new CapsuleDto(
-                x.Id,
-                (Guid)x.CreatorId!,
-                x.Name,
-                capsuleType,
-                userProfile.User.UserName,
-                decryptedProfilePictureUrl,
-                x.RevealDate,
-                x.CreationTime);
-        })
-        .ToList();
+            {
+                var capsuleType = CapsuleMapper.ResolveType(x.CapsuleType);
+                var userProfile = userProfiles.FirstOrDefault(u => u.UserId.Equals(x.CreatorId));
+                var decryptedProfilePictureUrl =
+                    LazyServiceProvider.GetDecryptedFileUrlAsync(userProfile?.ProfilePictureUrl);
+                var fileUrl=
+                    LazyServiceProvider.GetDecryptedFileUrlAsync(x.CapsuleItems.FileUrl);
+                return new CapsuleDto(
+                    x.Id,
+                    (Guid)x.CreatorId!,
+                    x.Name,
+                    capsuleType,
+                    userProfile.User.UserName,
+                    decryptedProfilePictureUrl,
+                    fileUrl,
+                    x.RevealDate,
+                    x.CreationTime);
+            })
+            .ToList();
         var response = new PagedResultDto<CapsuleDto>
         {
             Items = dto,
@@ -183,9 +225,14 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         CancellationToken cancellationToken = default
     )
     {
-        await CapsuleManager.TryGetByAsync(x =>
+        var capsule = await CapsuleManager.TryGetByAsync(x =>
                 x.Id.Equals(capsuleId), true,
             cancellationToken: cancellationToken);
+        if (capsule.CapsuleTypeId != Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.Public.Id))
+        {
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.Capsule.CanNotMakeQrNonPublic]);
+        }
+
         var base64QrCode = await LazyServiceProvider.GenerateQrCodeAsync(capsuleId);
         return base64QrCode;
     }
@@ -238,5 +285,270 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
             cancellationToken: cancellationToken);
         await CapsuleCommentRepository.HardDeleteAsync(comment, cancellationToken);
         return true;
+    }
+
+    public async Task<CapsuleDetailDto> GetDetailAsync(
+        Guid id,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var capsule = await (await CapsuleManager.TryGetQueryableAsync(q => q
+                    .Include(x => x.CapsuleItems)
+                    .Include(x => x.CapsuleType)
+                    .Include(x => x.CapsuleMapFeatures)
+                    .Include(x => x.CapsuleComments)
+                    .ThenInclude(c => c.User)
+                    .Include(x => x.CapsuleLikes)
+                    .ThenInclude(c => c.User)
+                    .Where(x => x.Id.Equals(id)),
+                true,
+                cancellationToken: cancellationToken))!
+            .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+
+        var blockedUserIds = (await UserInteractionManager
+                .GetUserIdsBlockedUserAsync(CurrentUser.GetId(), cancellationToken)!)?
+            .ToHashSet() ?? new HashSet<Guid>();
+
+        var validLikes = capsule?.CapsuleLikes
+            .Where(l => !blockedUserIds.Contains(l.UserId))
+            .ToList();
+
+        var validComments = capsule?
+            .CapsuleComments
+            .Where(c => !blockedUserIds.Contains(c.UserId))
+            .ToList();
+
+        var allUserIds = (validLikes ?? Enumerable.Empty<CapsuleLike>())
+            .Select(l => l.UserId)
+            .Union((validComments ?? Enumerable.Empty<CapsuleComment>())
+                .Select(c => c.UserId))
+            .Append(capsule!.CreatorId ?? Guid.Empty)
+            .ToHashSet();
+
+        var profiles = (await UserProfileManager.TryGetListByQueryableAsync(q => q
+                    .Include(p => p.User)
+                    .Where(p => allUserIds.Contains(p.UserId)),
+                cancellationToken: cancellationToken))
+            .ToDictionary(p => p.UserId);
+
+        var creatorProfile = profiles.GetValueOrDefault(capsule.CreatorId ?? Guid.Empty);
+        var decryptedProfilePictureUrl =
+            LazyServiceProvider.GetDecryptedFileUrlAsync(creatorProfile?.ProfilePictureUrl);
+        var decryptedFileUrl = LazyServiceProvider.GetDecryptedFileUrlAsync(capsule.CapsuleItems.FileUrl);
+
+        var response = new CapsuleDetailDto
+        {
+            Id = capsule.Id,
+            CreatorId = (Guid)capsule.CreatorId!,
+            CreatorUserName = creatorProfile?.User.UserName,
+            Name = capsule.Name,
+            Type = ((CapsuleTypes)capsule.CapsuleType.Code).GetDescription(),
+            CreatorProfilePictureUrl = decryptedProfilePictureUrl,
+            FileUrl = decryptedFileUrl,
+            RevealDate = capsule.RevealDate,
+            CreationTime = capsule.CreationTime,
+            LikeDtos = await MapLikesAsync(validLikes, profiles),
+            CommentDtos = await MapCommentsAsync(validComments, profiles)
+        };
+        return response;
+    }
+
+    public async Task<PagedResultDto<CapsuleDto>> GetExploreFeedAsync(
+        CapsuleFilters capsuleFilters,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var currentUserId = CurrentUser.GetId();
+        var now = DateTime.UtcNow;
+
+        var usersBlockedCurrentUser = await UserInteractionManager
+            .TryGetQueryableAsync(x => x
+                .Where(c => c.TargetUserId.Equals(currentUserId) && c.IsBlocked),
+                cancellationToken: cancellationToken);
+
+        var blockedCreatorIds = usersBlockedCurrentUser?
+            .Select(x => x.SourceUserId)
+            .ToHashSet();
+
+        var queryable = await UserViewTrackingManager.
+            TryGetQueryableAsync(q => q
+                    .Where(x => x.UserId == currentUserId), 
+            cancellationToken: cancellationToken
+        );
+
+        var viewedIds = queryable != null 
+            ? await queryable
+                .Select(v => v.CapsuleId)
+                .ToListAsync(cancellationToken)
+            : new List<Guid>();
+
+        var currentUserLikesQueryable = await CapsuleLikeManager
+            .TryGetQueryableAsync(q => q
+            .Where(x => x.UserId == currentUserId),
+            cancellationToken: cancellationToken
+        );
+        
+        var currentUserLikedIds = currentUserLikesQueryable != null ? await currentUserLikesQueryable
+            .OrderByDescending(x => x.CreationTime)
+            .Take(10)
+            .Select(x => x.CapsuleId)
+            .ToListAsync(cancellationToken) : new List<Guid>();
+
+        var likedOtherUsersQuery = await CapsuleLikeManager.TryGetQueryableAsync(
+            q => q.Where(x => currentUserLikedIds.Contains(x.CapsuleId) && x.UserId != currentUserId),
+            cancellationToken: cancellationToken);
+
+        var likedOtherUserIds = likedOtherUsersQuery != null
+            ? await likedOtherUsersQuery
+                .GroupBy(x => x.UserId)
+                .OrderByDescending(g => g.Count())
+                .Take(50)
+                .Select(g => g.Key)
+                .ToListAsync(cancellationToken)
+            : new List<Guid>();
+        
+        var query = await CapsuleManager.TryGetQueryableAsync(q=>q
+            .Include(x => x.CapsuleType)
+            .Include(x => x.CapsuleItems)
+            .Where(x => (bool)x.IsOpened!)
+            .Where(x => !viewedIds.Contains(x.Id)) 
+            .WhereIf(!blockedCreatorIds.IsNullOrEmpty(), 
+                x => !blockedCreatorIds!.Contains((Guid)x.CreatorId!)),
+            asNoTracking: true,
+            cancellationToken: cancellationToken
+        );
+        if (query is null)
+        {
+            return new PagedResultDto<CapsuleDto>();
+        }
+
+        var count = await query.CountAsync(cancellationToken);
+        var rawCapsules = await query
+            .Select(c => new
+            {
+                Capsule = c,
+                LikeCount = c.CapsuleLikes.Count,
+                CommentCount = c.CapsuleComments.Count,
+                IsLikedOtherUsers = c.CapsuleLikes.Any(i => likedOtherUserIds.Contains(i.UserId)),
+                CreationTime = c.CreationTime
+            })
+            .ToListAsync(cancellationToken)!;
+        var capsulesWithScores = rawCapsules
+            .Select(x => new
+            {
+                x.Capsule,
+                HoursAge = (now - x.CreationTime).TotalHours + 2,
+                BasePoints = (x.LikeCount * 5) + (x.CommentCount * 10) + (x.IsLikedOtherUsers ? 50 : 0) + 1
+            })
+            .Select(x => new
+            {
+                x.Capsule,
+                Score = x.BasePoints / Math.Pow(x.HoursAge, 1.5)
+            })
+            .OrderByDescending(x => x.Score)
+            .Skip(capsuleFilters.SkipCount)
+            .Take(capsuleFilters.MaxResultCount)
+            .ToList();
+
+        var items = capsulesWithScores.Select(x => x.Capsule).ToList();
+        var creatorIds = items.Select(x => (Guid)x.CreatorId!).ToHashSet();
+        var userProfiles = await UserProfileManager
+            .TryGetListByQueryableAsync(q => q
+                    .Include(u => u.User)
+                    .Where(p => creatorIds.Contains(p.UserId)),
+                cancellationToken: cancellationToken);
+
+        var dtos = items.Select(x =>
+        {
+            var profile = userProfiles.FirstOrDefault(p => p.UserId == x.CreatorId);
+            var fileUrl = LazyServiceProvider.GetDecryptedFileUrlAsync(x.CapsuleItems.FileUrl);
+            return new CapsuleDto(
+                x.Id, 
+                (Guid)x.CreatorId!,
+                x.Name,
+                CapsuleMapper.ResolveType(x.CapsuleType),
+                profile?.User.UserName,
+                LazyServiceProvider.GetDecryptedFileUrlAsync(profile?.ProfilePictureUrl),
+                fileUrl,
+                x.RevealDate,
+                x.CreationTime
+            );
+        }).ToList();
+
+        return new PagedResultDto<CapsuleDto>
+        {
+            Items = dtos,
+            TotalCount = count
+        };
+    }
+
+    public async Task<bool> MarkAsViewedAsync(
+        List<Guid> capsuleIds,
+        CancellationToken cancellationToken = default
+    )
+    {
+        await CapsuleManager
+            .ExistsAsync(x => !capsuleIds.Contains(x.Id),
+                throwIfNotExists: true,
+                cancellationToken);
+        
+        var userViewTrackingEto = new UserViewTrackingEto
+        {
+            UserId = CurrentUser.GetId(),
+            CapsuleIds = capsuleIds
+        };
+        await DistributedEventBus.PublishAsync(userViewTrackingEto);
+        
+        return true;
+    }
+
+    public async Task<bool> DeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var capsule = await CapsuleManager.TryGetByAsync(x =>
+                x.Id.Equals(id), true,
+            cancellationToken: cancellationToken);
+        
+        await CapsuleRepository.DeleteAsync(capsule!, cancellationToken: cancellationToken);
+        return true;
+    }
+
+    private async Task<List<CapsuleLikeDto>> MapLikesAsync(List<CapsuleLike>? likes,
+        Dictionary<Guid, UserProfile> profiles)
+    {
+        var dtos = new List<CapsuleLikeDto>();
+        if (likes.IsNullOrEmpty()) return dtos;
+        foreach (var like in likes)
+        {
+            var profile = profiles.GetValueOrDefault(like.UserId);
+            dtos.Add(new CapsuleLikeDto
+            {
+                UserName = like.User.UserName,
+                UserProfilePictureUrl = LazyServiceProvider.GetDecryptedFileUrlAsync(profile?.ProfilePictureUrl)
+            });
+        }
+
+        return dtos;
+    }
+
+    private async Task<List<CapsuleCommentDto>> MapCommentsAsync(List<CapsuleComment>? comments,
+        Dictionary<Guid, UserProfile> profiles)
+    {
+        var dtos = new List<CapsuleCommentDto>();
+        if (comments.IsNullOrEmpty()) return dtos;
+        foreach (var comment in comments)
+        {
+            var profile = profiles.GetValueOrDefault(comment.UserId);
+            dtos.Add(new CapsuleCommentDto
+            {
+                UserName = comment.User.UserName,
+                Comment = comment.Comment,
+                UserProfilePictureUrl = LazyServiceProvider.GetDecryptedFileUrlAsync(profile?.ProfilePictureUrl)
+            });
+        }
+
+        return dtos;
     }
 }

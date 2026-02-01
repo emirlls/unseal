@@ -27,6 +27,7 @@ public static class ExceptionCodes
         private const string Prefix = $"{ExceptionCodePrefix}Capsule:";
         public const string NotFound = $"{Prefix}001";
         public const string AlreadyExists = $"{Prefix}002";
+        public const string CanNotMakeQrNonPublic = $"{Prefix}003";
     }
     
     public static class CapsuleItem
@@ -122,6 +123,12 @@ public static class ExceptionCodes
     public static class UserFollowStatus
     {
         private const string Prefix = $"{ExceptionCodePrefix}UserFollowStatus:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
+    public static class UserViewTracking
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}UserViewTracking:";
         public const string NotFound = $"{Prefix}001";
         public const string AlreadyExists = $"{Prefix}002";
     }
