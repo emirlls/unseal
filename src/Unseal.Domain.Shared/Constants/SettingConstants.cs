@@ -12,4 +12,11 @@ public static class SettingConstants
         public const string Login = nameof(Login);
         public const string Key = nameof(Key);
     }
+    public static class ElasticSearchSettingModel
+    {
+        public const string Name = nameof(ElasticSearchSettingModel);
+        public const string Url = nameof(Url);
+        public const string Username = nameof(Username);
+        public const string Password = nameof(Password);
+    }
 }

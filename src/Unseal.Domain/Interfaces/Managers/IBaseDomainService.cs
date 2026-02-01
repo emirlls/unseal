@@ -51,6 +51,12 @@ public interface IBaseDomainService<TEntity> : IDomainService
 
     Task<bool> ExistsAsync(
         Expression<Func<TEntity, bool>> expression,
+        bool throwIfNotExists = false,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<long> CountAsync(
+        Expression<Func<TEntity, bool>> expression,
         CancellationToken cancellationToken = default
     );
 }

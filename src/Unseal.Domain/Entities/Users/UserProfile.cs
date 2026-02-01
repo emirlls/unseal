@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using Unseal.Entities.Capsules;
 using Volo.Abp.Domain.Entities.Auditing;
 using Volo.Abp.Identity;
 
@@ -16,7 +14,6 @@ public class UserProfile : AuditedEntity<Guid>
     public DateTime LastActivityTime { get; set; }
     
     public virtual IdentityUser User { get; set; }
-    public virtual ICollection<Capsule>  Capsules { get; set; }
     public UserProfile(
         Guid id,
         Guid userId,

@@ -1,4 +1,6 @@
+using System;
 using Riok.Mapperly.Abstractions;
+using Unseal.Constants;
 using Unseal.Dtos.Capsules;
 using Unseal.Entities.Lookups;
 using Unseal.Enums;
@@ -23,8 +25,12 @@ public partial class CapsuleMapper : ITransientDependency
 
     public CapsuleCreateModel MaptoModel(CapsuleCreateDto capsuleCreateDto)
     {
+        var capsuleTypeId = capsuleCreateDto.ReceiverId.HasValue
+            ? Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.Personal.Id)
+            : Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.Public.Id);
+        
         return new CapsuleCreateModel(
-            capsuleCreateDto.CapsuleTypeId,
+            capsuleTypeId,
             capsuleCreateDto.ReceiverId,
             capsuleCreateDto.Name,
             capsuleCreateDto.StreamContent.ContentType,

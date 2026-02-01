@@ -37,6 +37,7 @@ public static class UnsealTableNameProvider
         {nameof(UserProfile),"UserProfiles"},
         {nameof(UserFollower),"UserFollowers"},
         {nameof(UserFollowStatus),"UserFollowStatuses"},
+        {nameof(UserViewTracking),"UserViewTrackings"},
         {nameof(Group),"Groups"},
         {nameof(GroupMember),"GroupMembers"},
         {nameof(UserInteraction),"UserInteractions"},

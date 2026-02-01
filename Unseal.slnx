@@ -11,6 +11,7 @@
   <Folder Name="/src/">
     <Project Path="src/Unseal.Application.Contracts/Unseal.Application.Contracts.csproj" />
     <Project Path="src/Unseal.Application/Unseal.Application.csproj" />
+    <Project Path="src/Unseal.DbMigrator/Unseal.DbMigrator.csproj" />
     
     
     <Project Path="src/Unseal.Domain.Shared/Unseal.Domain.Shared.csproj" />

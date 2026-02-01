@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Unseal.Entities.Users;
@@ -14,4 +15,9 @@ public interface IUserInteractionManager : IBaseDomainService<UserInteraction>
     );
 
     UserInteraction Create(Guid sourceUserId, Guid targetUserId);
+    
+    Task<List<Guid>>? GetUserIdsBlockedUserAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    );
 }

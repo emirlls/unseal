@@ -23,14 +23,9 @@ public class UserLastActivityUpdateWorker : AsyncPeriodicBackgroundWorkerBase
     protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
     {
         var configuration = ServiceProvider.GetRequiredService<IConfiguration>();
-        var userLastActivityUpdateBackgroundJobSetting =
-            bool.Parse(configuration[
-                BackgroundJobSettingConstants.UserLastActivityUpdate.UserLastActivityUpdateBackgroundJob]!);
-        if (!userLastActivityUpdateBackgroundJobSetting)
-        {
-            return;
-        }
-
+        var isEnabled = configuration.GetValue(BackgroundJobSettingConstants.UserLastActivityUpdate.UserLastActivityUpdateBackgroundJob, false);
+        if (!isEnabled) return;
+        
         var userLastActivityUpdateBackgroundJob =
             ServiceProvider.GetRequiredService<UserLastActivityUpdateBackgroundJob>();
         await userLastActivityUpdateBackgroundJob.UpdateLastActivityAsync(

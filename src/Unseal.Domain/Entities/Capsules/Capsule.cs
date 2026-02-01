@@ -16,8 +16,8 @@ public class Capsule : FullAuditedAggregateRoot<Guid>, IMultiTenant
     public Guid? CapsuleTypeId { get; set; }
 
     public virtual CapsuleType CapsuleType { get; set; }
-    public virtual ICollection<CapsuleItem> CapsuleItems { get; set; }
-    public virtual ICollection<CapsuleMapFeature> CapsuleMapFeatures { get; set; }
+    public virtual CapsuleItem CapsuleItems { get; set; }
+    public virtual CapsuleMapFeature CapsuleMapFeatures { get; set; }
     public virtual ICollection<CapsuleComment> CapsuleComments { get; set; }
     public virtual ICollection<CapsuleLike> CapsuleLikes { get; set; }
 

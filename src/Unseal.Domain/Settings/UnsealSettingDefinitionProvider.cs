@@ -14,5 +14,9 @@ public class UnsealSettingDefinitionProvider : SettingDefinitionProvider
         context.Add(
             new SettingDefinition(mailSettingsName)
         );
+        var elasticSearchSettingsName = $"{SettingConstants.Prefix}{SettingConstants.ElasticSearchSettingModel.Name}";
+        context.Add(
+            new SettingDefinition(elasticSearchSettingsName)
+        );
     }
 }

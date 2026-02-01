@@ -15,8 +15,8 @@ public class CapsuleMapFeatureConfiguration : IEntityTypeConfiguration<CapsuleMa
         builder.ConfigureByConvention();
         
         builder.HasOne(x=>x.Capsule)
-            .WithMany(x=>x.CapsuleMapFeatures)
-            .HasForeignKey(x=>x.CapsuleId)
+            .WithOne(x=>x.CapsuleMapFeatures)
+            .HasForeignKey<CapsuleMapFeature>(x=>x.CapsuleId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

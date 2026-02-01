@@ -17,9 +17,10 @@ public class CapsuleRevealWorker : AsyncPeriodicBackgroundWorkerBase
     protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
     {
         var configuration = ServiceProvider.GetRequiredService<IConfiguration>();
-        var capsuleRevealJobSetting = 
-            bool.Parse(configuration[BackgroundJobSettingConstants.CapsuleReveal.CapsuleRevealBackgroundJob]!);
-        if (!capsuleRevealJobSetting) return;
+
+        var isEnabled = configuration.GetValue(BackgroundJobSettingConstants.CapsuleReveal.CapsuleRevealBackgroundJob, false);
+        if (!isEnabled) return;
+        
         var capsuleRevealBackgroundJob = ServiceProvider.GetRequiredService<CapsuleRevealBackgroundJob>();
         await capsuleRevealBackgroundJob.RevealCapsulesAsync(
             ServiceProvider,

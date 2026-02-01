@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
+using Elastic.Clients.Elasticsearch;
+using Elastic.Transport;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
@@ -14,7 +16,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,6 +27,7 @@ using OpenIddict.Validation.AspNetCore;
 using Unseal.ActionFilters;
 using Unseal.Constants;
 using Unseal.Middlewares;
+using Unseal.Models.ElasticSearch;
 using Unseal.Workers;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Authentication.JwtBearer;
@@ -34,7 +36,6 @@ using Volo.Abp.AspNetCore.Serilog;
 using Volo.Abp.Autofac;
 using Volo.Abp.Caching;
 using Volo.Abp.Caching.StackExchangeRedis;
-using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EventBus.Distributed;
 using Volo.Abp.EventBus.RabbitMq;
 using Volo.Abp.Identity.AspNetCore;
@@ -105,7 +106,6 @@ public class UnsealHttpApiHostModule : AbpModule
 
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         });
-        Configure<AbpDbContextOptions>(options => { options.UseNpgsql(opts => { opts.UseNetTopologySuite(); }); });
         context.Services.AddTransient<IDbConnection>(sp =>
         {
             var connectionString = configuration.GetConnectionString("Default");
@@ -114,6 +114,17 @@ public class UnsealHttpApiHostModule : AbpModule
         var redisConfiguration = configuration[CacheConstants.RedisConfigurationKey];
         context.Services.AddSingleton<IConnectionMultiplexer>(sp =>
             ConnectionMultiplexer.Connect(redisConfiguration!));
+        context.Services.AddSingleton<ElasticsearchClient>(provider =>
+        {
+            
+            var options = configuration.GetSection(nameof(SettingConstants.ElasticSearchSettingModel)).Get<ElasticSearchOptions>();
+            var settings = new ElasticsearchClientSettings(new Uri(options.Url))
+                .Authentication(new BasicAuthentication(options.Username, options.Password));
+                // To bypass ssl on development.
+                //.ServerCertificateValidationCallback(CertificateValidations.AllowAll)
+            return new ElasticsearchClient(settings);
+        });
+        
         Configure<MvcOptions>(options => { options.Filters.AddService<LastActivityActionFilter>(); });
         Configure<AbpMultiTenancyOptions>(options => { options.IsEnabled = MultiTenancyConsts.IsEnabled; });
 

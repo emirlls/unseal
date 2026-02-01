@@ -19,8 +19,8 @@ public class CapsuleItemConfiguration : IEntityTypeConfiguration<CapsuleItem>
         builder.Property(x => x.FileName).IsRequired(false);
 
         builder.HasOne(x => x.Capsule)
-            .WithMany(x => x.CapsuleItems)
-            .HasForeignKey(x => x.CapsuleId)
+            .WithOne(x => x.CapsuleItems)
+            .HasForeignKey<CapsuleItem>(x => x.CapsuleId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

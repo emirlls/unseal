@@ -86,6 +86,7 @@ public class UnsealDbContext :
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<UserFollower> UserFollowers { get; set; }
     public DbSet<UserFollowStatus> UserFollowStatuses { get; set; }
+    public DbSet<UserViewTracking> UserViewTrackings { get; set; }
     //Messages
     public DbSet<ChatMessage> ChatMessages { get; set; }
     public DbSet<ChatType> ChatTypes { get; set; }

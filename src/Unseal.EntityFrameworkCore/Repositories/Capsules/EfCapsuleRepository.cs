@@ -25,8 +25,7 @@ public class EfCapsuleRepository : EfBaseRepository<Capsule>, ICapsuleRepository
         var response = await dbSet
             .Where(x => x.CreatorId.Equals(userId))
             .Include(x=>x.CapsuleItems)
-            .SelectMany(x=>x.CapsuleItems
-                .Select(c => c.FileUrl))
+            .Select(x=>x.CapsuleItems.FileUrl)
             .ToListAsync(cancellationToken: cancellationToken);
         return response;
     }

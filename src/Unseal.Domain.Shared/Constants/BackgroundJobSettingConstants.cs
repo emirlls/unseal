@@ -12,4 +12,8 @@ public static class BackgroundJobSettingConstants
     { 
         public const string UserLastActivityUpdateBackgroundJob = $"{Prefix}:{nameof(UserLastActivityUpdateBackgroundJob)}";
     }
+    public static class UserViewTracking
+    { 
+        public const string UserViewTrackingBackgroundJob = $"{Prefix}:{nameof(UserViewTrackingBackgroundJob)}";
+    }
 }
