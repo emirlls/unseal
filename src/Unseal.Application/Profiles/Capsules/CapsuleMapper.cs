@@ -29,15 +29,18 @@ public partial class CapsuleMapper : ITransientDependency
             ? Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.Personal.Id)
             : Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.Public.Id);
         
-        return new CapsuleCreateModel(
-            capsuleTypeId,
-            capsuleCreateDto.ReceiverId,
-            capsuleCreateDto.Name,
-            capsuleCreateDto.StreamContent.ContentType,
-            capsuleCreateDto.TextContext,
-            string.Empty, // will be set after upload file.
-            capsuleCreateDto.StreamContent.FileName,
-            capsuleCreateDto.GeoJson,
-            capsuleCreateDto.RevealDate);
+        return new CapsuleCreateModel
+        {
+            CapsuleTypeId = capsuleTypeId,
+            ReceiverId = capsuleCreateDto.ReceiverId,
+            Name = capsuleCreateDto.Name,
+            ContentType = capsuleCreateDto.StreamContent.ContentType,
+            TextContext = capsuleCreateDto.TextContext,
+            FileUrl = string.Empty, // will be set after upload file.
+            FileName = capsuleCreateDto.StreamContent.FileName,
+            GeoJson = capsuleCreateDto.GeoJson,
+            RevealDate = capsuleCreateDto.RevealDate
+        };
+
     }
 }

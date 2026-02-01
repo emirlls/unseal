@@ -2,14 +2,15 @@ using System;
 
 namespace Unseal.Models.Capsules;
 
-public record CapsuleBaseModel(
-    Guid? CapsuleTypeId,
-    Guid? ReceiverId,
-    string Name,
-    string ContentType,
-    string? TextContext,
-    string? FileUrl,
-    string? FileName,
-    string? GeoJson,
-    DateTime RevealDate
-);
+public class CapsuleBaseModel
+{
+    public Guid? CapsuleTypeId { get; set; }
+    public Guid? ReceiverId { get; set; }
+    public string? Name { get; set; }
+    public string? ContentType { get; set; }
+    public string? TextContext { get; set; }
+    public string? FileUrl { get; set; }
+    public string? FileName { get; set; }
+    public string? GeoJson { get; set; }
+    public DateTime RevealDate { get; set; }
+}
