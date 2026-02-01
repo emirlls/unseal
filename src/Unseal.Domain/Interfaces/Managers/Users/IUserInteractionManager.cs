@@ -20,4 +20,9 @@ public interface IUserInteractionManager : IBaseDomainService<UserInteraction>
         Guid userId,
         CancellationToken cancellationToken = default
     );
+
+    Task<List<Guid>?> GetUserBlockedUserIdsAsync(
+        Guid sourceUserId,
+        CancellationToken cancellationToken = default
+    );
 }

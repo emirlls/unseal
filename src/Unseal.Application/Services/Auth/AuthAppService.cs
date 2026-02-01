@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using Unseal.Constants;
 using Unseal.Dtos.Auth;
+using Unseal.Enums;
 using Unseal.Etos;
 using Unseal.Interfaces.Managers.Auth;
 using Unseal.Localization;
@@ -85,12 +86,22 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             Email = user.Email,
             ConfirmationToken = encodedToken
         };
-        await DistributedEventBus.PublishAsync(userRegisterEto);
-
+        var userElasticEto = new UserElasticEto
+        {
+            UserId = user.Id,
+            UserName = user.UserName,
+            Name = user.Name,
+            Surname = user.Surname,
+            ProfilePictureUrl = null,
+            BlockedUserId = null,
+            UserElasticQueryTpe = (int)UserElasticQueryTypes.Create
+        };
         var userProfileEto = new UserProfileEto()
         {
             UserId = user.Id,
         };
+        await DistributedEventBus.PublishAsync(userRegisterEto);
+        await DistributedEventBus.PublishAsync(userElasticEto);
         await DistributedEventBus.PublishAsync(userProfileEto);
         
         return result.Succeeded;

@@ -9,6 +9,13 @@ public static class ElasticSearchConstants
 
     public static class User
     {
+        public const string UserSearchIndex = "user-search-index";
         public const string UserViewTrackingIndex = "user-view-tracking-index";
+    }
+
+    public static class Queries
+    {
+        public const string NewId = "newId";
+       public const string AddIdScript = "if (!ctx._source.blockedByUserIds.contains(params.newId)) { ctx._source.blockedByUserIds.add(params.newId) }";
     }
 }

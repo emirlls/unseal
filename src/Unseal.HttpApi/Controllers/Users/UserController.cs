@@ -101,6 +101,18 @@ public class UserController : UnsealController
     ) => await UserAppService.RejectFollowRequestAsync(userId, cancellationToken);
 
     /// <summary>
+    /// Use to search users.
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("search")]
+    public async Task<PagedResultDto<UserDto>> SearchAsync(
+        string userName, 
+        CancellationToken cancellationToken = default
+    ) => await UserAppService.SearchAsync(userName, cancellationToken);
+    
+    /// <summary>
     /// Use to list follow requests.
     /// </summary>
     /// <param name="cancellationToken"></param>

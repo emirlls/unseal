@@ -58,4 +58,9 @@ public interface IUserAppService : IApplicationService
     Task<PagedResultDto<UserDto>> GetBlockedUsersAsync(
         CancellationToken cancellationToken = default
     );
+
+    Task<PagedResultDto<UserDto>> SearchAsync(
+        string userName,
+        CancellationToken cancellationToken = default
+    );
 }
