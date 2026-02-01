@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Unseal.Constants;
 using Unseal.Etos;
 using Unseal.Interfaces.Managers.Users;
@@ -24,7 +22,8 @@ public class UserViewTrackingEventHandler :
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     public UserViewTrackingEventHandler(
-        IUnitOfWorkManager unitOfWorkManager, IUserViewTrackingManager userViewTrackingManager,
+        IUnitOfWorkManager unitOfWorkManager, 
+        IUserViewTrackingManager userViewTrackingManager,
         IUserViewTrackingRepository userViewTrackingRepository,
         IEsUserViewTrackingRepository esUserViewTrackingRepository)
     {

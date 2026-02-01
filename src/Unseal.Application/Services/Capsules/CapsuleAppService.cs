@@ -86,7 +86,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         var encryptedFileUrl = LazyServiceProvider.GetEncryptedFileUrlAsync(fileUrl);
         var capsuleCreateModel = CapsuleMapper.MaptoModel(capsuleCreateDto);
         var capsule = CapsuleManager.Create(capsuleCreateModel, CurrentUser.Id!);
-        capsuleCreateModel = capsuleCreateModel with { FileUrl = encryptedFileUrl };
+        capsuleCreateModel.FileUrl = encryptedFileUrl;
         var capsuleItem = CapsuleItemManager.Create(capsuleCreateModel, capsule.Id);
         await CapsuleRepository.InsertAsync(capsule, cancellationToken: cancellationToken);
         await CapsuleItemRepository.InsertAsync(capsuleItem, cancellationToken: cancellationToken);
@@ -97,7 +97,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         var userProfile = (await UserProfileManager
             .TryGetQueryableAsync(x=>x
                     .Include(c=>c.User)
-                    .Where(c=>c.User.Equals(CurrentUser.GetId())),
+                    .Where(c=>c.UserId.Equals(CurrentUser.GetId())),
                 cancellationToken: cancellationToken
             ))!.FirstOrDefault();
         
