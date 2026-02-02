@@ -14,7 +14,6 @@ using Unseal.Filtering.Users;
 using Unseal.Interfaces.Managers.Auth;
 using Unseal.Interfaces.Managers.Users;
 using Unseal.Localization;
-using Unseal.Models.ElasticSearch;
 using Unseal.Models.Users;
 using Unseal.Repositories.Capsules;
 using Unseal.Repositories.Users;

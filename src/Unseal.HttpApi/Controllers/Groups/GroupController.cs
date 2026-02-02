@@ -1,9 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unseal.Dtos.Groups;
 using Unseal.Filtering.Groups;
+using Unseal.Permissions.Groups;
 using Unseal.Services.Groups;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.DependencyInjection;
@@ -30,6 +32,7 @@ public class GroupController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpGet]
+    [Authorize(GroupPermissions.Default)]
     public async Task<PagedResultDto<GroupDto>> GetFilteredGroupListAsync(
         [FromQuery]GroupFilters groupFilters,
         CancellationToken cancellationToken = default
@@ -45,6 +48,7 @@ public class GroupController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpGet("{groupId}")]
+    [Authorize(GroupPermissions.Default)]
     public async Task<GroupDetailDto> GetDetailAsync(
         Guid groupId,
         CancellationToken cancellationToken = default
@@ -57,6 +61,7 @@ public class GroupController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost]
+    [Authorize(GroupPermissions.Create)]
     public async Task<bool> CreateGroupAsync(
         [FromForm]GroupCreateDto groupCreateDto,
         CancellationToken cancellationToken = default
@@ -73,6 +78,7 @@ public class GroupController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPut("{groupId}")]
+    [Authorize(GroupPermissions.Update)]
     public async Task<bool> UpdateGroupAsync(
         Guid groupId,
         GroupUpdateDto groupUpdateDto,
@@ -90,6 +96,7 @@ public class GroupController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpGet("{groupId}/leave")]
+    [Authorize(GroupPermissions.Default)]
     public async Task<bool> LeaveAsync(
         Guid groupId,
         CancellationToken cancellationToken = default

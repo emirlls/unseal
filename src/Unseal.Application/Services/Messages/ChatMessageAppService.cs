@@ -57,18 +57,29 @@ public class ChatMessageAppService : ApplicationService, IChatMessageService
             case (int)ChatTypes.Directly:
                 await _hubContext.Clients
                     .Users(targetIds)
-                    .SendAsync(HubConstants.Methods.ReceiveMessage, chatMessageCreateModel.Content,
-                        cancellationToken);
+                    .SendAsync(
+                        HubConstants.Methods.ReceiveMessage,
+                        chatMessageCreateModel.Content,
+                        cancellationToken
+                    );
                 await _hubContext.Clients
                     .User(chatMessageCreateModel.SenderId.ToString())
-                    .SendAsync(HubConstants.Methods.ReceiveMessage, chatMessageCreateModel.Content,
-                        cancellationToken);
+                    .SendAsync(
+                        HubConstants.Methods.ReceiveMessage,
+                        chatMessageCreateModel.Content,
+                        cancellationToken
+                    );
                 break;
 
             case (int)ChatTypes.Group:
+                targetIds.Add(chatMessageCreateModel.SenderId.ToString());
                 await _hubContext.Clients
                     .Groups(targetIds)
-                    .SendAsync(HubConstants.Methods.ReceiveMessage, chatMessageCreateModel.Content, cancellationToken);
+                    .SendAsync(
+                        HubConstants.Methods.ReceiveMessage,
+                        chatMessageCreateModel.Content, 
+                        cancellationToken
+                    );
                 break;
         }
     }

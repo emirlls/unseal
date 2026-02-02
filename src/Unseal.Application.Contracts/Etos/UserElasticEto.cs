@@ -1,5 +1,4 @@
 using System;
-using Unseal.Enums;
 using Volo.Abp.DependencyInjection;
 
 namespace Unseal.Etos;

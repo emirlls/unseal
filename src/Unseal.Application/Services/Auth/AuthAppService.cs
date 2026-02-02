@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Duende.IdentityModel.Client;
@@ -13,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
+using OpenIddict.Abstractions;
 using Unseal.Constants;
 using Unseal.Dtos.Auth;
 using Unseal.Enums;
@@ -72,7 +72,10 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         );
         var result = await IdentityUserManager.CreateAsync(user, model.Password);
         result.CheckErrors();
-        await IdentityUserManager.AddDefaultRolesAsync(user);
+        using (_dataFilter.Disable())
+        {
+            await IdentityUserManager.AddDefaultRolesAsync(user);
+        }
 
         var mailConfirmationToken = await IdentityUserManager
             .GenerateEmailConfirmationTokenAsync(user);
@@ -103,20 +106,10 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         await DistributedEventBus.PublishAsync(userRegisterEto);
         await DistributedEventBus.PublishAsync(userElasticEto);
         await DistributedEventBus.PublishAsync(userProfileEto);
-        
+
         return result.Succeeded;
     }
 
-    private async Task CheckMailFormatAsync(string email)
-    { 
-        var emailRegex = new Regex(
-        RegexConstants.MailRegexFormat,
-        RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        if (!emailRegex.IsMatch(email))
-        {
-            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.MailIsInvalid]);
-        }
-    }
     private async Task CheckMailInUseAsync(string email)
     {
         var existingUser = await IdentityUserManager.FindByEmailAsync(email);
@@ -153,12 +146,14 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             if (!string.IsNullOrEmpty(tokenResponse.Raw))
             {
                 using var doc = JsonDocument.Parse(tokenResponse.Raw);
-    
+
                 if (doc.RootElement.TryGetProperty("data", out var data))
                 {
-                    var accessToken = data.GetProperty("access_token").GetString();
-                    var refreshToken = data.TryGetProperty("refresh_token", out var rt) ? rt.GetString() : null;
-                    var expiresIn = data.GetProperty("expires_in").GetInt32();
+                    var accessToken = data.GetProperty(OpenIddictConstants.Parameters.AccessToken).GetString();
+                    var refreshToken = data.TryGetProperty(OpenIddictConstants.Parameters.RefreshToken, out var rt)
+                        ? rt.GetString()
+                        : null;
+                    var expiresIn = data.GetProperty(OpenIddictConstants.Parameters.ExpiresIn).GetInt32();
 
                     response = new LoginResponseDto
                     {
@@ -173,7 +168,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             return response;
         }
     }
-    
+
     public async Task<bool> ConfirmMailAsync(
         Guid userId,
         string token,
@@ -193,10 +188,10 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             var result =
                 await IdentityUserManager.ConfirmEmailAsync(user, decodedToken);
 
-            return result.Succeeded;  
+            return result.Succeeded;
         }
     }
-    
+
     public async Task<bool> UserDeleteAsync(
         Guid userId,
         CancellationToken cancellationToken = default
@@ -314,6 +309,37 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         return true;
     }
 
+    public async Task<bool> LogoutAsync(
+        string refreshToken,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+
+        using var client = new HttpClient(handler);
+
+        var discovery = await client.GetDiscoveryDocumentAsync(new DiscoveryDocumentRequest
+        {
+            Address = Configuration[AuthConstants.Authority],
+            Policy = { RequireHttps = false }
+        }, cancellationToken: cancellationToken);
+
+        if (discovery.IsError) throw new UserFriendlyException(discovery.Exception.InnerException.Message);
+
+        var response = await client.RevokeTokenAsync(new TokenRevocationRequest
+        {
+            Address = discovery.RevocationEndpoint,
+            ClientId = Configuration[AuthConstants.SwaggerClientId]!,
+            Token = refreshToken,
+            TokenTypeHint = OpenIddictConstants.Parameters.RefreshToken
+        }, cancellationToken: cancellationToken);
+
+        return !response.IsError;
+    }
+
     private async Task<TokenResponse> GetTokenAsync(
         string username,
         string password,
@@ -338,7 +364,7 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             ClientId = Configuration[AuthConstants.SwaggerClientId]!,
             UserName = username,
             Password = password,
-            Scope = AuthConstants.Scope
+            Scope = $"openid offline_access {AuthConstants.Scope}"
         };
         SetRequestHeaders(request, tenantId);
         var tokenResponse = await client

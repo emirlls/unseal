@@ -50,4 +50,9 @@ public interface IAuthAppService : IApplicationService
         ChangePasswordDto changePasswordDto,
         CancellationToken cancellationToken = default
     );
+
+    Task<bool> LogoutAsync(
+        string refreshToken,
+        CancellationToken cancellationToken = default
+    );
 }
