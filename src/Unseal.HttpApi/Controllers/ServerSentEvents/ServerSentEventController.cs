@@ -2,6 +2,7 @@ using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Unseal.Permissions.Capsules;
 using Unseal.Services.ServerSentEvents;
 
 namespace Unseal.Controllers.ServerSentEvents;
@@ -24,6 +25,7 @@ public class ServerSentEventController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpGet("capsule-feed-stream")]
+    [Authorize(CapsulePermissions.Default)]
     public IResult GetCapsuleFeedStream(
         CancellationToken cancellationToken = default)
     {

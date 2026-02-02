@@ -23,6 +23,7 @@ using Unseal.EntityFrameworkCore;
 using StackExchange.Redis;
 using Microsoft.OpenApi.Models;
 using Npgsql;
+using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
 using Unseal.ActionFilters;
 using Unseal.Constants;
@@ -176,6 +177,7 @@ public class UnsealHttpApiHostModule : AbpModule
         {
             builder.AddDevelopmentEncryptionCertificate();
             builder.AddDevelopmentSigningCertificate();
+            builder.SetRefreshTokenLifetime(TimeSpan.FromDays(30));
             builder.SetIssuer(new Uri(configuration["AuthServer:Authority"]));
         });
 
@@ -201,7 +203,7 @@ public class UnsealHttpApiHostModule : AbpModule
             {
                 OnMessageReceived = httpContext =>
                 {
-                    var accessToken = httpContext.Request.Query["access_token"];
+                    var accessToken = httpContext.Request.Query[OpenIddictConstants.Parameters.AccessToken];
 
                     var path = httpContext.HttpContext.Request.Path;
                     if (!string.IsNullOrEmpty(accessToken) &&

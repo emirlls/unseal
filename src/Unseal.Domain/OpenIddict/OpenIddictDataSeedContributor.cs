@@ -61,6 +61,8 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
                     OpenIddictConstants.Permissions.Endpoints.Token,
                     OpenIddictConstants.Permissions.GrantTypes.Password,
                     OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
+                    OpenIddictConstants.Permissions.Endpoints.Revocation,
+                    OpenIddictConstants.Permissions.Prefixes.Scope + "offline_access",
                     OpenIddictConstants.Permissions.Prefixes.Scope + "openid",
                     OpenIddictConstants.Permissions.Prefixes.Scope + AuthConstants.Scope,
                     OpenIddictConstants.Permissions.Prefixes.Scope + "email",

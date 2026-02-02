@@ -49,6 +49,18 @@ public class AuthController : UnsealController
     ) => await AuthAppService.LoginAsync(loginDto, cancellationToken);
 
     /// <summary>
+    /// Use to logout
+    /// </summary>
+    /// <param name="refreshToken"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("logout")]
+    public async Task<bool> LoginAsync(
+        string refreshToken,
+        CancellationToken cancellationToken = default
+    ) => await AuthAppService.LogoutAsync(refreshToken, cancellationToken);
+
+    /// <summary>
     /// Used to resend the confirmation email if it could not be sent during registration. 
     /// </summary>
     /// <param name="mail"></param>

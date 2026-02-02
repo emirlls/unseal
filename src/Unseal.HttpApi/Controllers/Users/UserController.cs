@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unseal.Dtos.Users;
+using Unseal.Permissions.Users;
 using Unseal.Services.Users;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.DependencyInjection;
@@ -34,6 +35,7 @@ public class UserController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost("follow")]
+    [Authorize(UserPermissions.Default)]
     public async Task<bool> FollowAsync(
         Guid userId,
         CancellationToken cancellationToken = default
@@ -46,6 +48,7 @@ public class UserController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost("unfollow")]
+    [Authorize(UserPermissions.Default)]
     public async Task<bool> UnfollowAsync(
         Guid userId,
         CancellationToken cancellationToken = default
@@ -57,6 +60,7 @@ public class UserController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost("block")]
+    [Authorize(UserPermissions.Default)]
     public async Task<bool> BlockAsync(
         Guid userId,
         CancellationToken cancellationToken = default
@@ -70,6 +74,7 @@ public class UserController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost("unblock")]
+    [Authorize(UserPermissions.Default)]
     public async Task<bool> UnBlockAsync(
         Guid userId,
         CancellationToken cancellationToken = default
@@ -83,6 +88,7 @@ public class UserController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPatch("accept-follow-request")]
+    [Authorize(UserPermissions.Default)]
     public async Task<bool> AcceptFollowRequestAsync(
         Guid userId,
         CancellationToken cancellationToken = default
@@ -95,6 +101,7 @@ public class UserController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPatch("reject-follow-request")]
+    [Authorize(UserPermissions.Default)]
     public async Task<bool> RejectFollowRequestAsync(
         Guid userId,
         CancellationToken cancellationToken = default
@@ -107,6 +114,7 @@ public class UserController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpGet("search")]
+    [Authorize(UserPermissions.Default)]
     public async Task<PagedResultDto<UserDto>> SearchAsync(
         string userName, 
         CancellationToken cancellationToken = default
@@ -118,6 +126,7 @@ public class UserController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpGet("follow-requests")]
+    [Authorize(UserPermissions.Default)]
     public async Task<PagedResultDto<UserDto>> GetFollowRequestsAsync(
         CancellationToken cancellationToken = default
     ) => await UserAppService.GetFollowRequestsAsync(cancellationToken);
@@ -128,6 +137,7 @@ public class UserController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpGet("followers")]
+    [Authorize(UserPermissions.Default)]
     public async Task<PagedResultDto<UserDto>> GetFollowersAsync(
         CancellationToken cancellationToken = default
     ) => await UserAppService.GetFollowersAsync(cancellationToken);
@@ -140,6 +150,7 @@ public class UserController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpGet("{userId}/profile")]
+    [Authorize(UserPermissions.Default)]
     public async Task<UserDetailDto> GetProfileAsync(
         Guid userId,
         CancellationToken cancellationToken = default
@@ -151,6 +162,7 @@ public class UserController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpGet("blocked-users")]
+    [Authorize(UserPermissions.Default)]
     public async Task<PagedResultDto<UserDto>> GetBlockedUsersAsync(
         CancellationToken cancellationToken = default
     ) => await UserAppService.GetBlockedUsersAsync(cancellationToken);
@@ -162,6 +174,7 @@ public class UserController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPut("{userId}/profile")]
+    [Authorize(UserPermissions.Update)]
     public async Task<bool> UpdateProfileAsync(
         [FromForm] UserProfileUpdateDto userProfileUpdateDto,
         CancellationToken cancellationToken = default

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unseal.Dtos.Messages;
+using Unseal.Permissions.Messages;
 using Unseal.Services.Messages;
 
 namespace Unseal.Controllers.Messages;
@@ -21,6 +22,7 @@ public class MessageController : UnsealController
     /// <param name="chatMessageCreateDto"></param>
     /// <param name="cancellationToken"></param>
     [HttpPost]
+    [Authorize(MessagePermissions.Default)]
     public async Task SendMessageAsync(
         ChatMessageCreateDto chatMessageCreateDto,
         CancellationToken cancellationToken = default
