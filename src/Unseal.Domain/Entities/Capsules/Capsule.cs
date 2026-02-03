@@ -12,6 +12,7 @@ public class Capsule : FullAuditedAggregateRoot<Guid>, IMultiTenant
     public Guid? ReceiverId { get; set; }
     public string Name { get; set; }
     public bool? IsOpened { get; set; }
+    public bool? IsActive { get; set; }
     public DateTime RevealDate { get; set; }
     public Guid? CapsuleTypeId { get; set; }
 

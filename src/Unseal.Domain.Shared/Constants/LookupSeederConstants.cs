@@ -47,6 +47,11 @@ public static class LookupSeederConstants
             "b91d42b6-fae7-4376-a2e5-8cdca52402a0",
             nameof(ConfirmChangeMail),
             (int)(NotificationEventTypes.ConfirmChangeMail));
+        
+        public static readonly NotificationEventTypeInfo UserActivation = new(
+            "5d5650d6-b2ce-42d1-9f00-a4eea225d81e",
+            nameof(UserActivation),
+            (int)(NotificationEventTypes.UserActivation));
     }
     
     public class NotificationEventTypeInfo

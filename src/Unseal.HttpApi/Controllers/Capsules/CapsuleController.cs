@@ -167,6 +167,24 @@ public class CapsuleController : UnsealController
         CancellationToken cancellationToken = default
     ) => await CapsuleAppService
         .CommentAsync(id, comment, cancellationToken);
+
+    /// <summary>
+    /// Use to archive or unarchive capsules.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="isActive"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPatch("{id}/set-activity")]
+    public async Task<bool> SetActivityAsync(
+        Guid id,
+        bool isActive = true,
+        CancellationToken cancellationToken = default
+    ) => await  CapsuleAppService.SetActivityAsync(
+        id,
+        isActive,
+        cancellationToken
+    );
     
     /// <summary>
     /// Use to delete capsule.
