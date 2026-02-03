@@ -64,4 +64,10 @@ public interface ICapsuleAppService : IApplicationService
         Guid id,
         CancellationToken cancellationToken = default
     );
+
+    Task<bool> SetActivityAsync(
+        Guid id, 
+        bool isActive = true,
+        CancellationToken cancellationToken = default
+    );
 }

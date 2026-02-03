@@ -145,8 +145,6 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         CancellationToken cancellationToken = default
     )
     {
-        capsuleFilters.SetIsOpened(true);
-        capsuleFilters.SetIsPublic(Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.Public.Id));
         Func<IQueryable<Capsule>, IQueryable<Capsule>>? queryBuilder = null;
         if (!isAll)
         {
@@ -157,6 +155,10 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         }
         else
         {
+            capsuleFilters.SetIsOpened(true);
+            capsuleFilters.SetIsActive(true);
+            capsuleFilters.SetIsPublic(Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.Public.Id));
+            
             var usersBlockedCurrentUser = await UserInteractionManager
                 .TryGetQueryableAsync(x =>
                         x.Where(c =>
@@ -176,7 +178,13 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         }
 
         var capsules = await CapsuleRepository
-            .GetDynamicListAsync(capsuleFilters, queryBuilder, true, cancellationToken);
+            .GetDynamicListAsync(
+                capsuleFilters,
+                queryBuilder,
+                true,
+                cancellationToken
+            );
+        
         var count = await CapsuleRepository
             .GetDynamicListCountAsync(
                 capsuleFilters,
@@ -411,6 +419,8 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
             .Include(x => x.CapsuleType)
             .Include(x => x.CapsuleItems)
             .Where(x => (bool)x.IsOpened!)
+            .Where(x => (bool)x.IsActive!)
+            .Where(x=>x.CapsuleType.Code == (int)CapsuleTypes.Public)
             .Where(x => !viewedIds.Contains(x.Id)) 
             .WhereIf(!blockedCreatorIds.IsNullOrEmpty(), 
                 x => !blockedCreatorIds!.Contains((Guid)x.CreatorId!)),
@@ -512,6 +522,20 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
             cancellationToken: cancellationToken);
         
         await CapsuleRepository.DeleteAsync(capsule!, cancellationToken: cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> SetActivityAsync(
+        Guid id,
+        bool isActive = true,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var capsule = await CapsuleManager.TryGetByAsync(x =>
+                x.Id.Equals(id), true,
+            cancellationToken: cancellationToken);
+        capsule!.IsActive = isActive;
+        await CapsuleRepository.UpdateAsync(capsule, cancellationToken: cancellationToken);
         return true;
     }
 

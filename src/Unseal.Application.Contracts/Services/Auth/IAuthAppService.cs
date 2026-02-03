@@ -55,4 +55,17 @@ public interface IAuthAppService : IApplicationService
         string refreshToken,
         CancellationToken cancellationToken = default
     );
+
+    Task<bool> DeactivateAccountAsync(
+        string refreshToken,
+        CancellationToken cancellationToken = default
+    );
+    Task<bool> SendActivityMailAsync(
+        string email,
+        CancellationToken cancellationToken = default
+    );
+    Task<bool> ConfirmActivationMailAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    );
 }

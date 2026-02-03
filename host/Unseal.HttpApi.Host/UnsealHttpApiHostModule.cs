@@ -177,6 +177,7 @@ public class UnsealHttpApiHostModule : AbpModule
         {
             builder.AddDevelopmentEncryptionCertificate();
             builder.AddDevelopmentSigningCertificate();
+            builder.SetAccessTokenLifetime(TimeSpan.FromMinutes(15));
             builder.SetRefreshTokenLifetime(TimeSpan.FromDays(30));
             builder.SetIssuer(new Uri(configuration["AuthServer:Authority"]));
         });

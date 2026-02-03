@@ -130,6 +130,15 @@ public class AuthAppService : UnsealAppService, IAuthAppService
                     string.Equals(x.Email, loginDto.Email),
                 true,
                 cancellationToken: cancellationToken);
+
+            if (!user.IsActive)
+            {
+                return new LoginResponseDto
+                {
+                    IsActive = false
+                };
+            }
+            
             if (!await IdentityUserManager.IsEmailConfirmedAsync(user))
             {
                 throw new UserFriendlyException(
@@ -338,6 +347,62 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         }, cancellationToken: cancellationToken);
 
         return !response.IsError;
+    }
+
+    public async Task<bool> DeactivateAccountAsync(
+        string refreshToken,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                x.Id.Equals(CurrentUser.GetId()),
+            true,
+            cancellationToken: cancellationToken);
+        
+        user.SetIsActive(false);
+        var result = await IdentityUserManager.UpdateAsync(user);
+        result.CheckErrors();
+        await LogoutAsync(refreshToken, cancellationToken);
+        return result.Succeeded;
+    }
+
+    public async Task<bool> SendActivityMailAsync(
+        string email, 
+        CancellationToken cancellationToken = default
+    )
+    {
+        var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                x.Id.Equals(CurrentUser.GetId()),
+            true,
+            cancellationToken: cancellationToken);
+        
+        var userActivationEto = new UserActivationEto()
+        {
+            UserId = user.Id,
+            Name = user.Name,
+            Surname = user.Surname,
+            Email = user.Email
+        };
+        await DistributedEventBus.PublishAsync(userActivationEto);
+        return true;
+    }
+
+    public async Task<bool> ConfirmActivationMailAsync(
+        Guid userId, 
+        CancellationToken cancellationToken = default
+    )
+    {
+        using (_dataFilter.Disable())
+        {
+            var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                    x.Id.Equals(userId),
+                true,
+                cancellationToken: cancellationToken);
+            user.SetIsActive(true);
+            var result = await IdentityUserManager.UpdateAsync(user);
+            result.CheckErrors();
+            return result.Succeeded;
+        }
     }
 
     private async Task<TokenResponse> GetTokenAsync(

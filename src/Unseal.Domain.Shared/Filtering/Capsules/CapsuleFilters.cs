@@ -13,6 +13,9 @@ public class CapsuleFilters : DynamicFilterRequest
     [FilterMapped("IsOpened")] 
     internal bool? IsOpened { get; set; }
     
+    [FilterMapped("IsActive")] 
+    internal bool? IsActive { get; set; }
+    
     [FilterMapped("CapsuleTypeId")] 
     internal Guid CapsuleTypeId { get; set; }
     
@@ -31,6 +34,15 @@ public class CapsuleFilters : DynamicFilterRequest
         Filters.Add(new FilterItem 
         { 
             Prop = nameof(IsOpened), 
+            Strategy = strategy, 
+            Value = value.ToString().ToLower()
+        });
+    }
+    public void SetIsActive(bool value, string strategy = FilterOperators.Equals)
+    {
+        Filters.Add(new FilterItem 
+        { 
+            Prop = nameof(IsActive), 
             Strategy = strategy, 
             Value = value.ToString().ToLower()
         });
