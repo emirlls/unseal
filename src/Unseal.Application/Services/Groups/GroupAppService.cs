@@ -7,8 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Unseal.Constants;
 using Unseal.Dtos.Groups;
+using Unseal.Entities.Groups;
 using Unseal.Extensions;
-using Unseal.Filtering.Users;
+using Unseal.Filtering.Groups;
 using Unseal.Interfaces.Managers.Groups;
 using Unseal.Interfaces.Managers.Users;
 using Unseal.Localization;
@@ -16,6 +17,7 @@ using Unseal.Profiles.Groups;
 using Unseal.Repositories.Groups;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.Content;
 using Volo.Abp.Uow;
 
 namespace Unseal.Services.Groups;
@@ -53,14 +55,12 @@ public class GroupAppService : UnsealAppService, IGroupAppService
             groupCreateDto.UserIds.ToHashSet(),
             cancellationToken
         );
-        var groupCreateModel = GroupMapper.MapGroupCreateDtoToModel(groupCreateDto);
+        var groupCreateModel = GroupMapper.MapToModel(groupCreateDto);
         var group = GroupManager.Create(groupCreateModel);
-        if (groupCreateDto.StreamContent is not null)
-        {
-            var fileUrl = await LazyServiceProvider
-                .UploadFileAsync(groupCreateDto.StreamContent);
-            group.GroupImageUrl = LazyServiceProvider.GetEncryptedFileUrlAsync(fileUrl)!;
-        }
+        group = await SetGroupImageUrlAsync(
+            group,
+            groupCreateDto.StreamContent,
+            cancellationToken);
 
         var groupMembers = GroupMemberManager.Create(
             groupCreateModel,
@@ -84,9 +84,12 @@ public class GroupAppService : UnsealAppService, IGroupAppService
                     .Include(x => x.GroupMembers),
             throwIfNull: true,
             cancellationToken: cancellationToken);
-
-        var groupUpdateModel = GroupMapper.MapGroupUpdateDtoToModel(groupUpdateDto);
+        var groupUpdateModel = GroupMapper.MapToModel(groupUpdateDto);
         var updatedGroup = GroupManager.Update(group, groupUpdateModel);
+        updatedGroup = await SetGroupImageUrlAsync(
+            updatedGroup,
+            groupUpdateDto.StreamContent,
+            cancellationToken);
         var groupMembers = GroupMemberManager.Create(
             groupUpdateModel,
             group.Id,
@@ -98,6 +101,20 @@ public class GroupAppService : UnsealAppService, IGroupAppService
         return true;
     }
 
+    private async Task<Group> SetGroupImageUrlAsync(
+        Group group,
+        IRemoteStreamContent? streamContent,
+        CancellationToken cancellationToken = default)
+    {
+        if (streamContent is not null)
+        {
+            var fileUrl = await LazyServiceProvider
+                .UploadFileAsync(streamContent);
+            group.GroupImageUrl = LazyServiceProvider.GetEncryptedFileUrlAsync(fileUrl)!;
+        }
+
+        return group;
+    }
     public async Task<PagedResultDto<GroupDto>> GetFilteredGroupListAsync(
         GroupFilters groupFilters,
         CancellationToken cancellationToken = default
@@ -112,10 +129,11 @@ public class GroupAppService : UnsealAppService, IGroupAppService
 
         var count = await GroupRepository.GetDynamicListCountAsync(
             groupFilters,
+            useCache:true,
             cancellationToken
         );
 
-        var dto = GroupMapper.MapGroupToGroupDtoList(groups);
+        var dto = GroupMapper.MapToDto(groups);
         var response = new PagedResultDto<GroupDto>
         {
             Items = dto,
@@ -136,7 +154,7 @@ public class GroupAppService : UnsealAppService, IGroupAppService
                     .ThenInclude(x => x.User),
             throwIfNull: true,
             cancellationToken: cancellationToken);
-        var dto = GroupMapper.MapGroupToGroupDetailDto(group);
+        var dto = GroupMapper.MapToDetailDto(group);
         return dto;
     }
 

@@ -5,15 +5,15 @@ using Unseal.Constants;
 using Unseal.Entities.Groups;
 using Unseal.Interfaces.Managers.Groups;
 using Unseal.Localization;
-using Unseal.Models.Users;
-using Unseal.Repositories.Base;
+using Unseal.Models.Groups;
+using Unseal.Repositories.Groups;
 
 namespace Unseal.Managers.Groups;
 
 public class GroupMemberManager : BaseDomainService<GroupMember>, IGroupMemberManager
 {
     public GroupMemberManager(
-        IBaseRepository<GroupMember> baseRepository,
+        IGroupMemberRepository baseRepository,
         IStringLocalizer<UnsealResource> stringLocalizer) : 
         base(baseRepository,
             stringLocalizer,

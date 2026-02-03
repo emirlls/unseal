@@ -5,6 +5,7 @@ using Unseal.Constants;
 using Unseal.Entities.Capsules;
 using Unseal.Entities.Groups;
 using Unseal.Entities.Lookups;
+using Unseal.Entities.Messages;
 using Unseal.Entities.Notifications;
 using Unseal.Entities.Users;
 using Volo.Abp.FeatureManagement;
@@ -35,12 +36,16 @@ public static class UnsealTableNameProvider
         {nameof(NotificationTemplate),"NotificationTemplates"},
         {nameof(UserProfile),"UserProfiles"},
         {nameof(UserFollower),"UserFollowers"},
+        {nameof(UserFollowStatus),"UserFollowStatuses"},
+        {nameof(UserViewTracking),"UserViewTrackings"},
         {nameof(Group),"Groups"},
         {nameof(GroupMember),"GroupMembers"},
         {nameof(UserInteraction),"UserInteractions"},
         {nameof(CapsuleLike),"CapsuleLikes"},
         {nameof(CapsuleComment),"CapsuleComments"},
         {nameof(CapsuleMapFeature),"CapsuleMapFeatures"},
+        {nameof(ChatMessage),"ChatMessages"},
+        {nameof(ChatType),"ChatTypes"}
     };
     
     public static void SetAbpTablePrefix(this ModelBuilder builder)

@@ -3,13 +3,12 @@ using Volo.Abp.Content;
 
 namespace Unseal.Dtos.Capsules;
 
-public record CapsuleBaseDto(
-    Guid? CapsuleTypeId,
-    Guid? ReceiverId,
-    string Name,
-    string TextContext,
-    string? GeoJson,
-    bool? IsPublic,
-    DateTime RevealDate,
-    IRemoteStreamContent StreamContent
-);
+public class CapsuleBaseDto
+{
+    public Guid? ReceiverId { get; set; }
+    public string Name { get;set; }
+    public string TextContext { get;set; }
+    public string GeoJson { get;set; }
+    public DateTime RevealDate { get;set; }
+    public IRemoteStreamContent StreamContent { get;set; }
+}

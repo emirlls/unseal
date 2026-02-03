@@ -1,17 +1,6 @@
-using System;
-
 namespace Unseal.Models.Capsules;
 
-public record CapsuleUpdateModel(
-    Guid? CapsuleTypeId,
-    Guid? ReceiverId,
-    string Name,
-    bool? IsPublic,
-    string ContentType,
-    string? TextContext,
-    string? FileUrl,
-    string? FileName,
-    string? GeoJson,
-    DateTime RevealDate) :
-    CapsuleBaseModel(CapsuleTypeId, ReceiverId, Name, IsPublic, ContentType, TextContext,
-        FileUrl, FileName, GeoJson, RevealDate);
+public class CapsuleUpdateModel : CapsuleBaseModel
+{
+    
+}

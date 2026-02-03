@@ -1,7 +1,7 @@
-using System.Collections.Generic;
+using System;
 using Riok.Mapperly.Abstractions;
+using Unseal.Constants;
 using Unseal.Dtos.Capsules;
-using Unseal.Entities.Capsules;
 using Unseal.Entities.Lookups;
 using Unseal.Enums;
 using Unseal.Extensions;
@@ -13,27 +13,34 @@ namespace Unseal.Profiles.Capsules;
 [Mapper]
 public partial class CapsuleMapper : ITransientDependency
 {
-    public partial List<CapsuleDto> MapCapsuleListToCapsuleDtoList(List<Capsule> capsules);
-    [MapProperty(nameof(Capsule.CapsuleType), nameof(CapsuleDto.Type), Use = nameof(ResolveType))]
-    public partial CapsuleDto MapCapsuleToCapsuleDto(Capsule capsule);
-    
-    protected string? ResolveType(CapsuleType? capsuleType)
+    public string? ResolveType(CapsuleType? capsuleType)
     {
-        if (capsuleType is null) return null;
+        if (capsuleType is null)
+        {
+            return null;
+        }
+
         return ((CapsuleTypes)capsuleType?.Code!).GetDescription();
     }
-    public CapsuleCreateModel MapCapsuleCreateDtoToCapsuleCreateModel(CapsuleCreateDto capsuleCreateDto)
+
+    public CapsuleCreateModel MaptoModel(CapsuleCreateDto capsuleCreateDto)
     {
-        return new CapsuleCreateModel(
-            capsuleCreateDto.CapsuleTypeId,
-            capsuleCreateDto.ReceiverId,
-            capsuleCreateDto.Name,
-            capsuleCreateDto.IsPublic,
-            capsuleCreateDto.StreamContent.ContentType,
-            capsuleCreateDto.TextContext,
-            string.Empty, // will be set after upload file.
-            capsuleCreateDto.StreamContent.FileName,
-            capsuleCreateDto.GeoJson,
-            capsuleCreateDto.RevealDate);
+        var capsuleTypeId = capsuleCreateDto.ReceiverId.HasValue
+            ? Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.Personal.Id)
+            : Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.Public.Id);
+        
+        return new CapsuleCreateModel
+        {
+            CapsuleTypeId = capsuleTypeId,
+            ReceiverId = capsuleCreateDto.ReceiverId,
+            Name = capsuleCreateDto.Name,
+            ContentType = capsuleCreateDto.StreamContent.ContentType,
+            TextContext = capsuleCreateDto.TextContext,
+            FileUrl = string.Empty, // will be set after upload file.
+            FileName = capsuleCreateDto.StreamContent.FileName,
+            GeoJson = capsuleCreateDto.GeoJson,
+            RevealDate = capsuleCreateDto.RevealDate
+        };
+
     }
 }

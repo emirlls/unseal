@@ -15,8 +15,8 @@ public class CapsuleConfiguration : IEntityTypeConfiguration<Capsule>
         builder.ConfigureByConvention();
 
         builder.Property(x => x.ReceiverId).IsRequired(false);
-        builder.Property(x => x.IsPublic).IsRequired(false);
         builder.Property(x => x.IsOpened).HasDefaultValue(false);
+        builder.Property(x => x.IsActive).HasDefaultValue(true);
 
         builder.HasOne(x=>x.CapsuleType)
             .WithMany(x=>x.Capsules)

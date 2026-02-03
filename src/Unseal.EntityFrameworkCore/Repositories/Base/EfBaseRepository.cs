@@ -185,10 +185,15 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
     ) where TFilters : DynamicFilterRequest
     {
         var dbSet = await GetDbSetAsync();
-    
-        var query = dbSet.AsQueryable()
-            .ApplyDynamicFilters(filters);
-
+        var query = dbSet.AsQueryable();
+        
+        if (queryBuilder != null)
+        {
+            query = queryBuilder(query);
+        }
+        
+        query = query.ApplyDynamicFilters(filters);
+        
         if (asNoTracking)
         {
             query = query.AsNoTracking();
@@ -225,23 +230,35 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
     }
 
     public async Task<long> GetDynamicListCountAsync<TFilters>(
-        TFilters filters,
+        TFilters? filters,
+        bool useCache = false,
         CancellationToken cancellationToken = default
 
     ) where TFilters : DynamicFilterRequest
     {
+        var dbSet = await GetDbSetAsync();
         var currentUser = ServiceProvider.GetRequiredService<ICurrentUser>();
-        var distributedCache = ServiceProvider.GetRequiredService<IDistributedCache>();
-        var cacheCountKey = CacheExtension.GenerateCacheKeyToCount(
-            CultureInfo.CurrentCulture,
-            currentUser.Id,
-            typeof(TFilters).Name
-        );
-        var count = await distributedCache.GetStringAsync(
-            cacheCountKey,
-            token: cancellationToken
-        );
-        if (count == null) return -1;
-        return Convert.ToInt32(count);
+
+        if (useCache)
+        {
+            var distributedCache = ServiceProvider.GetRequiredService<IDistributedCache>();
+            var cacheCountKey = CacheExtension.GenerateCacheKeyToCount(
+                CultureInfo.CurrentCulture,
+                currentUser.Id,
+                typeof(TFilters).Name
+            );
+            var cacheCount = await distributedCache.GetStringAsync(
+                cacheCountKey,
+                token: cancellationToken
+            );
+            if (cacheCount == null) return -1;
+            return Convert.ToInt32(cacheCount);
+        }
+        var query = dbSet
+            .AsQueryable()
+            .ApplyDynamicFilters(filters);
+        query = SortStrategyExecutor.ApplySorting<TEntity, TFilters>(query, filters?.Sorting);
+        var count = await query.CountAsync(cancellationToken);
+        return count;
     }
 }

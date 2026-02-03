@@ -29,18 +29,15 @@ public static class FilterStrategyExecutor
             if (!DateTime.TryParse(filterItem.Value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateValue))
                 throw new ArgumentException($"Invalid date format: {filterItem.Value}");
 
-            var startOfDay = dateValue.Date;
-            var endOfDay = dateValue.Date.AddDays(1).AddTicks(-1);
-
             return filterItem.Strategy switch
             {
                 FilterOperators.Equals => Expression.AndAlso(
-                    Expression.GreaterThanOrEqual(property, Expression.Constant(startOfDay, propType)),
-                    Expression.LessThanOrEqual(property, Expression.Constant(endOfDay, propType))),
-                FilterOperators.GreaterThanOrEqual => Expression.GreaterThanOrEqual(property, Expression.Constant(startOfDay, propType)),
-                FilterOperators.LessThanOrEqual => Expression.LessThanOrEqual(property, Expression.Constant(endOfDay, propType)),
-                FilterOperators.GreaterThan => Expression.GreaterThan(property, Expression.Constant(endOfDay, propType)),
-                FilterOperators.LessThan => Expression.LessThan(property, Expression.Constant(startOfDay, propType)),
+                    Expression.GreaterThanOrEqual(property, Expression.Constant(dateValue.Date, propType)),
+                    Expression.LessThanOrEqual(property, Expression.Constant(dateValue.Date.AddDays(1).AddTicks(-1), propType))),
+                FilterOperators.GreaterThanOrEqual => Expression.GreaterThanOrEqual(property, Expression.Constant(dateValue, propType)),
+                FilterOperators.LessThanOrEqual => Expression.LessThanOrEqual(property, Expression.Constant(dateValue, propType)),
+                FilterOperators.GreaterThan => Expression.GreaterThan(property, Expression.Constant(dateValue, propType)),
+                FilterOperators.LessThan => Expression.LessThan(property, Expression.Constant(dateValue, propType)),
                 _ => throw new NotSupportedException($"{filterItem.Strategy} is not supported for date time.")
             };
         }
@@ -75,11 +72,19 @@ public static class FilterStrategyExecutor
 
     private static object? ConvertValue(string? value, Type targetType)
     {
-        if (string.IsNullOrEmpty(value)) return null;
+        if (string.IsNullOrWhiteSpace(value)) return null;
 
         if (targetType.IsEnum) return Enum.Parse(targetType, value, true);
 
         if (targetType == typeof(bool)) return value.ToLower() is "true" or "1";
+
+        if (targetType == typeof(Guid))
+        {
+            if (Guid.TryParse(value, out var guidValue))
+                return guidValue;
+        
+            throw new ArgumentException($"'{value} is invalid Guid format.");
+        }
 
         return Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
     }

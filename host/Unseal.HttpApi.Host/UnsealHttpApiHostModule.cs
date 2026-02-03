@@ -4,23 +4,31 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.RateLimiting;
+using System.Threading.Tasks;
+using Elastic.Clients.Elasticsearch;
+using Elastic.Transport;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Unseal.EntityFrameworkCore;
-using Unseal.MultiTenancy;
 using StackExchange.Redis;
 using Microsoft.OpenApi.Models;
 using Npgsql;
+using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
+using Unseal.ActionFilters;
 using Unseal.Constants;
+using Unseal.Middlewares;
+using Unseal.Models.ElasticSearch;
 using Unseal.Workers;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Authentication.JwtBearer;
@@ -29,7 +37,6 @@ using Volo.Abp.AspNetCore.Serilog;
 using Volo.Abp.Autofac;
 using Volo.Abp.Caching;
 using Volo.Abp.Caching.StackExchangeRedis;
-using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EventBus.Distributed;
 using Volo.Abp.EventBus.RabbitMq;
 using Volo.Abp.Identity.AspNetCore;
@@ -59,7 +66,7 @@ namespace Unseal;
     typeof(AbpAspNetCoreSerilogModule),
     typeof(AbpSwashbuckleModule),
     typeof(UnsealWorkerModule)
-    )]
+)]
 public class UnsealHttpApiHostModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
@@ -67,39 +74,38 @@ public class UnsealHttpApiHostModule : AbpModule
         var hostingEnvironment = context.Services.GetHostingEnvironment();
         var configuration = context.Services.GetConfiguration();
 
-        Configure<AbpDistributedEventBusOptions>(options =>
-        {
-            
-        });
+        Configure<AbpDistributedEventBusOptions>(options => { });
         Configure<AbpRabbitMqEventBusOptions>(options =>
         {
             options.ClientName = configuration["DistributedEventBus:ClientName"]!;
-            options.ExchangeName = configuration["DistributedEventBus:ExchangeName"]!;;
+            options.ExchangeName = configuration["DistributedEventBus:ExchangeName"]!;
+            ;
         });
         context.Services.AddRateLimiter(options =>
         {
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
             {
                 var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+                var endpoint = httpContext.GetEndpoint();
+                var routePattern = endpoint?.Metadata.GetMetadata<RouteEndpoint>()?.RoutePattern.RawText
+                                   ?? httpContext.Request.Path.ToString();
+                if (routePattern.Contains(ApiConstants.Message.Endpoint))
+                {
+                    return RateLimitPartition.GetNoLimiter("messages-bypass");
+                }
+
                 return RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: ip,
+                    partitionKey: $"{ip}_{routePattern}",
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
                         PermitLimit = 20,
                         Window = TimeSpan.FromMinutes(1),
-                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                         QueueLimit = 0
                     });
             });
 
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-        });
-        Configure<AbpDbContextOptions>(options =>
-        {
-            options.UseNpgsql(opts =>
-            {
-                opts.UseNetTopologySuite();
-            });
         });
         context.Services.AddTransient<IDbConnection>(sp =>
         {
@@ -109,19 +115,36 @@ public class UnsealHttpApiHostModule : AbpModule
         var redisConfiguration = configuration[CacheConstants.RedisConfigurationKey];
         context.Services.AddSingleton<IConnectionMultiplexer>(sp =>
             ConnectionMultiplexer.Connect(redisConfiguration!));
-        Configure<AbpMultiTenancyOptions>(options =>
+        context.Services.AddSingleton<ElasticsearchClient>(provider =>
         {
-            options.IsEnabled = MultiTenancyConsts.IsEnabled;
+            
+            var options = configuration.GetSection(nameof(SettingConstants.ElasticSearchSettingModel)).Get<ElasticSearchOptions>();
+            var settings = new ElasticsearchClientSettings(new Uri(options.Url))
+                .Authentication(new BasicAuthentication(options.Username, options.Password));
+                // To bypass ssl on development.
+                //.ServerCertificateValidationCallback(CertificateValidations.AllowAll)
+            return new ElasticsearchClient(settings);
         });
         
+        Configure<MvcOptions>(options => { options.Filters.AddService<LastActivityActionFilter>(); });
+        Configure<AbpMultiTenancyOptions>(options => { options.IsEnabled = MultiTenancyConsts.IsEnabled; });
+
         if (hostingEnvironment.IsDevelopment())
         {
             Configure<AbpVirtualFileSystemOptions>(options =>
             {
-                options.FileSets.ReplaceEmbeddedByPhysical<UnsealDomainSharedModule>(Path.Combine(hostingEnvironment.ContentRootPath, string.Format("..{0}..{0}src{0}Unseal.Domain.Shared", Path.DirectorySeparatorChar)));
-                options.FileSets.ReplaceEmbeddedByPhysical<UnsealDomainModule>(Path.Combine(hostingEnvironment.ContentRootPath, string.Format("..{0}..{0}src{0}Unseal.Domain", Path.DirectorySeparatorChar)));
-                options.FileSets.ReplaceEmbeddedByPhysical<UnsealApplicationContractsModule>(Path.Combine(hostingEnvironment.ContentRootPath, string.Format("..{0}..{0}src{0}Unseal.Application.Contracts", Path.DirectorySeparatorChar)));
-                options.FileSets.ReplaceEmbeddedByPhysical<UnsealApplicationModule>(Path.Combine(hostingEnvironment.ContentRootPath, string.Format("..{0}..{0}src{0}Unseal.Application", Path.DirectorySeparatorChar)));
+                options.FileSets.ReplaceEmbeddedByPhysical<UnsealDomainSharedModule>(
+                    Path.Combine(hostingEnvironment.ContentRootPath,
+                        string.Format("..{0}..{0}src{0}Unseal.Domain.Shared", Path.DirectorySeparatorChar)));
+                options.FileSets.ReplaceEmbeddedByPhysical<UnsealDomainModule>(Path.Combine(
+                    hostingEnvironment.ContentRootPath,
+                    string.Format("..{0}..{0}src{0}Unseal.Domain", Path.DirectorySeparatorChar)));
+                options.FileSets.ReplaceEmbeddedByPhysical<UnsealApplicationContractsModule>(
+                    Path.Combine(hostingEnvironment.ContentRootPath,
+                        string.Format("..{0}..{0}src{0}Unseal.Application.Contracts", Path.DirectorySeparatorChar)));
+                options.FileSets.ReplaceEmbeddedByPhysical<UnsealApplicationModule>(
+                    Path.Combine(hostingEnvironment.ContentRootPath,
+                        string.Format("..{0}..{0}src{0}Unseal.Application", Path.DirectorySeparatorChar)));
             });
         }
 
@@ -129,11 +152,11 @@ public class UnsealHttpApiHostModule : AbpModule
             configuration["AuthServer:Authority"]!,
             new Dictionary<string, string>
             {
-                {"Unseal", "Unseal API"}
+                { "Unseal", "Unseal API" }
             },
             options =>
             {
-                options.SwaggerDoc("v1", new OpenApiInfo {Title = "Unseal API", Version = "v1"});
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Unseal API", Version = "v1" });
                 options.DocInclusionPredicate((docName, description) => ConfigureSwaggerNotVisibleApis(description));
                 options.CustomSchemaIds(type => type.FullName);
                 var baseDirectory = AppContext.BaseDirectory;
@@ -154,6 +177,8 @@ public class UnsealHttpApiHostModule : AbpModule
         {
             builder.AddDevelopmentEncryptionCertificate();
             builder.AddDevelopmentSigningCertificate();
+            builder.SetAccessTokenLifetime(TimeSpan.FromMinutes(15));
+            builder.SetRefreshTokenLifetime(TimeSpan.FromDays(30));
             builder.SetIssuer(new Uri(configuration["AuthServer:Authority"]));
         });
 
@@ -173,19 +198,34 @@ public class UnsealHttpApiHostModule : AbpModule
         {
             options.DefaultAuthenticateScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
-        });
-        
-        Configure<AbpDistributedCacheOptions>(options =>
+        }).AddJwtBearer(options =>
         {
-            options.KeyPrefix = "Unseal:";
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = httpContext =>
+                {
+                    var accessToken = httpContext.Request.Query[OpenIddictConstants.Parameters.AccessToken];
+
+                    var path = httpContext.HttpContext.Request.Path;
+                    if (!string.IsNullOrEmpty(accessToken) &&
+                        (path.StartsWithSegments("/signalr-hubs")))
+                    {
+                        httpContext.Token = accessToken;
+                    }
+
+                    return Task.CompletedTask;
+                }
+            };
         });
+        context.Services.AddSignalR(options => { options.ClientTimeoutInterval = TimeSpan.FromMinutes(5); });
+        Configure<AbpDistributedCacheOptions>(options => { options.KeyPrefix = "Unseal:"; });
 
         var dataProtectionBuilder = context.Services
             .AddDataProtection()
             .SetApplicationName(AppConstants.AppName);
         var redis = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]!);
         dataProtectionBuilder.PersistKeysToStackExchangeRedis(redis, "DataProtection-Keys");
-        
+
         context.Services.AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>
@@ -210,6 +250,7 @@ public class UnsealHttpApiHostModule : AbpModule
     {
         return !apiDescription.RelativePath!.StartsWith("api/abp/");
     }
+
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
         var app = context.GetApplicationBuilder();
@@ -235,6 +276,9 @@ public class UnsealHttpApiHostModule : AbpModule
         {
             app.UseMultiTenancy();
         }
+
+        app.UseMiddleware<CustomTenantMiddleware>();
+
         app.UseAbpRequestLocalization();
         app.UseAuthorization();
         app.UseSwagger();
@@ -244,10 +288,10 @@ public class UnsealHttpApiHostModule : AbpModule
 
             var configuration = context.GetConfiguration();
             options.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);
-            options.OAuthScopes("Unseal");
+            options.OAuthScopes(AppConstants.AppName);
         });
         app.UseMiddleware<GenericResponseMiddleware>();
-        
+
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();

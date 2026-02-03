@@ -5,14 +5,14 @@ using Unseal.Entities.Capsules;
 using Unseal.Interfaces.Managers.Capsules;
 using Unseal.Localization;
 using Unseal.Models.Capsules;
-using Unseal.Repositories.Base;
+using Unseal.Repositories.Capsules;
 
 namespace Unseal.Managers.Capsules;
 
 public class CapsuleManager : BaseDomainService<Capsule>, ICapsuleManager
 {
     public CapsuleManager(
-        IBaseRepository<Capsule> baseRepository,
+        ICapsuleRepository baseRepository,
         IStringLocalizer<UnsealResource> stringLocalizer
         ) : 
         base(baseRepository,
@@ -32,7 +32,6 @@ public class CapsuleManager : BaseDomainService<Capsule>, ICapsuleManager
             capsuleCreateModel.CapsuleTypeId,
             creatorId,
             capsuleCreateModel.Name,
-            capsuleCreateModel.IsPublic,
             capsuleCreateModel.RevealDate
         );
         return capsule;

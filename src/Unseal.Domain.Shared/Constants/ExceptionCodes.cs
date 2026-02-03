@@ -19,6 +19,7 @@ public static class ExceptionCodes
         public const string AlreadyExists = $"{Prefix}002";
         public const string CannotLoginIfMailNotConfirmed = $"{Prefix}003";
         public const string MailInUser = $"{Prefix}004";
+        public const string MailIsInvalid = $"{Prefix}005";
     }
     
     public static class Capsule
@@ -26,6 +27,7 @@ public static class ExceptionCodes
         private const string Prefix = $"{ExceptionCodePrefix}Capsule:";
         public const string NotFound = $"{Prefix}001";
         public const string AlreadyExists = $"{Prefix}002";
+        public const string CanNotMakeQrNonPublic = $"{Prefix}003";
     }
     
     public static class CapsuleItem
@@ -103,6 +105,30 @@ public static class ExceptionCodes
     public static class UserInteraction
     {
         private const string Prefix = $"{ExceptionCodePrefix}UserInteraction:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
+    public static class ChatMessage
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}ChatMessage:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
+    public static class ChatType
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}ChatType:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
+    public static class UserFollowStatus
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}UserFollowStatus:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
+    public static class UserViewTracking
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}UserViewTracking:";
         public const string NotFound = $"{Prefix}001";
         public const string AlreadyExists = $"{Prefix}002";
     }

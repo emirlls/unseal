@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Unseal.Repositories.Base;
@@ -39,11 +40,13 @@ public class UnsealEntityFrameworkCoreModule : AbpModule
         });
         Configure<AbpDbContextOptions>(options =>
         {
-            options.Configure(opts =>
+            options.Configure<UnsealDbContext>(opts =>
             {
-                opts.UseNpgsql();
+                opts.UseNpgsql(npgsqlOptions =>
+                {
+                    npgsqlOptions.UseNetTopologySuite();
+                });
             });
-            
         });
         context.Services.Replace(ServiceDescriptor.Transient<ISettingManagementDbContext, UnsealDbContext>());
         context.Services.Replace(ServiceDescriptor.Transient<IPermissionManagementDbContext, UnsealDbContext>());

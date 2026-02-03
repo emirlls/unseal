@@ -64,6 +64,12 @@ namespace Unseal.Migrations
                         .HasColumnType("text")
                         .HasColumnName("extra_properties");
 
+                    b.Property<bool?>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -75,10 +81,6 @@ namespace Unseal.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("is_opened");
-
-                    b.Property<bool?>("IsPublic")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_public");
 
                     b.Property<DateTime?>("LastModificationTime")
                         .HasColumnType("timestamp without time zone")
@@ -230,7 +232,8 @@ namespace Unseal.Migrations
                     b.HasKey("Id")
                         .HasName("p_k_capsule_items");
 
-                    b.HasIndex("CapsuleId");
+                    b.HasIndex("CapsuleId")
+                        .IsUnique();
 
                     b.ToTable("capsule_items", "unseal");
                 });
@@ -309,7 +312,8 @@ namespace Unseal.Migrations
                     b.HasKey("Id")
                         .HasName("p_k_capsule_map_features");
 
-                    b.HasIndex("CapsuleId");
+                    b.HasIndex("CapsuleId")
+                        .IsUnique();
 
                     b.ToTable("capsule_map_features", "unseal");
                 });
@@ -330,7 +334,6 @@ namespace Unseal.Migrations
                         .HasColumnName("creator_id");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("description");
 
@@ -415,28 +418,135 @@ namespace Unseal.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6e859f2b-3b3c-44df-9a16-a0c2d5bfc51e"),
-                            Code = 1,
-                            Name = "DirectMessage"
-                        },
-                        new
-                        {
-                            Id = new Guid("fd4f8d92-deb2-493d-a38c-5509b4ad7382"),
-                            Code = 2,
-                            Name = "PublicBroadcast"
-                        },
-                        new
-                        {
-                            Id = new Guid("8bd05f2f-5abc-4e58-aa1b-bd7d7419d243"),
-                            Code = 3,
-                            Name = "Collaborative"
-                        },
-                        new
-                        {
                             Id = new Guid("34b8f36b-8f43-449a-a86b-011ceb8c7f5b"),
-                            Code = 4,
+                            Code = 1,
                             Name = "Public"
                         });
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Lookups.ChatType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Code")
+                        .HasColumnType("integer")
+                        .HasColumnName("code");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_chat_types");
+
+                    b.ToTable("chat_types", "unseal");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("b15c886a-2929-43d2-ba06-416683a19420"),
+                            Code = 0,
+                            Name = "Directly"
+                        },
+                        new
+                        {
+                            Id = new Guid("121b1120-d7f8-41f9-bc06-32d72811d989"),
+                            Code = 1,
+                            Name = "Group"
+                        });
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Lookups.UserFollowStatus", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Code")
+                        .HasColumnType("integer")
+                        .HasColumnName("code");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_user_follow_statuses");
+
+                    b.ToTable("user_follow_statuses", "unseal");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("e96877f3-5a69-4610-ac3b-7b224a1c17a9"),
+                            Code = 0,
+                            Name = "Pending"
+                        },
+                        new
+                        {
+                            Id = new Guid("585e849d-42aa-4ec7-a581-a56a7da434d8"),
+                            Code = 1,
+                            Name = "Accepted"
+                        },
+                        new
+                        {
+                            Id = new Guid("9badcd74-212f-4e7e-9d04-5d0f2c28b713"),
+                            Code = 2,
+                            Name = "Rejected"
+                        });
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Messages.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ChatTypeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("chat_type_id");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("creation_time");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("last_modification_time");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifier_id");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sender_id");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_chat_messages");
+
+                    b.HasIndex("ChatTypeId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("chat_messages", "unseal");
                 });
 
             modelBuilder.Entity("Unseal.Entities.Notifications.Notification", b =>
@@ -541,6 +651,18 @@ namespace Unseal.Migrations
                             Id = new Guid("d5961c50-522f-4bea-a641-ab88ae983985"),
                             Code = 1,
                             Name = "UserDelete"
+                        },
+                        new
+                        {
+                            Id = new Guid("b91d42b6-fae7-4376-a2e5-8cdca52402a0"),
+                            Code = 2,
+                            Name = "ConfirmChangeMail"
+                        },
+                        new
+                        {
+                            Id = new Guid("5d5650d6-b2ce-42d1-9f00-a4eea225d81e"),
+                            Code = 3,
+                            Name = "UserActivation"
                         });
                 });
 
@@ -617,9 +739,29 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("creation_time");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
                     b.Property<Guid>("FollowerId")
                         .HasColumnType("uuid")
                         .HasColumnName("follower_id");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("last_modification_time");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifier_id");
+
+                    b.Property<Guid>("StatusId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("status_id");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
@@ -629,6 +771,8 @@ namespace Unseal.Migrations
                         .HasName("p_k_user_followers");
 
                     b.HasIndex("FollowerId");
+
+                    b.HasIndex("StatusId");
 
                     b.HasIndex("UserId");
 
@@ -692,6 +836,11 @@ namespace Unseal.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("allow_join_group");
 
+                    b.Property<string>("Content")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("content");
+
                     b.Property<DateTime>("CreationTime")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("creation_time");
@@ -706,9 +855,52 @@ namespace Unseal.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_locked");
 
-                    b.Property<DateTime>("LastActivity")
+                    b.Property<DateTime>("LastActivityTime")
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("last_activity");
+                        .HasColumnName("last_activity_time");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("last_modification_time");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifier_id");
+
+                    b.Property<string>("ProfilePictureUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("profile_picture_url");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_user_profiles");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("user_profiles", "unseal");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Users.UserViewTracking", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CapsuleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("capsule_id");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("creation_time");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
 
                     b.Property<DateTime?>("LastModificationTime")
                         .HasColumnType("timestamp without time zone")
@@ -723,12 +915,9 @@ namespace Unseal.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id")
-                        .HasName("p_k_user_profiles");
+                        .HasName("p_k_user_view_trackings");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("user_profiles", "unseal");
+                    b.ToTable("user_view_trackings", "unseal");
                 });
 
             modelBuilder.Entity("Volo.Abp.FeatureManagement.FeatureDefinitionRecord", b =>
@@ -2382,8 +2571,8 @@ namespace Unseal.Migrations
             modelBuilder.Entity("Unseal.Entities.Capsules.CapsuleItem", b =>
                 {
                     b.HasOne("Unseal.Entities.Capsules.Capsule", "Capsule")
-                        .WithMany("CapsuleItems")
-                        .HasForeignKey("CapsuleId")
+                        .WithOne("CapsuleItems")
+                        .HasForeignKey("Unseal.Entities.Capsules.CapsuleItem", "CapsuleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("f_k_capsule_items_capsules_capsule_id");
@@ -2415,8 +2604,8 @@ namespace Unseal.Migrations
             modelBuilder.Entity("Unseal.Entities.Capsules.CapsuleMapFeature", b =>
                 {
                     b.HasOne("Unseal.Entities.Capsules.Capsule", "Capsule")
-                        .WithMany("CapsuleMapFeatures")
-                        .HasForeignKey("CapsuleId")
+                        .WithOne("CapsuleMapFeatures")
+                        .HasForeignKey("Unseal.Entities.Capsules.CapsuleMapFeature", "CapsuleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("f_k_capsule_map_features_capsules_capsule_id");
@@ -2443,6 +2632,27 @@ namespace Unseal.Migrations
                     b.Navigation("Group");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Messages.ChatMessage", b =>
+                {
+                    b.HasOne("Unseal.Entities.Lookups.ChatType", "ChatType")
+                        .WithMany("ChatMessages")
+                        .HasForeignKey("ChatTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_chat_messages_chat_types_chat_type_id");
+
+                    b.HasOne("Volo.Abp.Identity.IdentityUser", "SenderUser")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_chat_messages_users_sender_id");
+
+                    b.Navigation("ChatType");
+
+                    b.Navigation("SenderUser");
                 });
 
             modelBuilder.Entity("Unseal.Entities.Notifications.Notification", b =>
@@ -2478,6 +2688,13 @@ namespace Unseal.Migrations
                         .IsRequired()
                         .HasConstraintName("f_k_user_followers_users_follower_id");
 
+                    b.HasOne("Unseal.Entities.Lookups.UserFollowStatus", "Status")
+                        .WithMany("UserFollowers")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_user_followers_user_follow_statuses_status_id");
+
                     b.HasOne("Volo.Abp.Identity.IdentityUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -2486,6 +2703,8 @@ namespace Unseal.Migrations
                         .HasConstraintName("f_k_user_followers_users_user_id");
 
                     b.Navigation("Follower");
+
+                    b.Navigation("Status");
 
                     b.Navigation("User");
                 });
@@ -2657,11 +2876,13 @@ namespace Unseal.Migrations
                 {
                     b.Navigation("CapsuleComments");
 
-                    b.Navigation("CapsuleItems");
+                    b.Navigation("CapsuleItems")
+                        .IsRequired();
 
                     b.Navigation("CapsuleLikes");
 
-                    b.Navigation("CapsuleMapFeatures");
+                    b.Navigation("CapsuleMapFeatures")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Unseal.Entities.Groups.Group", b =>
@@ -2672,6 +2893,16 @@ namespace Unseal.Migrations
             modelBuilder.Entity("Unseal.Entities.Lookups.CapsuleType", b =>
                 {
                     b.Navigation("Capsules");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Lookups.ChatType", b =>
+                {
+                    b.Navigation("ChatMessages");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Lookups.UserFollowStatus", b =>
+                {
+                    b.Navigation("UserFollowers");
                 });
 
             modelBuilder.Entity("Unseal.Entities.Notifications.NotificationEventType", b =>

@@ -11,9 +11,11 @@
     "Unseal:ExceptionCodes:IdentityUser:002": "Kullanıcı zaten mevcut.",
     "Unseal:ExceptionCodes:IdentityUser:003": "E-posta adresiniz doğrulanmamıştır.",
     "Unseal:ExceptionCodes:IdentityUser:004": "Mail adresi kullanımdadır.",
+    "Unseal:ExceptionCodes:IdentityUser:005": "Mail adresi geçersizdir.",
 
     "Unseal:ExceptionCodes:Capsule:001": "Kapsül bulunamadı.",
     "Unseal:ExceptionCodes:Capsule:002": "Kapsül zaten mevcut.",
+    "Unseal:ExceptionCodes:Capsule:003": "Herkese açık olmayan kapsül için QR oluşturulamaz.",
 
     "Unseal:ExceptionCodes:CapsuleItem:001": "Kapsül içeriği bulunamadı.",
     "Unseal:ExceptionCodes:CapsuleItem:002": "Kapsül içeriği zaten mevcut.",
@@ -54,17 +56,59 @@
     "Unseal:ExceptionCodes:GroupMember:002": "Grup üyesi zaten mevcut.",
     "Unseal:ExceptionCodes:GroupMember:003": "Gruba eklenme izni vermeyen kullanıcı eklenemez.",
     
-    "Unseal:ExceptionCodes::UserInteraction::001": "Kullanıcı ilişkisi bulunamadı.",
-    "Unseal:ExceptionCodes::UserInteraction::002": "Kullanıcı ilişkisi zaten mevcut.",
+    "Unseal:ExceptionCodes:UserInteraction::001": "Kullanıcı ilişkisi bulunamadı.",
+    "Unseal:ExceptionCodes:UserInteraction::002": "Kullanıcı ilişkisi zaten mevcut.",
     
+    "Unseal:ExceptionCodes:ChatMessage::001": "Mesaj bulunamadı.",
+    "Unseal:ExceptionCodes:ChatMessage::002": "Mesaj zaten mevcut.",
+
+    "Unseal:ExceptionCodes:ChatType::001": "Mesaj tipi bulunamadı.",
+    "Unseal:ExceptionCodes:ChatType::002": "Mesaj tipi zaten mevcut.",
+    
+    "Unseal:ExceptionCodes:UserFollowStatus:001": "Takipçi durumu bulunamadı.",
+    "Unseal:ExceptionCodes:UserFollowStatus:002": "Takipçi durumu zaten mevcut.",
+    
+    "Unseal:ExceptionCodes:UserViewTracking:001": "Kullanıcı izleme geçmişi bulunamadı.",
+    "Unseal:ExceptionCodes:UserViewTracking:002": "Kullanıcı izleme geçmişi zaten mevcut.",
+
     "Unseal:ExceptionCodes:Mail:001": "Mail ayarları bulunamadı.",
     
     //Enums
     
     "CapsuleTypes:00":"Gelecekteki Kendime",
-    "CapsuleTypes:01":"Kişiye Özel",
-    "CapsuleTypes:02":"Tüm Takipçilerime",
-    "CapsuleTypes:03":"Ortak",
-    "CapsuleTypes:04":"Herkese"
+    "CapsuleTypes:01":"Herkese",
+    
+    //Validations
+    
+    "Validation:RegisterDto:EmailIsRequired":"Mail alanı zorunludur.",
+    "Validation:RegisterDto:InvalidEmailFormat":"Geçersiz mail formatı !",
+    "Validation:RegisterDto:PasswordIsRequired":"Şifre alanı zorunludur.",
+    "Validation:RegisterDto:InvalidPasswordFormat":"Şifre formatı yanlış. Lütfen en az 8 karakter ve en az 1 tane büyük harf, özel karakter ve sayı girdiğinizden emin olun.",
+    "Validation:RegisterDto:ConfirmPasswordIsRequired":"Şifre doğrulama alanı zorunludur.",
+    "Validation:RegisterDto:FirstNameIsRequired":"Ad alanı zorunludur.",
+    "Validation:RegisterDto:LastNameIsRequired":"Soyad alanı zorunludur.",
+    "Validation:RegisterDto:PasswordsDontMatch":"Şifreler eşleşmiyor !",
+
+    "Validation:LoginDto:EmailIsRequired":"Mail alanı zorunludur.",
+    "Validation:LoginDto:PasswordIsRequired":"Şifre alanı zorunludur.",
+
+    "Validation:ChangePasswordDto:OldPasswordIsRequired":"Eski şifre alanı zorunludur.",
+    "Validation:ChangePasswordDto:NewPasswordIsRequired":"Yeni şifre alanı zorunludur.",
+    "Validation:ChangePasswordDto:InvalidPasswordFormat":"Şifre formatı yanlış. Lütfen en az 8 karakter ve en az 1 tane büyük harf, özel karakter ve sayı girdiğinizden emin olun.",
+    
+    "Validation:CapsuleCreateDto:NameIsRequired":"İsim alanı zorunludur.",
+    "Validation:CapsuleCreateDto:RevealDateIsRequired":"Tarih alanı zorunludur.",
+    "Validation:CapsuleCreateDto:RevealDateMustBeInFuture":"Tarih alanı geçmiş zamanda olamaz.",
+    "Validation:CapsuleCreateDto:InvalidDateFormat":"Tarih formatı geçersiz !.",
+
+    "Validation:GroupCreateDto:UsersIsRequired":"Kullanıcı seçimi zorunludur.",
+    "Validation:GroupCreateDto:NameIsRequired":"İsim alanı zorunludur.",
+    
+    "Validation:ChatMessageCreateDto:TargetIsRequired":"Hedef zorunludur.",
+    "Validation:ChatMessageCreateDto:ChatTypeIsRequired":"Mesaj tipi zorunludur.",
+    "Validation:ChatMessageCreateDto:ContentIsRequired":"Mesaj içeriği zorunludur.",
+    
+    "Validation:UserProfileUpdateDto:IsLockedIsRequired":"Hesap gizlilik durumu zorunludur.",
+    "Validation:UserProfileUpdateDto:AllowJoinGroupIsRequired":"Gruplara eklenme izni zorunludur."
   }
 }

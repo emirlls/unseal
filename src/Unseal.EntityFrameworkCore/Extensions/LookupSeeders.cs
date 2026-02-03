@@ -18,18 +18,6 @@ public static class LookupSeeders
                 LookupSeederConstants.CapsuleTypesConstants.Personal.Name,
                 LookupSeederConstants.CapsuleTypesConstants.Personal.Code),
             
-            new CapsuleType(Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.DirectMessage.Id),
-                LookupSeederConstants.CapsuleTypesConstants.DirectMessage.Name,
-                LookupSeederConstants.CapsuleTypesConstants.DirectMessage.Code),
-            
-            new CapsuleType(Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.PublicBroadcast.Id),
-                LookupSeederConstants.CapsuleTypesConstants.PublicBroadcast.Name,
-                LookupSeederConstants.CapsuleTypesConstants.PublicBroadcast.Code),
-            
-            new CapsuleType(Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.Collaborative.Id),
-                LookupSeederConstants.CapsuleTypesConstants.Collaborative.Name,
-                LookupSeederConstants.CapsuleTypesConstants.Collaborative.Code),
-            
             new CapsuleType(Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.Public.Id),
                 LookupSeederConstants.CapsuleTypesConstants.Public.Name,
                 LookupSeederConstants.CapsuleTypesConstants.Public.Code)
@@ -50,8 +38,45 @@ public static class LookupSeeders
             
             new NotificationEventType(Guid.Parse(LookupSeederConstants.NotificationEventTypesConstants.ConfirmChangeMail.Id),
                 LookupSeederConstants.NotificationEventTypesConstants.ConfirmChangeMail.Name,
-                LookupSeederConstants.NotificationEventTypesConstants.ConfirmChangeMail.Code)
+                LookupSeederConstants.NotificationEventTypesConstants.ConfirmChangeMail.Code),
+            
+            new NotificationEventType(Guid.Parse(LookupSeederConstants.NotificationEventTypesConstants.UserActivation.Id),
+                LookupSeederConstants.NotificationEventTypesConstants.UserActivation.Name,
+                LookupSeederConstants.NotificationEventTypesConstants.UserActivation.Code)
         );
+        #endregion
+
+        #region ChatTypes
+
+        builder.Entity<ChatType>().HasData(
+            new ChatType(
+                Guid.Parse(LookupSeederConstants.ChatTypesConstants.Directly.Id),
+                LookupSeederConstants.ChatTypesConstants.Directly.Name,
+                LookupSeederConstants.ChatTypesConstants.Directly.Code),
+            
+            new ChatType(Guid.Parse(LookupSeederConstants.ChatTypesConstants.Group.Id),
+                LookupSeederConstants.ChatTypesConstants.Group.Name,
+                LookupSeederConstants.ChatTypesConstants.Group.Code)
+        );
+        #endregion
+
+        #region FollowStatuses
+
+        builder.Entity<UserFollowStatus>().HasData(
+            new UserFollowStatus(
+                Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Pending.Id),
+                LookupSeederConstants.UserFollowStatusesConstants.Pending.Name,
+                LookupSeederConstants.UserFollowStatusesConstants.Pending.Code),
+
+            new UserFollowStatus(Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Accepted.Id),
+                LookupSeederConstants.UserFollowStatusesConstants.Accepted.Name,
+                LookupSeederConstants.UserFollowStatusesConstants.Accepted.Code),
+
+            new UserFollowStatus(Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Rejected.Id),
+                LookupSeederConstants.UserFollowStatusesConstants.Rejected.Name,
+                LookupSeederConstants.UserFollowStatusesConstants.Rejected.Code)
+        );
+
         #endregion
     }
 }

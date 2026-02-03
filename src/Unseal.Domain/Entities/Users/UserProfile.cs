@@ -9,14 +9,24 @@ public class UserProfile : AuditedEntity<Guid>
     public Guid UserId { get; set; }
     public bool IsLocked { get; set; }
     public bool AllowJoinGroup { get; set; }
-    public DateTime LastActivity { get; set; }
+    public string? Content { get; set; }
+    public string? ProfilePictureUrl { get; set; }
+    public DateTime LastActivityTime { get; set; }
     
     public virtual IdentityUser User { get; set; }
-
-    public UserProfile(Guid id, Guid userId)
+    public UserProfile(
+        Guid id,
+        Guid userId,
+        string? content,
+        string? profilePictureUrl,
+        DateTime creationTime
+    )
     {
         Id = id;
         UserId = userId;
-        LastActivity = DateTime.Now;
+        Content = content;
+        ProfilePictureUrl = profilePictureUrl;
+        LastActivityTime = DateTime.Now;
+        CreationTime = creationTime;
     }
 }

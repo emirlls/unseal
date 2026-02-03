@@ -7,7 +7,7 @@ namespace Unseal.Dtos.Groups;
 public record GroupCreateDto(
     List<Guid> UserIds,
     string Name,
-    string Description,
+    string? Description,
     IRemoteStreamContent? StreamContent
     ) 
     : GroupBaseDto(UserIds, Name, Description);

@@ -8,5 +8,5 @@ namespace Unseal.Profiles.Auth;
 [Mapper]
 public partial class AuthMapper : ITransientDependency
 {
-    public partial RegisterModel MapRegisterDtoToRegisterModel(RegisterDto dto);
+    public partial RegisterModel MapToDto(RegisterDto dto);
 }

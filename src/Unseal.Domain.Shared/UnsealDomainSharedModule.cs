@@ -38,7 +38,8 @@ public class UnsealDomainSharedModule : AbpModule
             options.MapCodeNamespace("Unseal", typeof(UnsealResource));
         });
         
-        LocalizationExtensions.SetLocalizer(context.Services.BuildServiceProviderFromFactory()
+        LocalizationExtensions
+            .SetLocalizer(context.Services.BuildServiceProviderFromFactory()
             .GetRequiredService<IStringLocalizer<UnsealResource>>());
     }
 }

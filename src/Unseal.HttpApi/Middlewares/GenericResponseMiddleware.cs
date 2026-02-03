@@ -3,6 +3,7 @@ using System.IO;
 using Microsoft.AspNetCore.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Unseal.Constants;
@@ -29,85 +30,110 @@ public class GenericResponseMiddleware
         {
             await _next(context);
 
-            var statusCode = context.Response.StatusCode;
+            if (context.Response.StatusCode == StatusCodes.Status204NoContent)
+            {
+                context.Response.StatusCode = StatusCodes.Status200OK;
+            }
 
             responseBody.Seek(0, SeekOrigin.Begin);
             var responseText = await new StreamReader(responseBody).ReadToEndAsync();
-            
-            object genericResponse;
 
-            if (statusCode >= 200 && statusCode < 300)
+            if (context.Response.HasStarted)
             {
-                var data = string.IsNullOrWhiteSpace(responseText) 
-                           ? null 
-                           : JsonSerializer
-                               .Deserialize<object>(responseText, 
-                                   new JsonSerializerOptions
-                                   {
-                                       PropertyNameCaseInsensitive = true
-                                   });
-                           
-                genericResponse = new
+                await responseBody.CopyToAsync(originalBodyStream);
+                return;
+            }
+
+            var statusCode = context.Response.StatusCode;
+            bool isSuccess = statusCode is >= 200 and < 300;
+
+            object? data = null;
+            object? errorDetails = null;
+            string message = string.Empty;
+
+            if (isSuccess)
+            {
+                if (string.IsNullOrWhiteSpace(responseText))
                 {
-                    Success = true,
-                    Data = data,
-                    Message = _localizer[ExceptionCodes.Success],
-                    StatusCode = statusCode
-                };
+                    data = null;
+                }
+                else
+                {
+                    using var doc = JsonDocument.Parse(responseText);
+                    data = doc.RootElement.Clone();
+                }
+
+                message = _localizer[ExceptionCodes.Success];
             }
             else
             {
-                var errorDetails = new { 
-                    Code = statusCode.ToString(), 
-                    Message = _localizer[ExceptionCodes.UnexpectedException],
-                    Details = (object?)null
-                };
-
-                if (!string.IsNullOrWhiteSpace(responseText))
-                {
-                     try
-                     {
-                         var abpError = JsonSerializer.Deserialize<JsonElement>(responseText);
-                         if (abpError.TryGetProperty(AppConstants.GenericResponse.Error, out var errorElement))
-                         {
-                            errorDetails = new {
-                                Code = errorElement.GetProperty(AppConstants.GenericResponse.Code).GetString() ?? statusCode.ToString(),
-                                Message = _localizer[errorElement.GetProperty(AppConstants.GenericResponse.Message).GetString()!],
-                                Details = (object?)errorElement.GetProperty(AppConstants.GenericResponse.Details).GetString()
-                            };
-                         }
-                     }
-                     catch
-                     {
-                         // ignored
-                     }
-                }
-
-                genericResponse = new
-                {
-                    Success = false,
-                    Data = (object?)null,
-                    Message = errorDetails.Message,
-                    ErrorDetails = errorDetails,
-                    StatusCode = statusCode
-                };
+                var (code, msg, details) = ParseErrorResponse(responseText, statusCode);
+                message = msg;
+                errorDetails = new { Code = code, Message = msg, Details = details };
             }
 
-            var newResponseContent = JsonSerializer.Serialize(genericResponse, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-            context.Response.ContentLength = Encoding.UTF8.GetByteCount(newResponseContent);
+            var genericResponse = new
+            {
+                Success = isSuccess,
+                Data = data,
+                Message = message,
+                ErrorDetails = errorDetails,
+                StatusCode = statusCode
+            };
+
+            var newResponseContent = JsonSerializer.Serialize(genericResponse, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.Never
+            });
+
             context.Response.ContentType = AppConstants.GenericResponse.ContentType;
+            context.Response.ContentLength = Encoding.UTF8.GetByteCount(newResponseContent);
 
             await originalBodyStream.WriteAsync(Encoding.UTF8.GetBytes(newResponseContent));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            context.Response.Body = originalBodyStream;
-            context.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
-            await context.Response.WriteAsync(ExceptionCodes.UnexpectedException);
+            // ignored
         }
         finally
         {
             context.Response.Body = originalBodyStream;
         }
+    }
+
+    private (string Code, string Message, string? Details) ParseErrorResponse(
+        string responseText,
+        int statusCode
+    )
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(responseText))
+            {
+                var abpError = JsonSerializer.Deserialize<JsonElement>(responseText);
+                if (abpError.TryGetProperty(AppConstants.GenericResponse.Error, out var errorElement))
+                {
+                    return (
+                        errorElement.GetProperty(AppConstants.GenericResponse.Code).GetString() ??
+                        statusCode.ToString(),
+                        _localizer[errorElement.GetProperty(AppConstants.GenericResponse.Message).GetString() ?? ""],
+                        errorElement.TryGetProperty(AppConstants.GenericResponse.Details, out var d)
+                            ? d.GetString()
+                            : null
+                    );
+                }
+            }
+        }
+        catch
+        {
+            // ignored
+        }
+
+        return (
+            statusCode.ToString(),
+            _localizer[ExceptionCodes.UnexpectedException],
+            null
+        );
     }
 }

@@ -3,14 +3,14 @@ using Unseal.Constants;
 using Unseal.Entities.Notifications;
 using Unseal.Interfaces.Managers.Notifications;
 using Unseal.Localization;
-using Unseal.Repositories.Base;
+using Unseal.Repositories.Notifications;
 
 namespace Unseal.Managers.Notifications;
 
 public class NotificationTemplateManager : BaseDomainService<NotificationTemplate>, INotificationTemplateManager
 {
     public NotificationTemplateManager(
-        IBaseRepository<NotificationTemplate> baseRepository,
+        INotificationTemplateRepository baseRepository,
         IStringLocalizer<UnsealResource> stringLocalizer
         ) : 
         base(

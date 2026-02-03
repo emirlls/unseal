@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Unseal.Dtos.Capsules;
@@ -41,6 +42,32 @@ public interface ICapsuleAppService : IApplicationService
     );
     Task<bool> UnCommentAsync(
         Guid commentId,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<CapsuleDetailDto> GetDetailAsync(
+        Guid id,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<PagedResultDto<CapsuleDto>> GetExploreFeedAsync(
+        CapsuleFilters capsuleFilters,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<bool> MarkAsViewedAsync(
+        List<Guid> capsuleIds, 
+        CancellationToken cancellationToken = default
+    );
+
+    Task<bool> DeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<bool> SetActivityAsync(
+        Guid id, 
+        bool isActive = true,
         CancellationToken cancellationToken = default
     );
 }

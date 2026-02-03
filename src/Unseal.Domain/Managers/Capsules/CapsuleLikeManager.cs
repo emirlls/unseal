@@ -4,14 +4,14 @@ using Unseal.Constants;
 using Unseal.Entities.Capsules;
 using Unseal.Interfaces.Managers.Capsules;
 using Unseal.Localization;
-using Unseal.Repositories.Base;
+using Unseal.Repositories.Capsules;
 
 namespace Unseal.Managers.Capsules;
 
 public class CapsuleLikeManager : BaseDomainService<CapsuleLike>, ICapsuleLikeManager
 {
     public CapsuleLikeManager(
-        IBaseRepository<CapsuleLike> baseRepository,
+        ICapsuleLikeRepository baseRepository,
         IStringLocalizer<UnsealResource> stringLocalizer
     ) : base(
         baseRepository,
