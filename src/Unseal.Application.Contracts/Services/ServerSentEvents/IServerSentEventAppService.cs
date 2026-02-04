@@ -11,4 +11,8 @@ public interface IServerSentEventAppService : IApplicationService
     IAsyncEnumerable<SseItem<CapsuleCreatedEventModel>> GetCapsuleStreamAsync(
         CancellationToken cancellationToken = default
     );
+
+    IAsyncEnumerable<SseItem<FollowRequestAcceptedEventModel>> GetFollowRequestAcceptStreamAsync(
+        CancellationToken cancellationToken = default
+    );
 }

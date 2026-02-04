@@ -118,7 +118,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         var payload = JsonSerializer.Serialize(eventModel);
 
         await subscriber.PublishAsync(
-            EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdates,
+            EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdateChannel,
             payload
         );
         return true;

@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using StackExchange.Redis;
 using Unseal.Constants;
 using Unseal.Dtos.Users;
 using Unseal.Enums;
@@ -14,6 +17,7 @@ using Unseal.Filtering.Users;
 using Unseal.Interfaces.Managers.Auth;
 using Unseal.Interfaces.Managers.Users;
 using Unseal.Localization;
+using Unseal.Models.ServerSentEvents;
 using Unseal.Models.Users;
 using Unseal.Repositories.Capsules;
 using Unseal.Repositories.Users;
@@ -216,6 +220,7 @@ public class UserAppService : UnsealAppService, IUserAppService
             userId,
             Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Accepted.Id),
             cancellationToken);
+        
         return true;
     }
 
@@ -454,7 +459,7 @@ public class UserAppService : UnsealAppService, IUserAppService
             .TryGetByAsync(x =>
                     x.Id.Equals(userId), throwIfNull: true,
                 cancellationToken: cancellationToken);
-
+        
         await CheckUserIsBlocked(userId, cancellationToken);
         var userFollower = await UserFollowerManager.TryGetByAsync(x =>
                 x.UserId.Equals(user.Id) && x.FollowerId.Equals(CurrentUser.GetId()),
@@ -463,8 +468,40 @@ public class UserAppService : UnsealAppService, IUserAppService
         );
         userFollower.StatusId = newStatusId;
         await UserFollowerRepository.UpdateAsync(userFollower, cancellationToken: cancellationToken);
+        await FollowRequestAcceptPubAsync(userId, newStatusId, cancellationToken);
     }
 
+    private async Task FollowRequestAcceptPubAsync(
+        Guid userId,
+        Guid newStatusId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (newStatusId == Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Accepted.Id))
+        {
+            var redis = LazyServiceProvider.GetRequiredService<IConnectionMultiplexer>();
+            var subscriber = redis.GetSubscriber();
+        
+            var currentUser = await CustomIdentityUserManager
+                .TryGetByAsync(x =>
+                        x.Id.Equals(CurrentUser.GetId()), throwIfNull: true,
+                    cancellationToken: cancellationToken);
+            
+            var eventModel = new FollowRequestAcceptedEventModel
+            {
+                FollowerUserId = userId,
+                UserId = currentUser.Id,
+                UserName = currentUser.UserName,
+                CreationTime = DateTime.Now
+            };
+            var payload = JsonSerializer.Serialize(eventModel);
+
+            await subscriber.PublishAsync(
+                EventConstants.ServerSentEvents.FollowRequestAccept.FollowRequestAcceptChannel,
+                payload
+            );
+        }
+    }
     private async Task CheckUserIsBlocked(
         Guid userId,
         CancellationToken cancellationToken = default

@@ -26,10 +26,24 @@ public class ServerSentEventController : UnsealController
     /// <returns></returns>
     [HttpGet("capsule-feed-stream")]
     [Authorize(CapsulePermissions.Default)]
-    public IResult GetCapsuleFeedStream(
+    public IResult GetCapsuleFeedStreamAsync(
         CancellationToken cancellationToken = default)
     {
         var stream = _serverSentEventAppService.GetCapsuleStreamAsync(cancellationToken);
+        return TypedResults.ServerSentEvents(stream);
+    }
+    
+    /// <summary>
+    /// Use to send notification to user when follow request is accepted.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("accept-follow-request-stream")]
+    [Authorize(CapsulePermissions.Default)]
+    public IResult GetFollowRequestAcceptStreamAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var stream = _serverSentEventAppService.GetFollowRequestAcceptStreamAsync(cancellationToken);
         return TypedResults.ServerSentEvents(stream);
     }
 }
