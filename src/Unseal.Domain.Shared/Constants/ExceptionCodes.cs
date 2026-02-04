@@ -21,7 +21,12 @@ public static class ExceptionCodes
         public const string MailInUser = $"{Prefix}004";
         public const string MailIsInvalid = $"{Prefix}005";
     }
-    
+    public static class IdentityRole
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}IdentityRole:";
+        public const string NotFound = $"{Prefix}001";
+        public const string AlreadyExists = $"{Prefix}002";
+    }
     public static class Capsule
     {
         private const string Prefix = $"{ExceptionCodePrefix}Capsule:";
