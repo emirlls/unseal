@@ -38,10 +38,10 @@ public class UserViewTrackingEventHandler :
         using (var uow = _unitOfWorkManager.Begin(requiresNew: true, isTransactional: true))
         {
 
-            var capsuleIds = eventData.CapsuleIds;
+            var capsuleIds = eventData.ExternalIds;
             var alreadyViewedCapsuleIds = (await _userViewTrackingManager.TryGetQueryableAsync(q => q
-                    .Where(x => x.UserId.Equals(eventData.UserId) && capsuleIds.Contains(x.CapsuleId))))?
-                .Select(x => x.CapsuleId)
+                    .Where(x => x.UserId.Equals(eventData.UserId) && capsuleIds.Contains(x.ExternalId))))?
+                .Select(x => x.ExternalId)
                 .ToHashSet();
 
             capsuleIds = capsuleIds
@@ -50,7 +50,11 @@ public class UserViewTrackingEventHandler :
                 .ToList();
 
             var userViewTrackings = _userViewTrackingManager
-                .Create(capsuleIds, eventData.UserId);
+                .Create(
+                    capsuleIds, 
+                    eventData.UserViewTrackingTypeId,
+                    eventData.UserId
+                );
 
             await _userViewTrackingRepository.BulkInsertAsync(
                 userViewTrackings);
@@ -61,7 +65,8 @@ public class UserViewTrackingEventHandler :
                     {
                         Id = x.Id,
                         UserId = x.UserId,
-                        CapsuleId = x.CapsuleId
+                        ExternalId = x.ExternalId,
+                        UserViewTrackingTypeId = x.UserViewTrackingTypeId
                     });
 
             await _esUserViewTrackingRepository

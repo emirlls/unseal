@@ -93,17 +93,17 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         await CreateCapsuleMapFeatureAsync(capsule.Id, capsuleCreateModel.GeoJson, cancellationToken);
         var redis = LazyServiceProvider.GetRequiredService<IConnectionMultiplexer>();
         var subscriber = redis.GetSubscriber();
-        
+
         var userProfile = (await UserProfileManager
-            .TryGetQueryableAsync(x=>x
-                    .Include(c=>c.User)
-                    .Where(c=>c.UserId.Equals(CurrentUser.GetId())),
+            .TryGetQueryableAsync(x => x
+                    .Include(c => c.User)
+                    .Where(c => c.UserId.Equals(CurrentUser.GetId())),
                 cancellationToken: cancellationToken
             ))!.FirstOrDefault();
-        
+
         var decryptedProfilePictureUrl =
             LazyServiceProvider.GetDecryptedFileUrlAsync(userProfile?.ProfilePictureUrl);
-        
+
         var eventModel = new CapsuleCreatedEventModel
         {
             Id = capsule.Id,
@@ -184,10 +184,11 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
                 true,
                 cancellationToken
             );
-        
+
         var count = await CapsuleRepository
             .GetDynamicListCountAsync(
                 capsuleFilters,
+                null,
                 useCache: false,
                 cancellationToken
             );
@@ -206,7 +207,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
                 var userProfile = userProfiles.FirstOrDefault(u => u.UserId.Equals(x.CreatorId));
                 var decryptedProfilePictureUrl =
                     LazyServiceProvider.GetDecryptedFileUrlAsync(userProfile?.ProfilePictureUrl);
-                var fileUrl=
+                var fileUrl =
                     LazyServiceProvider.GetDecryptedFileUrlAsync(x.CapsuleItems.FileUrl);
                 return new CapsuleDto(
                     x.Id,
@@ -371,36 +372,39 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
 
         var usersBlockedCurrentUser = await UserInteractionManager
             .TryGetQueryableAsync(x => x
-                .Where(c => c.TargetUserId.Equals(currentUserId) && c.IsBlocked),
+                    .Where(c => c.TargetUserId.Equals(currentUserId) && c.IsBlocked),
                 cancellationToken: cancellationToken);
 
         var blockedCreatorIds = usersBlockedCurrentUser?
             .Select(x => x.SourceUserId)
             .ToHashSet();
 
-        var queryable = await UserViewTrackingManager.
-            TryGetQueryableAsync(q => q
-                    .Where(x => x.UserId == currentUserId), 
+        var queryable = await UserViewTrackingManager.TryGetQueryableAsync(q => q
+                .Include(x => x.UserViewTrackingType)
+                .Where(x => x.UserId == currentUserId &&
+                            x.UserViewTrackingType.Code == (int)UserViewTrackingTypes.Capsule),
             cancellationToken: cancellationToken
         );
 
-        var viewedIds = queryable != null 
+        var viewedIds = queryable != null
             ? await queryable
-                .Select(v => v.CapsuleId)
+                .Select(v => v.ExternalId)
                 .ToListAsync(cancellationToken)
             : new List<Guid>();
 
         var currentUserLikesQueryable = await CapsuleLikeManager
             .TryGetQueryableAsync(q => q
-            .Where(x => x.UserId == currentUserId),
-            cancellationToken: cancellationToken
-        );
-        
-        var currentUserLikedIds = currentUserLikesQueryable != null ? await currentUserLikesQueryable
-            .OrderByDescending(x => x.CreationTime)
-            .Take(10)
-            .Select(x => x.CapsuleId)
-            .ToListAsync(cancellationToken) : new List<Guid>();
+                    .Where(x => x.UserId == currentUserId),
+                cancellationToken: cancellationToken
+            );
+
+        var currentUserLikedIds = currentUserLikesQueryable != null
+            ? await currentUserLikesQueryable
+                .OrderByDescending(x => x.CreationTime)
+                .Take(10)
+                .Select(x => x.CapsuleId)
+                .ToListAsync(cancellationToken)
+            : new List<Guid>();
 
         var likedOtherUsersQuery = await CapsuleLikeManager.TryGetQueryableAsync(
             q => q.Where(x => currentUserLikedIds.Contains(x.CapsuleId) && x.UserId != currentUserId),
@@ -414,16 +418,16 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
                 .Select(g => g.Key)
                 .ToListAsync(cancellationToken)
             : new List<Guid>();
-        
-        var query = await CapsuleManager.TryGetQueryableAsync(q=>q
-            .Include(x => x.CapsuleType)
-            .Include(x => x.CapsuleItems)
-            .Where(x => (bool)x.IsOpened!)
-            .Where(x => (bool)x.IsActive!)
-            .Where(x=>x.CapsuleType.Code == (int)CapsuleTypes.Public)
-            .Where(x => !viewedIds.Contains(x.Id)) 
-            .WhereIf(!blockedCreatorIds.IsNullOrEmpty(), 
-                x => !blockedCreatorIds!.Contains((Guid)x.CreatorId!)),
+
+        var query = await CapsuleManager.TryGetQueryableAsync(q => q
+                .Include(x => x.CapsuleType)
+                .Include(x => x.CapsuleItems)
+                .Where(x => (bool)x.IsOpened!)
+                .Where(x => (bool)x.IsActive!)
+                .Where(x => x.CapsuleType.Code == (int)CapsuleTypes.Public)
+                .Where(x => !viewedIds.Contains(x.Id))
+                .WhereIf(!blockedCreatorIds.IsNullOrEmpty(),
+                    x => !blockedCreatorIds!.Contains((Guid)x.CreatorId!)),
             asNoTracking: true,
             cancellationToken: cancellationToken
         );
@@ -473,7 +477,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
             var profile = userProfiles.FirstOrDefault(p => p.UserId == x.CreatorId);
             var fileUrl = LazyServiceProvider.GetDecryptedFileUrlAsync(x.CapsuleItems.FileUrl);
             return new CapsuleDto(
-                x.Id, 
+                x.Id,
                 (Guid)x.CreatorId!,
                 x.Name,
                 CapsuleMapper.ResolveType(x.CapsuleType),
@@ -494,6 +498,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
 
     public async Task<bool> MarkAsViewedAsync(
         List<Guid> capsuleIds,
+        Guid? userViewTrackingTypeId, 
         CancellationToken cancellationToken = default
     )
     {
@@ -501,14 +506,15 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
             .ExistsAsync(x => !capsuleIds.Contains(x.Id),
                 throwIfNotExists: true,
                 cancellationToken);
-        
+
         var userViewTrackingEto = new UserViewTrackingEto
         {
             UserId = CurrentUser.GetId(),
-            CapsuleIds = capsuleIds
+            UserViewTrackingTypeId = userViewTrackingTypeId,
+            ExternalIds = capsuleIds
         };
         await DistributedEventBus.PublishAsync(userViewTrackingEto);
-        
+
         return true;
     }
 
@@ -520,7 +526,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         var capsule = await CapsuleManager.TryGetByAsync(x =>
                 x.Id.Equals(id), true,
             cancellationToken: cancellationToken);
-        
+
         await CapsuleRepository.DeleteAsync(capsule!, cancellationToken: cancellationToken);
         return true;
     }

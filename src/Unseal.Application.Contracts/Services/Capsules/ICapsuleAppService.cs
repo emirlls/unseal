@@ -56,7 +56,8 @@ public interface ICapsuleAppService : IApplicationService
     );
 
     Task<bool> MarkAsViewedAsync(
-        List<Guid> capsuleIds, 
+        List<Guid> externalIds,
+        Guid? userViewTrackingTypeId, 
         CancellationToken cancellationToken = default
     );
 

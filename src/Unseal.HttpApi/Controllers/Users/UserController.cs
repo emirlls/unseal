@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unseal.Dtos.Users;
+using Unseal.Filtering.Users;
 using Unseal.Permissions.Users;
 using Unseal.Services.Users;
 using Volo.Abp.Application.Dtos;
@@ -155,17 +156,32 @@ public class UserController : UnsealController
         Guid userId,
         CancellationToken cancellationToken = default
     ) => await UserAppService.GetProfileAsync(userId, cancellationToken);
-    
+
     /// <summary>
     /// Use to get blocked users.
     /// </summary>
+    /// <param name="filters"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpGet("blocked-users")]
     [Authorize(UserPermissions.Default)]
     public async Task<PagedResultDto<UserDto>> GetBlockedUsersAsync(
+        [FromQuery]UserInteractionFilters filters,
         CancellationToken cancellationToken = default
-    ) => await UserAppService.GetBlockedUsersAsync(cancellationToken);
+    ) => await UserAppService.GetBlockedUsersAsync(filters, cancellationToken);
+
+    /// <summary>
+    /// Use to users list that viewed profile api.
+    /// </summary>
+    /// <param name="filters"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("users-viewed-profile")]
+    [Authorize(UserPermissions.Default)]
+    public async Task<PagedResultDto<UserDto>> GetUsersViewedProfileAsync(
+        [FromQuery]UserProfileFilters filters,
+        CancellationToken cancellationToken = default
+    ) => await UserAppService.GetUsersViewedProfileAsync(filters, cancellationToken);
 
     /// <summary>
     /// Use to user profile.

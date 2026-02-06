@@ -78,5 +78,19 @@ public static class LookupSeeders
         );
 
         #endregion
+
+        #region UserViewTrackingTypes
+        builder.Entity<UserViewTrackingType>().HasData(
+            new UserViewTrackingType(
+                Guid.Parse(LookupSeederConstants.UserViewTrackingTypesConstants.Capsule.Id),
+                LookupSeederConstants.UserViewTrackingTypesConstants.Capsule.Name,
+                LookupSeederConstants.UserViewTrackingTypesConstants.Capsule.Code),
+
+            new UserViewTrackingType(Guid.Parse(LookupSeederConstants.UserViewTrackingTypesConstants.UserProfile.Id),
+                LookupSeederConstants.UserViewTrackingTypesConstants.UserProfile.Name,
+                LookupSeederConstants.UserViewTrackingTypesConstants.UserProfile.Code)
+
+        );
+        #endregion
     }
 }

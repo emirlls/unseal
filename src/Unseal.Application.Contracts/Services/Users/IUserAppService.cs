@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Unseal.Dtos.Users;
+using Unseal.Filtering.Users;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 
@@ -56,11 +57,17 @@ public interface IUserAppService : IApplicationService
     );
 
     Task<PagedResultDto<UserDto>> GetBlockedUsersAsync(
+        UserInteractionFilters filters,
         CancellationToken cancellationToken = default
     );
 
     Task<PagedResultDto<UserDto>> SearchAsync(
         string userName,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<PagedResultDto<UserDto>> GetUsersViewedProfileAsync(
+        UserProfileFilters filters,
         CancellationToken cancellationToken = default
     );
 }

@@ -46,15 +46,18 @@ public class CapsuleController : UnsealController
     /// Used to mark capsules as viewed.
     /// </summary>
     /// <param name="capsuleIds"></param>
+    /// <param name="userViewTrackingTypeId"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost("mark-as-viewed")]
     [Authorize(CapsulePermissions.Default)]
     public async Task<bool> MarkAsViewedAsync(
         List<Guid> capsuleIds,
+        Guid? userViewTrackingTypeId, 
         CancellationToken cancellationToken = default
     ) => await CapsuleAppService.MarkAsViewedAsync(
         capsuleIds,
+        userViewTrackingTypeId,
         cancellationToken
     );
     

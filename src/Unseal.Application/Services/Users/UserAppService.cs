@@ -53,11 +53,16 @@ public class UserAppService : UnsealAppService, IUserAppService
 
     private ICapsuleRepository CapsuleRepository =>
         LazyServiceProvider.LazyGetRequiredService<ICapsuleRepository>();
+
     private IEsUserRepository EsUserRepository =>
         LazyServiceProvider.LazyGetRequiredService<IEsUserRepository>();
+
+    private IUserViewTrackingRepository UserViewTrackingRepository =>
+        LazyServiceProvider.LazyGetRequiredService<IUserViewTrackingRepository>();
+
     private IDistributedEventBus DistributedEventBus =>
         LazyServiceProvider.LazyGetRequiredService<IDistributedEventBus>();
-    
+
     private IStringLocalizer<UnsealResource> StringLocalizer =>
         LazyServiceProvider.LazyGetRequiredService<IStringLocalizer<UnsealResource>>();
 
@@ -220,7 +225,7 @@ public class UserAppService : UnsealAppService, IUserAppService
             userId,
             Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Accepted.Id),
             cancellationToken);
-        
+
         return true;
     }
 
@@ -256,6 +261,8 @@ public class UserAppService : UnsealAppService, IUserAppService
         var count = await UserProfileRepository
             .GetDynamicListCountAsync(
                 new UserProfileFilters(),
+                q => q
+                    .Where(x => pendingUserIds.Contains(x.Id)),
                 cancellationToken: cancellationToken
             );
 
@@ -309,6 +316,8 @@ public class UserAppService : UnsealAppService, IUserAppService
         var count = await UserProfileRepository
             .GetDynamicListCountAsync(
                 new UserProfileFilters(),
+                q => q
+                    .Where(x => followerIds.Contains(x.Id)),
                 cancellationToken: cancellationToken
             );
 
@@ -369,23 +378,20 @@ public class UserAppService : UnsealAppService, IUserAppService
     }
 
     public async Task<PagedResultDto<UserDto>> GetBlockedUsersAsync(
+        UserInteractionFilters filters,
         CancellationToken cancellationToken = default
     )
     {
+        filters.SetSourceUserId(CurrentUser.GetId());
         var blockedUsers = await UserInteractionRepository.GetDynamicListAsync(
-            new UserInteractionFilters
-            {
-                SourceUserId = CurrentUser.GetId()
-            },
+            filters,
             null,
             asNoTracking: true,
             cancellationToken: cancellationToken
         );
         var blockedUserCount = await UserInteractionRepository.GetDynamicListCountAsync(
-            new UserInteractionFilters
-            {
-                SourceUserId = CurrentUser.GetId()
-            },
+            filters,
+            null,
             cancellationToken: cancellationToken
         );
         var blockedUserIds = blockedUsers
@@ -431,21 +437,67 @@ public class UserAppService : UnsealAppService, IUserAppService
             userName,
             cancellationToken: cancellationToken);
         var userDtos = users.Select(x =>
-        {
-            var profilePictureUrl = LazyServiceProvider.GetDecryptedFileUrlAsync(x.ProfilePictureUrl);
-            return new UserDto
             {
-                Id = x.Id,
-                Username = x.UserName,
-                ProfilePictureUrl = profilePictureUrl
-            };
-        })
-        .ToList();
+                var profilePictureUrl = LazyServiceProvider.GetDecryptedFileUrlAsync(x.ProfilePictureUrl);
+                return new UserDto
+                {
+                    Id = x.Id,
+                    Username = x.UserName,
+                    ProfilePictureUrl = profilePictureUrl
+                };
+            })
+            .ToList();
 
         var response = new PagedResultDto<UserDto>
         {
             Items = userDtos,
             TotalCount = userDtos.Count
+        };
+        return response;
+    }
+
+    public async Task<PagedResultDto<UserDto>> GetUsersViewedProfileAsync(
+        UserProfileFilters filters,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var viewedUserIds = await UserViewTrackingRepository.UserIdsViewedProfileAsync(
+            CurrentUser.GetId(),
+            cancellationToken
+        );
+        var userProfiles = await UserProfileRepository
+            .GetDynamicListAsync(filters,
+                q => q
+                    .Include(x => x.User)
+                    .Where(x => viewedUserIds.Contains(x.Id)
+                    ), cancellationToken: cancellationToken);
+
+        var count = await UserProfileRepository
+            .GetDynamicListCountAsync(
+                new UserProfileFilters(),
+                q => q
+                    .Where(x => viewedUserIds.Contains(x.Id)),
+                cancellationToken: cancellationToken
+            );
+
+        var userDto = userProfiles
+            .Select(x =>
+            {
+                var decryptedProfilePictureUrl = LazyServiceProvider
+                    .GetDecryptedFileUrlAsync(x.ProfilePictureUrl);
+                return new UserDto
+                {
+                    Id = x.UserId!,
+                    Username = x.User.UserName,
+                    ProfilePictureUrl = decryptedProfilePictureUrl
+                };
+            })
+            .ToList();
+
+        var response = new PagedResultDto<UserDto>
+        {
+            Items = userDto,
+            TotalCount = count
         };
         return response;
     }
@@ -459,7 +511,7 @@ public class UserAppService : UnsealAppService, IUserAppService
             .TryGetByAsync(x =>
                     x.Id.Equals(userId), throwIfNull: true,
                 cancellationToken: cancellationToken);
-        
+
         await CheckUserIsBlocked(userId, cancellationToken);
         var userFollower = await UserFollowerManager.TryGetByAsync(x =>
                 x.UserId.Equals(user.Id) && x.FollowerId.Equals(CurrentUser.GetId()),
@@ -481,12 +533,12 @@ public class UserAppService : UnsealAppService, IUserAppService
         {
             var redis = LazyServiceProvider.GetRequiredService<IConnectionMultiplexer>();
             var subscriber = redis.GetSubscriber();
-        
+
             var currentUser = await CustomIdentityUserManager
                 .TryGetByAsync(x =>
                         x.Id.Equals(CurrentUser.GetId()), throwIfNull: true,
                     cancellationToken: cancellationToken);
-            
+
             var eventModel = new FollowRequestAcceptedEventModel
             {
                 FollowerUserId = userId,
@@ -502,6 +554,7 @@ public class UserAppService : UnsealAppService, IUserAppService
             );
         }
     }
+
     private async Task CheckUserIsBlocked(
         Guid userId,
         CancellationToken cancellationToken = default
