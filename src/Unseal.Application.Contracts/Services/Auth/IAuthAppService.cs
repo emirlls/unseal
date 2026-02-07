@@ -50,7 +50,10 @@ public interface IAuthAppService : IApplicationService
         ChangePasswordDto changePasswordDto,
         CancellationToken cancellationToken = default
     );
-
+    Task<bool> SendPasswordResetCodeAsync(
+        string email,
+        CancellationToken cancellationToken = default
+    );
     Task<bool> LogoutAsync(
         string refreshToken,
         CancellationToken cancellationToken = default
@@ -66,6 +69,13 @@ public interface IAuthAppService : IApplicationService
     );
     Task<bool> ConfirmActivationMailAsync(
         Guid userId,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<bool> ConfirmPasswordResetAsync(
+        Guid userId,
+        string newPassword,
+        string token,
         CancellationToken cancellationToken = default
     );
 }

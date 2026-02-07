@@ -17,7 +17,7 @@ public class CapsuleFilters : DynamicFilterRequest
     internal bool? IsActive { get; set; }
     
     [FilterMapped("CapsuleTypeId")] 
-    internal Guid CapsuleTypeId { get; set; }
+    internal Guid? CapsuleTypeId { get; set; }
     
     [FilterMapped("CreatorId")] 
     internal Guid? CreatorId { get; set; }

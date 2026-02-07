@@ -42,7 +42,11 @@ public static class LookupSeeders
             
             new NotificationEventType(Guid.Parse(LookupSeederConstants.NotificationEventTypesConstants.UserActivation.Id),
                 LookupSeederConstants.NotificationEventTypesConstants.UserActivation.Name,
-                LookupSeederConstants.NotificationEventTypesConstants.UserActivation.Code)
+                LookupSeederConstants.NotificationEventTypesConstants.UserActivation.Code),
+            
+            new NotificationEventType(Guid.Parse(LookupSeederConstants.NotificationEventTypesConstants.PasswordReset.Id),
+                LookupSeederConstants.NotificationEventTypesConstants.PasswordReset.Name,
+                LookupSeederConstants.NotificationEventTypesConstants.PasswordReset.Code)
         );
         #endregion
 

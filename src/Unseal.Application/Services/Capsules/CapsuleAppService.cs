@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
-using StackExchange.Redis;
 using Unseal.Constants;
 using Unseal.Dtos.Capsules;
 using Unseal.Entities.Capsules;
@@ -18,7 +15,6 @@ using Unseal.Filtering.Capsules;
 using Unseal.Interfaces.Managers.Capsules;
 using Unseal.Interfaces.Managers.Users;
 using Unseal.Localization;
-using Unseal.Models.ServerSentEvents;
 using Unseal.Profiles.Capsules;
 using Unseal.Repositories.Capsules;
 using Volo.Abp;
@@ -90,37 +86,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         await CapsuleRepository.InsertAsync(capsule, cancellationToken: cancellationToken);
         await CapsuleItemRepository.InsertAsync(capsuleItem, cancellationToken: cancellationToken);
         await CreateCapsuleMapFeatureAsync(capsule.Id, capsuleCreateModel.GeoJson, cancellationToken);
-        var redis = LazyServiceProvider.GetRequiredService<IConnectionMultiplexer>();
-        var subscriber = redis.GetSubscriber();
-
-        var userProfile = (await UserProfileManager
-            .TryGetQueryableAsync(x => x
-                    .Include(c => c.User)
-                    .Where(c => c.UserId.Equals(CurrentUser.GetId())),
-                asNoTracking : true,
-                cancellationToken: cancellationToken
-            ))!.FirstOrDefault();
-
-        var decryptedProfilePictureUrl =
-            LazyServiceProvider.GetDecryptedFileUrlAsync(userProfile?.ProfilePictureUrl);
-
-        var eventModel = new CapsuleCreatedEventModel
-        {
-            Id = capsule.Id,
-            CreatorId = (Guid)capsule.CreatorId!,
-            Name = capsule.Name,
-            Username = userProfile?.User.UserName,
-            FileUrl = fileUrl,
-            ProfilePictureUrl = decryptedProfilePictureUrl,
-            RevealDate = capsule.RevealDate,
-            CreationTime = capsule.CreationTime
-        };
-        var payload = JsonSerializer.Serialize(eventModel);
-
-        await subscriber.PublishAsync(
-            EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdateChannel,
-            payload
-        );
+        
         return true;
     }
 

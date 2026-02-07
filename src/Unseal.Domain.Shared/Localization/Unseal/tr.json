@@ -12,6 +12,7 @@
     "Unseal:ExceptionCodes:IdentityUser:003": "E-posta adresiniz doğrulanmamıştır.",
     "Unseal:ExceptionCodes:IdentityUser:004": "Mail adresi kullanımdadır.",
     "Unseal:ExceptionCodes:IdentityUser:005": "Mail adresi geçersizdir.",
+    "Unseal:ExceptionCodes:IdentityUser:006": "Kullanıcı adı kullanımdadır.",
 
     "Unseal:ExceptionCodes:IdentityRole:001": "Rol bulunamadı.",
     "Unseal:ExceptionCodes:IdentityRole:002": "Rol zaten mevcut.",
@@ -84,6 +85,7 @@
     //Validations
     
     "Validation:RegisterDto:EmailIsRequired":"Mail alanı zorunludur.",
+    "Validation:RegisterDto:UsernameIsRequired":"Kullanıcı adı zorunludur.",
     "Validation:RegisterDto:InvalidEmailFormat":"Geçersiz mail formatı !",
     "Validation:RegisterDto:PasswordIsRequired":"Şifre alanı zorunludur.",
     "Validation:RegisterDto:InvalidPasswordFormat":"Şifre formatı yanlış. Lütfen en az 8 karakter ve en az 1 tane büyük harf, özel karakter ve sayı girdiğinizden emin olun.",

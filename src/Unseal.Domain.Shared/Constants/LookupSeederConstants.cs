@@ -52,6 +52,11 @@ public static class LookupSeederConstants
             "5d5650d6-b2ce-42d1-9f00-a4eea225d81e",
             nameof(UserActivation),
             (int)(NotificationEventTypes.UserActivation));
+        
+        public static readonly NotificationEventTypeInfo PasswordReset = new(
+            "00eb1757-1089-4094-ae49-cd23f1f58856",
+            nameof(PasswordReset),
+            (int)(NotificationEventTypes.PasswordReset));
     }
     
     public class NotificationEventTypeInfo
