@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ public class UserViewTrackingEventHandler :
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     public UserViewTrackingEventHandler(
-        IUnitOfWorkManager unitOfWorkManager, 
+        IUnitOfWorkManager unitOfWorkManager,
         IUserViewTrackingManager userViewTrackingManager,
         IUserViewTrackingRepository userViewTrackingRepository,
         IEsUserViewTrackingRepository esUserViewTrackingRepository)
@@ -37,21 +38,30 @@ public class UserViewTrackingEventHandler :
     {
         using (var uow = _unitOfWorkManager.Begin(requiresNew: true, isTransactional: true))
         {
+            var externalIds = eventData.ExternalIds;
 
-            var capsuleIds = eventData.ExternalIds;
-            var alreadyViewedCapsuleIds = (await _userViewTrackingManager.TryGetQueryableAsync(q => q
-                    .Where(x => x.UserId.Equals(eventData.UserId) && capsuleIds.Contains(x.ExternalId))))?
-                .Select(x => x.ExternalId)
-                .ToHashSet();
+            if (eventData.UserViewTrackingTypeId ==
+                Guid.Parse(LookupSeederConstants.UserViewTrackingTypesConstants.Capsule.Id))
+            {
+                var alreadyViewedCapsuleIds = (await _userViewTrackingManager.TryGetQueryableAsync(q => q
+                        .Where(x =>
+                            x.UserId.Equals(eventData.UserId) &&
+                            externalIds.Contains(x.ExternalId) &&
+                            x.UserViewTrackingTypeId ==
+                            Guid.Parse(LookupSeederConstants.UserViewTrackingTypesConstants.Capsule.Id)),
+                        asNoTracking:true))?
+                    .Select(x => x.ExternalId)
+                    .ToHashSet();
 
-            capsuleIds = capsuleIds
-                .WhereIf(!alreadyViewedCapsuleIds.IsNullOrEmpty(),
-                    x => !alreadyViewedCapsuleIds!.Contains(x))
-                .ToList();
+                externalIds = externalIds
+                    .WhereIf(!alreadyViewedCapsuleIds.IsNullOrEmpty(),
+                        x => !alreadyViewedCapsuleIds!.Contains(x))
+                    .ToList();
+            }
 
             var userViewTrackings = _userViewTrackingManager
                 .Create(
-                    capsuleIds, 
+                    externalIds,
                     eventData.UserViewTrackingTypeId,
                     eventData.UserId
                 );

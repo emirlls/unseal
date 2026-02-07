@@ -113,6 +113,9 @@
 
     "Validation:UserProfileUpdateDto:IsLockedIsRequired":"Account privacy is required.",
     "Validation:UserProfileUpdateDto:AllowJoinGroupIsRequired":"Allow join to groups is required.",
+    
+    "Validation:MarkAsViewedDto:TypeIsRequired":"View tracking type field is required.",
+    "Validation:MarkAsViewedDto:ExternalIsRequired":"Viewed objects field is required.",
 
     //Permissions
 

@@ -70,4 +70,9 @@ public interface IUserAppService : IApplicationService
         UserProfileFilters filters,
         CancellationToken cancellationToken = default
     );
+
+    Task<bool> MarkAsViewedAsync(
+        MarkAsViewedDto markAsViewedDto, 
+        CancellationToken cancellationToken = default
+    );
 }

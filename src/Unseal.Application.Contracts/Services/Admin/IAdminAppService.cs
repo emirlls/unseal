@@ -10,7 +10,7 @@ namespace Unseal.Services.Admin;
 
 public interface IAdminAppService : IApplicationService
 {
-    Task<List<PermissionGroupDto>>? GetPermissionListAsync(
+    Task<List<PermissionGroupDto>?>? GetPermissionListAsync(
         CancellationToken cancellationToken = default
     );
     

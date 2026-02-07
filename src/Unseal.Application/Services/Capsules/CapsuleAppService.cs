@@ -13,7 +13,6 @@ using Unseal.Dtos.Capsules;
 using Unseal.Entities.Capsules;
 using Unseal.Entities.Users;
 using Unseal.Enums;
-using Unseal.Etos;
 using Unseal.Extensions;
 using Unseal.Filtering.Capsules;
 using Unseal.Interfaces.Managers.Capsules;
@@ -98,6 +97,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
             .TryGetQueryableAsync(x => x
                     .Include(c => c.User)
                     .Where(c => c.UserId.Equals(CurrentUser.GetId())),
+                asNoTracking : true,
                 cancellationToken: cancellationToken
             ))!.FirstOrDefault();
 
@@ -163,6 +163,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
                 .TryGetQueryableAsync(x =>
                         x.Where(c =>
                             c.TargetUserId.Equals(CurrentUser.Id) && c.IsBlocked),
+                    asNoTracking : true,
                     cancellationToken: cancellationToken);
             var capsuleCreators =
                 usersBlockedCurrentUser != null && usersBlockedCurrentUser.Any()
@@ -373,6 +374,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         var usersBlockedCurrentUser = await UserInteractionManager
             .TryGetQueryableAsync(x => x
                     .Where(c => c.TargetUserId.Equals(currentUserId) && c.IsBlocked),
+                asNoTracking : true,
                 cancellationToken: cancellationToken);
 
         var blockedCreatorIds = usersBlockedCurrentUser?
@@ -383,6 +385,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
                 .Include(x => x.UserViewTrackingType)
                 .Where(x => x.UserId == currentUserId &&
                             x.UserViewTrackingType.Code == (int)UserViewTrackingTypes.Capsule),
+            asNoTracking : true,
             cancellationToken: cancellationToken
         );
 
@@ -395,6 +398,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         var currentUserLikesQueryable = await CapsuleLikeManager
             .TryGetQueryableAsync(q => q
                     .Where(x => x.UserId == currentUserId),
+                asNoTracking : true,
                 cancellationToken: cancellationToken
             );
 
@@ -408,6 +412,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
 
         var likedOtherUsersQuery = await CapsuleLikeManager.TryGetQueryableAsync(
             q => q.Where(x => currentUserLikedIds.Contains(x.CapsuleId) && x.UserId != currentUserId),
+            asNoTracking : true,
             cancellationToken: cancellationToken);
 
         var likedOtherUserIds = likedOtherUsersQuery != null
@@ -494,28 +499,6 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
             Items = dtos,
             TotalCount = count
         };
-    }
-
-    public async Task<bool> MarkAsViewedAsync(
-        List<Guid> capsuleIds,
-        Guid? userViewTrackingTypeId, 
-        CancellationToken cancellationToken = default
-    )
-    {
-        await CapsuleManager
-            .ExistsAsync(x => !capsuleIds.Contains(x.Id),
-                throwIfNotExists: true,
-                cancellationToken);
-
-        var userViewTrackingEto = new UserViewTrackingEto
-        {
-            UserId = CurrentUser.GetId(),
-            UserViewTrackingTypeId = userViewTrackingTypeId,
-            ExternalIds = capsuleIds
-        };
-        await DistributedEventBus.PublishAsync(userViewTrackingEto);
-
-        return true;
     }
 
     public async Task<bool> DeleteAsync(

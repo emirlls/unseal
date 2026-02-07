@@ -474,7 +474,7 @@ public class UserAppService : UnsealAppService, IUserAppService
 
         var count = await UserProfileRepository
             .GetDynamicListCountAsync(
-                new UserProfileFilters(),
+                filters,
                 q => q
                     .Where(x => viewedUserIds.Contains(x.Id)),
                 cancellationToken: cancellationToken
@@ -500,6 +500,22 @@ public class UserAppService : UnsealAppService, IUserAppService
             TotalCount = count
         };
         return response;
+    }
+
+    public async Task<bool> MarkAsViewedAsync(
+        MarkAsViewedDto markAsViewedDto,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var userViewTrackingEto = new UserViewTrackingEto
+        {
+            UserId = CurrentUser.GetId(),
+            UserViewTrackingTypeId = markAsViewedDto.UserViewTrackingTypeId,
+            ExternalIds = markAsViewedDto.ExternalIds
+        };
+        await DistributedEventBus.PublishAsync(userViewTrackingEto);
+
+        return true;
     }
 
     private async Task UpdateUserFollowStatusAsync(

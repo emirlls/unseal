@@ -83,6 +83,22 @@ public class UserController : UnsealController
     ) => await UserAppService.UnBlockAsync(userId, cancellationToken);
 
     /// <summary>
+    /// Used to mark capsules as viewed.
+    /// </summary>
+    /// <param name="markAsViewedDto"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("mark-as-viewed")]
+    [Authorize(UserPermissions.Default)]
+    public async Task<bool> MarkAsViewedAsync(
+        MarkAsViewedDto markAsViewedDto,
+        CancellationToken cancellationToken = default
+    ) => await UserAppService.MarkAsViewedAsync(
+        markAsViewedDto,
+        cancellationToken
+    );
+    
+    /// <summary>
     /// Use to accept follow request.
     /// </summary>
     /// <param name="userId"></param>
@@ -172,6 +188,7 @@ public class UserController : UnsealController
 
     /// <summary>
     /// Use to users list that viewed profile api.
+    /// Data from a maximum of 30 days is displayed.
     /// </summary>
     /// <param name="filters"></param>
     /// <param name="cancellationToken"></param>
