@@ -62,6 +62,7 @@ public class ServerSentEventAppService : UnsealAppService, IServerSentEventAppSe
                     .TryGetQueryableAsync(q => q
                             .Where(v => v.UserId == currentUserId)
                             .OrderByDescending(v => v.CreationTime),
+                        asNoTracking : true,
                         cancellationToken: cancellationToken
                     );
 
@@ -81,6 +82,7 @@ public class ServerSentEventAppService : UnsealAppService, IServerSentEventAppSe
                         .Include(x => x.CapsuleItems)
                         .Where(x => x.CreationTime > referenceDate && x.CapsuleType.Code == (int)CapsuleTypes.Public &&
                                     (bool)x.IsOpened!),
+                    asNoTracking : true,
                     cancellationToken: cancellationToken);
 
                 if (!missedCapsules.IsNullOrEmpty())

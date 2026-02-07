@@ -23,16 +23,20 @@ public class UserViewTrackingManager : BaseDomainService<UserViewTracking>, IUse
     {
     }
 
-    public List<UserViewTracking> Create(List<Guid> capsuleIds, Guid userId)
+    public List<UserViewTracking> Create(
+        List<Guid> externalIds, 
+        Guid? userViewTrackingTypeId,
+        Guid userId)
     {
         var entities = new List<UserViewTracking>();
         var dateTimeNow = DateTime.Now;
-        foreach (var capsuleId in capsuleIds)
+        foreach (var externalId in externalIds)
         {
             var entity = new UserViewTracking(
                 GuidGenerator.Create(),
                 userId,
-                capsuleId,
+                externalId,
+                userViewTrackingTypeId,
                 dateTimeNow
             );
             entities.Add(entity);

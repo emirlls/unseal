@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Unseal.Dtos.Capsules;
@@ -52,11 +51,6 @@ public interface ICapsuleAppService : IApplicationService
 
     Task<PagedResultDto<CapsuleDto>> GetExploreFeedAsync(
         CapsuleFilters capsuleFilters,
-        CancellationToken cancellationToken = default
-    );
-
-    Task<bool> MarkAsViewedAsync(
-        List<Guid> capsuleIds, 
         CancellationToken cancellationToken = default
     );
 

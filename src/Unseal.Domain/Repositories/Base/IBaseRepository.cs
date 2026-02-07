@@ -76,6 +76,7 @@ public interface IBaseRepository<TEntity> : IRepository<TEntity>, ITransientDepe
     
     Task<long> GetDynamicListCountAsync<TFilters>(
         TFilters? filters,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>>? queryBuilder, 
         bool useCache = false,
         CancellationToken cancellationToken = default)
         where TFilters : DynamicFilterRequest;

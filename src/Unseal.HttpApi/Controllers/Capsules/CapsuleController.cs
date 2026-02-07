@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -41,22 +40,6 @@ public class CapsuleController : UnsealController
         CancellationToken cancellationToken = default
     ) => await CapsuleAppService
         .CreateAsync(capsuleCreateDto, cancellationToken);
-
-    /// <summary>
-    /// Used to mark capsules as viewed.
-    /// </summary>
-    /// <param name="capsuleIds"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpPost("mark-as-viewed")]
-    [Authorize(CapsulePermissions.Default)]
-    public async Task<bool> MarkAsViewedAsync(
-        List<Guid> capsuleIds,
-        CancellationToken cancellationToken = default
-    ) => await CapsuleAppService.MarkAsViewedAsync(
-        capsuleIds,
-        cancellationToken
-    );
     
     /// <summary>
     /// Use to paged capsule list.

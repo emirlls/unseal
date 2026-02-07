@@ -89,7 +89,7 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
     )
     {
         var query = await GetQueryableAsync();
-        query = queryBuilder(query);        
+        query = queryBuilder(query);
         if (asNoTracking)
         {
             query = query
@@ -106,7 +106,7 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
     )
     {
         var query = await GetQueryableAsync();
-        query = queryBuilder(query);        
+        query = queryBuilder(query);
         if (asNoTracking)
         {
             query = query
@@ -149,7 +149,6 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
         var dbContext = await GetDbContextAsync();
         await dbContext.Set<TEntity>().AddRangeAsync(entities, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
-        
     }
 
     public async Task BulkUpdateAsync(
@@ -178,31 +177,31 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
 
     public async Task<List<TEntity>> GetDynamicListAsync<TFilters>(
         TFilters? filters,
-        Func<IQueryable<TEntity>, IQueryable<TEntity>>? queryBuilder, 
+        Func<IQueryable<TEntity>, IQueryable<TEntity>>? queryBuilder,
         bool asNoTracking = false,
         CancellationToken cancellationToken = default
-
     ) where TFilters : DynamicFilterRequest
     {
         var dbSet = await GetDbSetAsync();
         var query = dbSet.AsQueryable();
-        
+
         if (queryBuilder != null)
         {
             query = queryBuilder(query);
         }
-        
+
         query = query.ApplyDynamicFilters(filters);
-        
+
         if (asNoTracking)
         {
             query = query.AsNoTracking();
         }
+
         query = SortStrategyExecutor.ApplySorting<TEntity, TFilters>(query, filters?.Sorting);
 
         var currentUser = ServiceProvider.GetRequiredService<ICurrentUser>();
         var distributedCache = ServiceProvider.GetRequiredService<IDistributedCache>();
-    
+
         var cacheCountKey = CacheExtension.GenerateCacheKeyToCount(
             CultureInfo.CurrentCulture,
             currentUser.Id,
@@ -210,7 +209,7 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
         );
 
         var count = await query.CountAsync(cancellationToken);
-    
+
         await distributedCache.SetStringAsync(
             cacheCountKey,
             count.ToString(),
@@ -231,13 +230,19 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
 
     public async Task<long> GetDynamicListCountAsync<TFilters>(
         TFilters? filters,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>>? queryBuilder,
         bool useCache = false,
         CancellationToken cancellationToken = default
-
     ) where TFilters : DynamicFilterRequest
     {
         var dbSet = await GetDbSetAsync();
         var currentUser = ServiceProvider.GetRequiredService<ICurrentUser>();
+        var query = dbSet.AsQueryable();
+
+        if (queryBuilder != null)
+        {
+            query = queryBuilder(query);
+        }
 
         if (useCache)
         {
@@ -254,9 +259,8 @@ public class EfBaseRepository<TEntity> : EfCoreRepository<UnsealDbContext, TEnti
             if (cacheCount == null) return -1;
             return Convert.ToInt32(cacheCount);
         }
-        var query = dbSet
-            .AsQueryable()
-            .ApplyDynamicFilters(filters);
+
+        query = query.ApplyDynamicFilters(filters);
         query = SortStrategyExecutor.ApplySorting<TEntity, TFilters>(query, filters?.Sorting);
         var count = await query.CountAsync(cancellationToken);
         return count;

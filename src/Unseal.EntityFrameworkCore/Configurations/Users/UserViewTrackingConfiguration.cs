@@ -13,5 +13,15 @@ public class UserViewTrackingConfiguration : IEntityTypeConfiguration<UserViewTr
     {
         builder.ToTable(builder.GetTableName(),DatabaseConstants.SchemaName);
         builder.ConfigureByConvention();
+        
+        builder.HasOne(x=>x.UserViewTrackingType)
+            .WithMany(x=>x.UserViewTrackings)
+            .HasForeignKey(x=>x.UserViewTrackingTypeId)
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired(false);
+
+        builder
+            .Property(x => x.UserViewTrackingTypeId)
+            .IsRequired(false);
     }
 }

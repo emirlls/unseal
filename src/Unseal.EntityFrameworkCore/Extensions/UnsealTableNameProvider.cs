@@ -45,7 +45,8 @@ public static class UnsealTableNameProvider
         {nameof(CapsuleComment),"CapsuleComments"},
         {nameof(CapsuleMapFeature),"CapsuleMapFeatures"},
         {nameof(ChatMessage),"ChatMessages"},
-        {nameof(ChatType),"ChatTypes"}
+        {nameof(ChatType),"ChatTypes"},
+        {nameof(UserViewTrackingType),"UserViewTrackingTypes"},
     };
     
     public static void SetAbpTablePrefix(this ModelBuilder builder)

@@ -52,7 +52,6 @@ public class AdminAppService : ApplicationService, IAdminAppService
     private readonly IStringLocalizerFactory _stringLocalizerFactory;
     private readonly IDataFilter<IMultiTenant> _dataFilter;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
-
     public AdminAppService(
         IStringLocalizerFactory stringLocalizerFactory,
         IDataFilter<IMultiTenant> dataFilter,
@@ -64,16 +63,16 @@ public class AdminAppService : ApplicationService, IAdminAppService
         _unitOfWorkManager = unitOfWorkManager;
     }
 
-    public async Task<List<PermissionGroupDto>>? GetPermissionListAsync(CancellationToken cancellationToken = default)
+    public async Task<List<PermissionGroupDto>?> GetPermissionListAsync(CancellationToken cancellationToken = default)
     {
         var permissionGroups = (await PermissionDefinitionManager
                 .GetGroupsAsync())
             .ToList();
-        var response = await GetPermissionGroupDtoListAsync(permissionGroups);
+        var response = await GetPermissionGroupDtoListAsync(permissionGroups, null);
         return response;
     }
 
-    public async Task<List<PermissionGroupDto>>? GetRolePermissionListAsync(
+    public async Task<List<PermissionGroupDto>> GetRolePermissionListAsync(
         Guid roleId,
         CancellationToken cancellationToken = default
     )
@@ -81,18 +80,18 @@ public class AdminAppService : ApplicationService, IAdminAppService
         using (_dataFilter.Disable())
         {
             var rolePermissionNames = (await PermissionGrantRepository.GetListAsync(
-                    providerKey: RolePermissionValueProvider.ProviderName,
-                    providerName: roleId.ToString(),
+                    providerName: RolePermissionValueProvider.ProviderName,
+                    providerKey: roleId.ToString(),
                     cancellationToken: cancellationToken
                 ))
                 .Select(x => x.Name)
                 .ToHashSet();
 
-            var rolePermissionGroups = (await PermissionDefinitionManager.GetGroupsAsync())
-                .Where(x => rolePermissionNames.Contains(x.Name))
+            var allPermissionGroups = (await PermissionDefinitionManager.GetGroupsAsync())
                 .ToList();
 
-            var response = await GetPermissionGroupDtoListAsync(rolePermissionGroups)!;
+            var response = await GetPermissionGroupDtoListAsync(allPermissionGroups, rolePermissionNames);
+    
             return response;
         }
     }
@@ -120,31 +119,31 @@ public class AdminAppService : ApplicationService, IAdminAppService
         }
     }
 
-    private async Task<List<PermissionGroupDto>>? GetPermissionGroupDtoListAsync(
-        List<PermissionGroupDefinition> permissionGroupDefinitions
+    private async Task<List<PermissionGroupDto>> GetPermissionGroupDtoListAsync(
+        List<PermissionGroupDefinition> permissionGroupDefinitions,
+        HashSet<string>? rolePermissionNames
     )
     {
         var permissionGroupDtos = new List<PermissionGroupDto>();
+        if (permissionGroupDefinitions.IsNullOrEmpty()) return permissionGroupDtos;
 
-        foreach (var permissionGroup in permissionGroupDefinitions)
+        foreach (var group in permissionGroupDefinitions)
         {
-            var permissionDtos = new List<PermissionDto>();
-            foreach (var permission in permissionGroup.Permissions)
-            {
-                var permissionDto = new PermissionDto
+            var filteredPermissionDtos = group.GetPermissionsWithChildren() 
+                .WhereIf(!rolePermissionNames.IsNullOrEmpty(),
+                    p => rolePermissionNames!.Contains(p.Name))
+                .Select(p => new PermissionDto
                 {
-                    Name = permission.Name,
-                    LocalizedName = StringLocalizer[permission.DisplayName.Localize(_stringLocalizerFactory)]
-                };
-                permissionDtos.Add(permissionDto);
-            }
+                    Name = p.Name,
+                    LocalizedName = p.DisplayName.Localize(_stringLocalizerFactory)
+                })
+                .ToList();
 
-            var permissionGroupDto = new PermissionGroupDto
+            permissionGroupDtos.Add(new PermissionGroupDto
             {
-                Name = permissionGroup.Name,
-                Permissions = permissionDtos
-            };
-            permissionGroupDtos.Add(permissionGroupDto);
+                Name = group.Name,
+                Permissions = filteredPermissionDtos
+            });
         }
 
         return permissionGroupDtos;
@@ -182,10 +181,9 @@ public class AdminAppService : ApplicationService, IAdminAppService
 
             foreach (var newPermission in addedPermissions)
             {
-                await PermissionManager.SetAsync(
-                    newPermission,
-                    RolePermissionValueProvider.ProviderName,
-                    role.Id.ToString(),
+                await PermissionManager.SetForRoleAsync(
+                    roleName: role.Id.ToString(),
+                    permissionName: newPermission,
                     isGranted: true
                 );
             }

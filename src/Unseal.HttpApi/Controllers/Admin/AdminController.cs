@@ -22,6 +22,7 @@ public class AdminController : UnsealController
         LazyServiceProvider.LazyGetRequiredService<IAdminAppService>();
     private IDashboardAppService DashboardAppService =>
         LazyServiceProvider.LazyGetRequiredService<IDashboardAppService>();
+    
     /// <summary>
     /// Use to role list.
     /// </summary>

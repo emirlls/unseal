@@ -113,6 +113,9 @@
     
     "Validation:UserProfileUpdateDto:IsLockedIsRequired":"Hesap gizlilik durumu zorunludur.",
     "Validation:UserProfileUpdateDto:AllowJoinGroupIsRequired":"Gruplara eklenme izni zorunludur.",
+
+    "Validation:MarkAsViewedDto:TypeIsRequired":"Görüntüleme tipi zorunludur.",
+    "Validation:MarkAsViewedDto:ExternalIsRequired":"Görüntülenen hedefler alanı zorunludur.",
     
     //Permissions
     
