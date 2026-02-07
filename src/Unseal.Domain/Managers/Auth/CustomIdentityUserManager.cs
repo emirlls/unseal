@@ -12,25 +12,21 @@ namespace Unseal.Managers.Auth;
 
 public class CustomIdentityUserManager : BaseDomainService<IdentityUser>, ICustomIdentityUserManager
 {
-    private readonly IdentityUserManager _identityUserManager;
     public CustomIdentityUserManager(
         IBaseRepository<IdentityUser> baseRepository,
-        IStringLocalizer<UnsealResource> stringLocalizer, 
-        IdentityUserManager identityUserManager
-    ) : 
+        IStringLocalizer<UnsealResource> stringLocalizer
+    ) :
         base(baseRepository,
             stringLocalizer,
             ExceptionCodes.IdentityUser.NotFound,
             ExceptionCodes.IdentityUser.AlreadyExists
         )
     {
-        _identityUserManager = identityUserManager;
     }
 
     public async Task<IdentityUser> Create(Guid id, Guid? tenantId, RegisterModel model)
     {
-        var userName = await _identityUserManager.GetUserNameFromEmailAsync(model.Email);
-        var user = new IdentityUser(id, userName ,model.Email,tenantId)
+        var user = new IdentityUser(id, model.Username, model.Email, tenantId)
         {
             Name = model.FirstName,
             Surname = model.LastName

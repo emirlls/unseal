@@ -63,59 +63,71 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default
     )
     {
-        await CheckMailInUseAsync(dto.Email);
-        var model = AuthMapper.MapToDto(dto);
-        var user = await CustomIdentityUserManager.Create(
-            GuidGenerator.Create(),
-            Guid.Parse(TenantConstants.TenantId),
-            model
-        );
-        var result = await IdentityUserManager.CreateAsync(user, model.Password);
-        result.CheckErrors();
         using (_dataFilter.Disable())
         {
-            await IdentityUserManager.AddDefaultRolesAsync(user);
+            await CheckUsernameInUseAsync(dto.Username);
+            await CheckMailInUseAsync(dto.Email);
+            var model = AuthMapper.MapToDto(dto);
+            var user = await CustomIdentityUserManager.Create(
+                GuidGenerator.Create(),
+                Guid.Parse(TenantConstants.TenantId),
+                model
+            );
+            var result = await IdentityUserManager.CreateAsync(user, model.Password);
+            result.CheckErrors();
+            using (_dataFilter.Disable())
+            {
+                await IdentityUserManager.AddDefaultRolesAsync(user);
+            }
+
+            var mailConfirmationToken = await IdentityUserManager
+                .GenerateEmailConfirmationTokenAsync(user);
+            var encodedToken =
+                WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(mailConfirmationToken));
+            var userRegisterEto = new UserRegisterEto
+            {
+                UserId = user.Id,
+                Name = user.Name,
+                Surname = user.Surname,
+                Email = user.Email,
+                ConfirmationToken = encodedToken
+            };
+            var userElasticEto = new UserElasticEto
+            {
+                UserId = user.Id,
+                UserName = user.UserName,
+                Name = user.Name,
+                Surname = user.Surname,
+                ProfilePictureUrl = null,
+                BlockedUserId = null,
+                UserElasticQueryTpe = (int)UserElasticQueryTypes.Create
+            };
+            var userProfileEto = new UserProfileEto()
+            {
+                UserId = user.Id,
+            };
+            await DistributedEventBus.PublishAsync(userRegisterEto);
+            await DistributedEventBus.PublishAsync(userElasticEto);
+            await DistributedEventBus.PublishAsync(userProfileEto);
+
+            return result.Succeeded;
         }
-
-        var mailConfirmationToken = await IdentityUserManager
-            .GenerateEmailConfirmationTokenAsync(user);
-        var encodedToken =
-            WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(mailConfirmationToken));
-        var userRegisterEto = new UserRegisterEto
-        {
-            UserId = user.Id,
-            Name = user.Name,
-            Surname = user.Surname,
-            Email = user.Email,
-            ConfirmationToken = encodedToken
-        };
-        var userElasticEto = new UserElasticEto
-        {
-            UserId = user.Id,
-            UserName = user.UserName,
-            Name = user.Name,
-            Surname = user.Surname,
-            ProfilePictureUrl = null,
-            BlockedUserId = null,
-            UserElasticQueryTpe = (int)UserElasticQueryTypes.Create
-        };
-        var userProfileEto = new UserProfileEto()
-        {
-            UserId = user.Id,
-        };
-        await DistributedEventBus.PublishAsync(userRegisterEto);
-        await DistributedEventBus.PublishAsync(userElasticEto);
-        await DistributedEventBus.PublishAsync(userProfileEto);
-
-        return result.Succeeded;
     }
 
+    private async Task CheckUsernameInUseAsync(string username)
+    {
+        var existingUser = await IdentityUserManager.FindByNameAsync(username);
+        if (existingUser is not null)
+        {
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.UsernameInUsed]);
+        }
+    }
     private async Task CheckMailInUseAsync(string email)
     {
         var existingUser = await IdentityUserManager.FindByEmailAsync(email);
         if (existingUser is not null)
         {
-            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.MailInUser]);
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.MailInUsed]);
         }
     }
 

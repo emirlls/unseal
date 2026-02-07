@@ -12,6 +12,7 @@
     "Unseal:ExceptionCodes:IdentityUser:003": "Your email address has not been confirmed.",
     "Unseal:ExceptionCodes:IdentityUser:004": "This mail address is in use.",
     "Unseal:ExceptionCodes:IdentityUser:005": "This mail address is invalid.",
+    "Unseal:ExceptionCodes:IdentityUser:006": "Username is in use.",
     
     "Unseal:ExceptionCodes:IdentityRole:001": "Role not found.",
     "Unseal:ExceptionCodes:IdentityRole:002": "Role already exists.",
@@ -84,6 +85,7 @@
     //Validations
 
     "Validation:RegisterDto:EmailIsRequired":"Mail is required.",
+    "Validation:RegisterDto:UsernameIsRequired":"Username is required.",
     "Validation:RegisterDto:InvalidEmailFormat":"Invalid mail format !",
     "Validation:RegisterDto:PasswordIsRequired":"Password is required.",
     "Validation:RegisterDto:InvalidPasswordFormat":"Invalid password format ! Please ensure you enter at least 8 characters and at least one uppercase letter, special character, and number.",

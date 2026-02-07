@@ -21,6 +21,11 @@ public class RegisterDtoValidator : AbstractValidator<RegisterDto>
             .Matches(RegexConstants.MailRegexFormat)
             .WithMessage(_stringLocalizer[ValidationErrorCodes.Auth.RegisterDto.InvalidEmailFormat]);
 
+        RuleFor(dto => dto.Username)
+            .NotEmpty()
+            .NotNull()
+            .WithMessage(_stringLocalizer[ValidationErrorCodes.Auth.RegisterDto.UsernameIsRequired]);
+
         RuleFor(dto => dto.Password)
             .NotEmpty()
             .NotNull()

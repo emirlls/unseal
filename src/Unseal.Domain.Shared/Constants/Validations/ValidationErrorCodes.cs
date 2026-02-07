@@ -11,6 +11,7 @@ public static class ValidationErrorCodes
             {
                 private const string Prefix = $"{ValidationPrefix}{nameof(RegisterDto)}:"; 
                 public const string EmailIsRequired = $"{Prefix}{nameof(EmailIsRequired)}";
+                public const string UsernameIsRequired = $"{Prefix}{nameof(UsernameIsRequired)}";
                 public const string InvalidEmailFormat = $"{Prefix}{nameof(InvalidEmailFormat)}";
                 public const string PasswordIsRequired = $"{Prefix}{nameof(PasswordIsRequired)}";
                 public const string InvalidPasswordFormat = $"{Prefix}{nameof(InvalidPasswordFormat)}";
