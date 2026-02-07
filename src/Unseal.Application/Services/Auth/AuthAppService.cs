@@ -330,6 +330,37 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         return true;
     }
 
+    public async Task<bool> SendPasswordResetCodeAsync(
+        string email,
+        CancellationToken cancellationToken = default
+
+    )
+    {
+        using (_dataFilter.Disable())
+        {
+            var user = await CustomIdentityUserManager.TryGetByAsync(
+                x => x.Email == email,
+                true,
+                cancellationToken: cancellationToken
+            );
+            
+            var resetToken = await IdentityUserManager.GeneratePasswordResetTokenAsync(user);
+            
+            var encodedToken =
+                WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetToken));
+            var passwordResetEto = new PasswordResetEto
+            {
+                UserId = user.Id,
+                Name = user.Name,
+                Surname = user.Surname,
+                Email = user.Email,
+                ConfirmationToken = encodedToken
+            };
+            await DistributedEventBus.PublishAsync(passwordResetEto);
+            return true;
+        }
+    }
+
     public async Task<bool> LogoutAsync(
         string refreshToken,
         CancellationToken cancellationToken = default
@@ -412,6 +443,26 @@ public class AuthAppService : UnsealAppService, IAuthAppService
                 cancellationToken: cancellationToken);
             user.SetIsActive(true);
             var result = await IdentityUserManager.UpdateAsync(user);
+            result.CheckErrors();
+            return result.Succeeded;
+        }
+    }
+
+    public async Task<bool> ConfirmPasswordResetAsync(
+        Guid userId,
+        string newPassword, 
+        string token,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using (_dataFilter.Disable())
+        {
+            var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                    x.Id.Equals(userId),
+                true,
+                cancellationToken: cancellationToken);
+            var decodedToken = WebUtility.UrlDecode(token);
+            var result = await IdentityUserManager.ResetPasswordAsync(user, decodedToken, newPassword);
             result.CheckErrors();
             return result.Succeeded;
         }

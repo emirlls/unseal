@@ -132,7 +132,27 @@ public class AuthController : UnsealController
         cancellationToken
     );
 
-
+    /// <summary>
+    /// Used to confirm password reset.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="newPassword"></param>
+    /// <param name="token"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet(ApiConstants.Auth.ConfirmPasswordReset)]
+    [AllowAnonymous]
+    public async Task<bool> ConfirmPasswordResetAsync(
+        Guid userId,
+        string newPassword,
+        string token,
+        CancellationToken cancellationToken = default
+    ) => await AuthAppService.ConfirmPasswordResetAsync(
+        userId,
+        newPassword,
+        token,
+        cancellationToken
+    );
     /// <summary>
     /// Use to change password.
     /// </summary>
