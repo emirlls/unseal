@@ -6,6 +6,8 @@ using Volo.Abp.Identity;
 using Volo.Abp.Modularity;
 using Volo.Abp.MultiTenancy;
 using Volo.Abp.OpenIddict;
+using Volo.Abp.PermissionManagement;
+using Volo.Abp.PermissionManagement.Identity;
 
 namespace Unseal;
 
@@ -13,7 +15,9 @@ namespace Unseal;
     typeof(AbpDddDomainModule),
     typeof(AbpIdentityDomainModule),
     typeof(UnsealDomainSharedModule),
-    typeof(AbpOpenIddictDomainModule)
+    typeof(AbpOpenIddictDomainModule),
+    typeof(AbpPermissionManagementDomainModule),
+    typeof(AbpPermissionManagementDomainIdentityModule)
 )]
 public class UnsealDomainModule : AbpModule
 {

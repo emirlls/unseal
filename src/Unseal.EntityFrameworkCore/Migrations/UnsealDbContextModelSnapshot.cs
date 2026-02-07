@@ -500,6 +500,41 @@ namespace Unseal.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Unseal.Entities.Lookups.UserViewTrackingType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Code")
+                        .HasColumnType("integer")
+                        .HasColumnName("code");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_user_view_tracking_types");
+
+                    b.ToTable("user_view_tracking_types", "unseal");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("0a08cad2-e210-43a7-99ce-513a752d422e"),
+                            Code = 0,
+                            Name = "Capsule"
+                        },
+                        new
+                        {
+                            Id = new Guid("4ac149d8-d61a-4efe-9a6c-81c6c0520fba"),
+                            Code = 1,
+                            Name = "UserProfile"
+                        });
+                });
+
             modelBuilder.Entity("Unseal.Entities.Messages.ChatMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -663,6 +698,12 @@ namespace Unseal.Migrations
                             Id = new Guid("5d5650d6-b2ce-42d1-9f00-a4eea225d81e"),
                             Code = 3,
                             Name = "UserActivation"
+                        },
+                        new
+                        {
+                            Id = new Guid("00eb1757-1089-4094-ae49-cd23f1f58856"),
+                            Code = 4,
+                            Name = "PasswordReset"
                         });
                 });
 
@@ -890,10 +931,6 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid>("CapsuleId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("capsule_id");
-
                     b.Property<DateTime>("CreationTime")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("creation_time");
@@ -901,6 +938,10 @@ namespace Unseal.Migrations
                     b.Property<Guid?>("CreatorId")
                         .HasColumnType("uuid")
                         .HasColumnName("creator_id");
+
+                    b.Property<Guid>("ExternalId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("external_id");
 
                     b.Property<DateTime?>("LastModificationTime")
                         .HasColumnType("timestamp without time zone")
@@ -914,8 +955,14 @@ namespace Unseal.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
+                    b.Property<Guid?>("UserViewTrackingTypeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_view_tracking_type_id");
+
                     b.HasKey("Id")
                         .HasName("p_k_user_view_trackings");
+
+                    b.HasIndex("UserViewTrackingTypeId");
 
                     b.ToTable("user_view_trackings", "unseal");
                 });
@@ -2742,6 +2789,17 @@ namespace Unseal.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Unseal.Entities.Users.UserViewTracking", b =>
+                {
+                    b.HasOne("Unseal.Entities.Lookups.UserViewTrackingType", "UserViewTrackingType")
+                        .WithMany("UserViewTrackings")
+                        .HasForeignKey("UserViewTrackingTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("f_k_user_view_trackings_user_view_tracking_types_user_view_trac~");
+
+                    b.Navigation("UserViewTrackingType");
+                });
+
             modelBuilder.Entity("Volo.Abp.Identity.IdentityRoleClaim", b =>
                 {
                     b.HasOne("Volo.Abp.Identity.IdentityRole", null)
@@ -2903,6 +2961,11 @@ namespace Unseal.Migrations
             modelBuilder.Entity("Unseal.Entities.Lookups.UserFollowStatus", b =>
                 {
                     b.Navigation("UserFollowers");
+                });
+
+            modelBuilder.Entity("Unseal.Entities.Lookups.UserViewTrackingType", b =>
+                {
+                    b.Navigation("UserViewTrackings");
                 });
 
             modelBuilder.Entity("Unseal.Entities.Notifications.NotificationEventType", b =>

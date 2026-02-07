@@ -56,6 +56,7 @@ public class UserInteractionManager : BaseDomainService<UserInteraction>, IUserI
         var response = new List<Guid>();
         var userInteractions = (await _baseRepository.TryGetQueryableAsync(q => q
                 .Where(x => x.TargetUserId.Equals(userId) && x.IsBlocked),
+            asNoTracking : true,
             cancellationToken: cancellationToken));
 
         if (userInteractions.Any() && userInteractions.Count() != 0)
@@ -76,6 +77,7 @@ public class UserInteractionManager : BaseDomainService<UserInteraction>, IUserI
         var response = new List<Guid>();
         var userInteractions = (await _baseRepository.TryGetQueryableAsync(q => q
                 .Where(x => x.SourceUserId.Equals(sourceUserId) && x.IsBlocked),
+            asNoTracking : true,
             cancellationToken: cancellationToken));
 
         if (userInteractions.Any() && userInteractions.Count() != 0)

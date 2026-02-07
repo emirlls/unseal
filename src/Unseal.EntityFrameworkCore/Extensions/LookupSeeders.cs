@@ -42,7 +42,11 @@ public static class LookupSeeders
             
             new NotificationEventType(Guid.Parse(LookupSeederConstants.NotificationEventTypesConstants.UserActivation.Id),
                 LookupSeederConstants.NotificationEventTypesConstants.UserActivation.Name,
-                LookupSeederConstants.NotificationEventTypesConstants.UserActivation.Code)
+                LookupSeederConstants.NotificationEventTypesConstants.UserActivation.Code),
+            
+            new NotificationEventType(Guid.Parse(LookupSeederConstants.NotificationEventTypesConstants.PasswordReset.Id),
+                LookupSeederConstants.NotificationEventTypesConstants.PasswordReset.Name,
+                LookupSeederConstants.NotificationEventTypesConstants.PasswordReset.Code)
         );
         #endregion
 
@@ -77,6 +81,20 @@ public static class LookupSeeders
                 LookupSeederConstants.UserFollowStatusesConstants.Rejected.Code)
         );
 
+        #endregion
+
+        #region UserViewTrackingTypes
+        builder.Entity<UserViewTrackingType>().HasData(
+            new UserViewTrackingType(
+                Guid.Parse(LookupSeederConstants.UserViewTrackingTypesConstants.Capsule.Id),
+                LookupSeederConstants.UserViewTrackingTypesConstants.Capsule.Name,
+                LookupSeederConstants.UserViewTrackingTypesConstants.Capsule.Code),
+
+            new UserViewTrackingType(Guid.Parse(LookupSeederConstants.UserViewTrackingTypesConstants.UserProfile.Id),
+                LookupSeederConstants.UserViewTrackingTypesConstants.UserProfile.Name,
+                LookupSeederConstants.UserViewTrackingTypesConstants.UserProfile.Code)
+
+        );
         #endregion
     }
 }

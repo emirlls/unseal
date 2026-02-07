@@ -50,7 +50,7 @@ public class ServerSentEventAppService : UnsealAppService, IServerSentEventAppSe
         var channel = Channel.CreateUnbounded<string>();
         var currentUserId = CurrentUser.GetId();
         await subscriber.SubscribeAsync(
-            EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdates,
+            EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdateChannel,
             (redisChannel, message) => channel.Writer.TryWrite(message.ToString())
         );
 
@@ -62,6 +62,7 @@ public class ServerSentEventAppService : UnsealAppService, IServerSentEventAppSe
                     .TryGetQueryableAsync(q => q
                             .Where(v => v.UserId == currentUserId)
                             .OrderByDescending(v => v.CreationTime),
+                        asNoTracking : true,
                         cancellationToken: cancellationToken
                     );
 
@@ -81,6 +82,7 @@ public class ServerSentEventAppService : UnsealAppService, IServerSentEventAppSe
                         .Include(x => x.CapsuleItems)
                         .Where(x => x.CreationTime > referenceDate && x.CapsuleType.Code == (int)CapsuleTypes.Public &&
                                     (bool)x.IsOpened!),
+                    asNoTracking : true,
                     cancellationToken: cancellationToken);
 
                 if (!missedCapsules.IsNullOrEmpty())
@@ -141,7 +143,41 @@ public class ServerSentEventAppService : UnsealAppService, IServerSentEventAppSe
         {
             channel.Writer.TryComplete();
             await subscriber
-                .UnsubscribeAsync(EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdates);
+                .UnsubscribeAsync(EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdateChannel);
+        }
+    }
+
+    public async IAsyncEnumerable<SseItem<FollowRequestAcceptedEventModel>> GetFollowRequestAcceptStreamAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
+    {
+        var subscriber = _connectionMultiplexer.GetSubscriber();
+        var channel = Channel.CreateUnbounded<string>();
+        var currentUserId = CurrentUser.GetId();
+        await subscriber.SubscribeAsync(
+            EventConstants.ServerSentEvents.FollowRequestAccept.FollowRequestAcceptChannel,
+            (redisChannel, message) => channel.Writer.TryWrite(message.ToString())
+        );
+
+        try
+        {
+            await foreach (var message in channel.Reader.ReadAllAsync(cancellationToken))
+            {
+                var eventData = JsonSerializer.Deserialize<FollowRequestAcceptedEventModel>(message);
+                if(eventData.FollowerUserId != currentUserId) continue;
+                yield return new SseItem<FollowRequestAcceptedEventModel>(eventData!,
+                    EventConstants.ServerSentEvents.FollowRequestAccept.Type)
+                {
+                    EventId = DateTimeOffset.UtcNow.ToString("O"),
+                    ReconnectionInterval = TimeSpan.FromSeconds(5)
+                };
+            }
+        }
+        finally
+        {
+            channel.Writer.TryComplete();
+            await subscriber
+                .UnsubscribeAsync(EventConstants.ServerSentEvents.FollowRequestAccept.FollowRequestAcceptChannel);
         }
     }
 }

@@ -14,9 +14,13 @@ public static class EventConstants
     {
         public static class CapsuleCreate
         {
-            public const string GlobalFeedUpdates = "global_feed_updates";
+            public const string GlobalFeedUpdateChannel = "global_feed_update";
             public const string Type = nameof(CapsuleCreate);
-            public const string LastEventId = "Last-Event-ID";
+        }
+        public static class FollowRequestAccept
+        {
+            public const string FollowRequestAcceptChannel = "follow_request_accept";
+            public const string Type = nameof(FollowRequestAccept);
         }
     }
 }

@@ -7,7 +7,8 @@ namespace Unseal.Interfaces.Managers.Users;
 public interface IUserViewTrackingManager : IBaseDomainService<UserViewTracking>
 {
     List<UserViewTracking> Create(
-        List<Guid> capsuleIds,
+        List<Guid> externalIds, 
+        Guid? userViewTrackingTypeId,
         Guid userId
     );
 }

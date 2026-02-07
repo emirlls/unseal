@@ -63,59 +63,71 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default
     )
     {
-        await CheckMailInUseAsync(dto.Email);
-        var model = AuthMapper.MapToDto(dto);
-        var user = await CustomIdentityUserManager.Create(
-            GuidGenerator.Create(),
-            Guid.Parse(TenantConstants.TenantId),
-            model
-        );
-        var result = await IdentityUserManager.CreateAsync(user, model.Password);
-        result.CheckErrors();
         using (_dataFilter.Disable())
         {
-            await IdentityUserManager.AddDefaultRolesAsync(user);
+            await CheckUsernameInUseAsync(dto.Username);
+            await CheckMailInUseAsync(dto.Email);
+            var model = AuthMapper.MapToDto(dto);
+            var user = await CustomIdentityUserManager.Create(
+                GuidGenerator.Create(),
+                Guid.Parse(TenantConstants.TenantId),
+                model
+            );
+            var result = await IdentityUserManager.CreateAsync(user, model.Password);
+            result.CheckErrors();
+            using (_dataFilter.Disable())
+            {
+                await IdentityUserManager.AddDefaultRolesAsync(user);
+            }
+
+            var mailConfirmationToken = await IdentityUserManager
+                .GenerateEmailConfirmationTokenAsync(user);
+            var encodedToken =
+                WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(mailConfirmationToken));
+            var userRegisterEto = new UserRegisterEto
+            {
+                UserId = user.Id,
+                Name = user.Name,
+                Surname = user.Surname,
+                Email = user.Email,
+                ConfirmationToken = encodedToken
+            };
+            var userElasticEto = new UserElasticEto
+            {
+                UserId = user.Id,
+                UserName = user.UserName,
+                Name = user.Name,
+                Surname = user.Surname,
+                ProfilePictureUrl = null,
+                BlockedUserId = null,
+                UserElasticQueryTpe = (int)UserElasticQueryTypes.Create
+            };
+            var userProfileEto = new UserProfileEto()
+            {
+                UserId = user.Id,
+            };
+            await DistributedEventBus.PublishAsync(userRegisterEto);
+            await DistributedEventBus.PublishAsync(userElasticEto);
+            await DistributedEventBus.PublishAsync(userProfileEto);
+
+            return result.Succeeded;
         }
-
-        var mailConfirmationToken = await IdentityUserManager
-            .GenerateEmailConfirmationTokenAsync(user);
-        var encodedToken =
-            WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(mailConfirmationToken));
-        var userRegisterEto = new UserRegisterEto
-        {
-            UserId = user.Id,
-            Name = user.Name,
-            Surname = user.Surname,
-            Email = user.Email,
-            ConfirmationToken = encodedToken
-        };
-        var userElasticEto = new UserElasticEto
-        {
-            UserId = user.Id,
-            UserName = user.UserName,
-            Name = user.Name,
-            Surname = user.Surname,
-            ProfilePictureUrl = null,
-            BlockedUserId = null,
-            UserElasticQueryTpe = (int)UserElasticQueryTypes.Create
-        };
-        var userProfileEto = new UserProfileEto()
-        {
-            UserId = user.Id,
-        };
-        await DistributedEventBus.PublishAsync(userRegisterEto);
-        await DistributedEventBus.PublishAsync(userElasticEto);
-        await DistributedEventBus.PublishAsync(userProfileEto);
-
-        return result.Succeeded;
     }
 
+    private async Task CheckUsernameInUseAsync(string username)
+    {
+        var existingUser = await IdentityUserManager.FindByNameAsync(username);
+        if (existingUser is not null)
+        {
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.UsernameInUsed]);
+        }
+    }
     private async Task CheckMailInUseAsync(string email)
     {
         var existingUser = await IdentityUserManager.FindByEmailAsync(email);
         if (existingUser is not null)
         {
-            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.MailInUser]);
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.MailInUsed]);
         }
     }
 
@@ -318,6 +330,37 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         return true;
     }
 
+    public async Task<bool> SendPasswordResetCodeAsync(
+        string email,
+        CancellationToken cancellationToken = default
+
+    )
+    {
+        using (_dataFilter.Disable())
+        {
+            var user = await CustomIdentityUserManager.TryGetByAsync(
+                x => x.Email == email,
+                true,
+                cancellationToken: cancellationToken
+            );
+            
+            var resetToken = await IdentityUserManager.GeneratePasswordResetTokenAsync(user);
+            
+            var encodedToken =
+                WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetToken));
+            var passwordResetEto = new PasswordResetEto
+            {
+                UserId = user.Id,
+                Name = user.Name,
+                Surname = user.Surname,
+                Email = user.Email,
+                ConfirmationToken = encodedToken
+            };
+            await DistributedEventBus.PublishAsync(passwordResetEto);
+            return true;
+        }
+    }
+
     public async Task<bool> LogoutAsync(
         string refreshToken,
         CancellationToken cancellationToken = default
@@ -400,6 +443,26 @@ public class AuthAppService : UnsealAppService, IAuthAppService
                 cancellationToken: cancellationToken);
             user.SetIsActive(true);
             var result = await IdentityUserManager.UpdateAsync(user);
+            result.CheckErrors();
+            return result.Succeeded;
+        }
+    }
+
+    public async Task<bool> ConfirmPasswordResetAsync(
+        Guid userId,
+        string newPassword, 
+        string token,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using (_dataFilter.Disable())
+        {
+            var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                    x.Id.Equals(userId),
+                true,
+                cancellationToken: cancellationToken);
+            var decodedToken = WebUtility.UrlDecode(token);
+            var result = await IdentityUserManager.ResetPasswordAsync(user, decodedToken, newPassword);
             result.CheckErrors();
             return result.Succeeded;
         }

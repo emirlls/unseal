@@ -52,6 +52,11 @@ public static class LookupSeederConstants
             "5d5650d6-b2ce-42d1-9f00-a4eea225d81e",
             nameof(UserActivation),
             (int)(NotificationEventTypes.UserActivation));
+        
+        public static readonly NotificationEventTypeInfo PasswordReset = new(
+            "00eb1757-1089-4094-ae49-cd23f1f58856",
+            nameof(PasswordReset),
+            (int)(NotificationEventTypes.PasswordReset));
     }
     
     public class NotificationEventTypeInfo
@@ -126,5 +131,31 @@ public static class LookupSeederConstants
             Code = code;
         }
     }
+    
+    public static class UserViewTrackingTypesConstants
+    {
+        public static readonly UserViewTrackingTypeInfo Capsule = new(
+            "0a08cad2-e210-43a7-99ce-513a752d422e",
+            nameof(Capsule),
+            (int)(UserViewTrackingTypes.Capsule));
+        
+        public static readonly UserViewTrackingTypeInfo UserProfile = new(
+            "4ac149d8-d61a-4efe-9a6c-81c6c0520fba",
+            nameof(UserProfile),
+            (int)UserViewTrackingTypes.UserProfile);
+    }
+    
+    public class UserViewTrackingTypeInfo
+    {
+        public string Id { get; }
+        public string Name { get; }
+        public int Code { get; }
 
+        public UserViewTrackingTypeInfo(string id, string name, int code)
+        {
+            Id = id;
+            Name = name;
+            Code = code;
+        }
+    }
 }

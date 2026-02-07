@@ -129,6 +129,7 @@ public class GroupAppService : UnsealAppService, IGroupAppService
 
         var count = await GroupRepository.GetDynamicListCountAsync(
             groupFilters,
+            null,
             useCache:true,
             cancellationToken
         );

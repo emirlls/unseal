@@ -12,7 +12,11 @@
     "Unseal:ExceptionCodes:IdentityUser:003": "E-posta adresiniz doğrulanmamıştır.",
     "Unseal:ExceptionCodes:IdentityUser:004": "Mail adresi kullanımdadır.",
     "Unseal:ExceptionCodes:IdentityUser:005": "Mail adresi geçersizdir.",
+    "Unseal:ExceptionCodes:IdentityUser:006": "Kullanıcı adı kullanımdadır.",
 
+    "Unseal:ExceptionCodes:IdentityRole:001": "Rol bulunamadı.",
+    "Unseal:ExceptionCodes:IdentityRole:002": "Rol zaten mevcut.",
+    
     "Unseal:ExceptionCodes:Capsule:001": "Kapsül bulunamadı.",
     "Unseal:ExceptionCodes:Capsule:002": "Kapsül zaten mevcut.",
     "Unseal:ExceptionCodes:Capsule:003": "Herkese açık olmayan kapsül için QR oluşturulamaz.",
@@ -81,6 +85,7 @@
     //Validations
     
     "Validation:RegisterDto:EmailIsRequired":"Mail alanı zorunludur.",
+    "Validation:RegisterDto:UsernameIsRequired":"Kullanıcı adı zorunludur.",
     "Validation:RegisterDto:InvalidEmailFormat":"Geçersiz mail formatı !",
     "Validation:RegisterDto:PasswordIsRequired":"Şifre alanı zorunludur.",
     "Validation:RegisterDto:InvalidPasswordFormat":"Şifre formatı yanlış. Lütfen en az 8 karakter ve en az 1 tane büyük harf, özel karakter ve sayı girdiğinizden emin olun.",
@@ -109,6 +114,41 @@
     "Validation:ChatMessageCreateDto:ContentIsRequired":"Mesaj içeriği zorunludur.",
     
     "Validation:UserProfileUpdateDto:IsLockedIsRequired":"Hesap gizlilik durumu zorunludur.",
-    "Validation:UserProfileUpdateDto:AllowJoinGroupIsRequired":"Gruplara eklenme izni zorunludur."
+    "Validation:UserProfileUpdateDto:AllowJoinGroupIsRequired":"Gruplara eklenme izni zorunludur.",
+
+    "Validation:MarkAsViewedDto:TypeIsRequired":"Görüntüleme tipi zorunludur.",
+    "Validation:MarkAsViewedDto:ExternalIsRequired":"Görüntülenen hedefler alanı zorunludur.",
+    
+    //Permissions
+    
+    "Capsule.Default": "Kapsül İşlemleri",
+    "Capsule.Create": "Kapsül Oluşturma",
+    "Capsule.Update": "Kapsül Güncelleme",
+    "Capsule.Delete": "Kapsül Silme",
+    "Capsule.Export": "Kapsül Dışa Aktarım",
+    
+    "Group.Default": "Grup İşlemleri",
+    "Group.Create": "Grup Oluşturma",
+    "Group.Update": "Grup Güncelleme",
+    "Group.Delete": "Grup Silme",
+    "Group.Export": "Grup Dışa Aktarım",
+
+    "Message.Default": "Mesaj İşlemleri",
+    "Message.Create": "Mesaj Oluşturma",
+    "Message.Update": "Mesaj Güncelleme",
+    "Message.Delete": "Mesaj Silme",
+    "Message.Export": "Mesaj Dışa Aktarım",
+    
+    "User.Default": "Kullanıcı İşlemleri",
+    "User.Create": "Kullanıcı Oluşturma",
+    "User.Update": "Kullanıcı Güncelleme",
+    "User.Delete": "Kullanıcı Silme",
+    "User.Export": "Kullanıcı Dışa Aktarım",
+
+    "Admin.Default": "Admin İşlemleri",
+    
+    //Dashboards
+    "Dashboard:UsageByTime":"Uygulamanın Zamana Göre Kullanım Sayısı",
+    "Dashboard:CreationCapsuleByTime":"Zamana Göre Oluşturulan Kapsül Sayısı"
   }
 }

@@ -12,6 +12,10 @@
     "Unseal:ExceptionCodes:IdentityUser:003": "Your email address has not been confirmed.",
     "Unseal:ExceptionCodes:IdentityUser:004": "This mail address is in use.",
     "Unseal:ExceptionCodes:IdentityUser:005": "This mail address is invalid.",
+    "Unseal:ExceptionCodes:IdentityUser:006": "Username is in use.",
+    
+    "Unseal:ExceptionCodes:IdentityRole:001": "Role not found.",
+    "Unseal:ExceptionCodes:IdentityRole:002": "Role already exists.",
 
     "Unseal:ExceptionCodes:Capsule:001": "Capsule not found.",
     "Unseal:ExceptionCodes:Capsule:002": "Capsule already exists.",
@@ -81,6 +85,7 @@
     //Validations
 
     "Validation:RegisterDto:EmailIsRequired":"Mail is required.",
+    "Validation:RegisterDto:UsernameIsRequired":"Username is required.",
     "Validation:RegisterDto:InvalidEmailFormat":"Invalid mail format !",
     "Validation:RegisterDto:PasswordIsRequired":"Password is required.",
     "Validation:RegisterDto:InvalidPasswordFormat":"Invalid password format ! Please ensure you enter at least 8 characters and at least one uppercase letter, special character, and number.",
@@ -109,6 +114,41 @@
     "Validation:ChatMessageCreateDto:ContentIsRequired":"Content is required.",
 
     "Validation:UserProfileUpdateDto:IsLockedIsRequired":"Account privacy is required.",
-    "Validation:UserProfileUpdateDto:AllowJoinGroupIsRequired":"Allow join to groups is required."
+    "Validation:UserProfileUpdateDto:AllowJoinGroupIsRequired":"Allow join to groups is required.",
+    
+    "Validation:MarkAsViewedDto:TypeIsRequired":"View tracking type field is required.",
+    "Validation:MarkAsViewedDto:ExternalIsRequired":"Viewed objects field is required.",
+
+    //Permissions
+
+    "Capsule.Default": "Capsule Operations",
+    "Capsule.Create": "Capsule Create",
+    "Capsule.Update": "Capsule Update",
+    "Capsule.Delete": "Capsule Delete",
+    "Capsule.Export": "Capsule Export",
+
+    "Group.Default": "Group Operations",
+    "Group.Create": "Group Create",
+    "Group.Update": "Group Update",
+    "Group.Delete": "Group Delete",
+    "Group.Export": "Group Export",
+
+    "Message.Default": "Message Operations",
+    "Message.Create": "Message Create",
+    "Message.Update": "Message Update",
+    "Message.Delete": "Message Delete",
+    "Message.Export": "Message Export",
+
+    "User.Default": "User Operations",
+    "User.Create": "User Create",
+    "User.Update": "User Update",
+    "User.Delete": "User Delete",
+    "User.Export": "User Export",
+
+    "Admin.Default": "Admin Operations",
+    
+    //Dashboards
+    "Dashboard:UsageByTime":"Application Usage By Time",
+    "Dashboard:CreationCapsuleByTime":"Creation Capsule By Time"
   }
 }

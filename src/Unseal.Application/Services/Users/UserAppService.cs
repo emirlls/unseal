@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using StackExchange.Redis;
 using Unseal.Constants;
 using Unseal.Dtos.Users;
 using Unseal.Enums;
@@ -14,6 +17,7 @@ using Unseal.Filtering.Users;
 using Unseal.Interfaces.Managers.Auth;
 using Unseal.Interfaces.Managers.Users;
 using Unseal.Localization;
+using Unseal.Models.ServerSentEvents;
 using Unseal.Models.Users;
 using Unseal.Repositories.Capsules;
 using Unseal.Repositories.Users;
@@ -49,11 +53,16 @@ public class UserAppService : UnsealAppService, IUserAppService
 
     private ICapsuleRepository CapsuleRepository =>
         LazyServiceProvider.LazyGetRequiredService<ICapsuleRepository>();
+
     private IEsUserRepository EsUserRepository =>
         LazyServiceProvider.LazyGetRequiredService<IEsUserRepository>();
+
+    private IUserViewTrackingRepository UserViewTrackingRepository =>
+        LazyServiceProvider.LazyGetRequiredService<IUserViewTrackingRepository>();
+
     private IDistributedEventBus DistributedEventBus =>
         LazyServiceProvider.LazyGetRequiredService<IDistributedEventBus>();
-    
+
     private IStringLocalizer<UnsealResource> StringLocalizer =>
         LazyServiceProvider.LazyGetRequiredService<IStringLocalizer<UnsealResource>>();
 
@@ -216,6 +225,7 @@ public class UserAppService : UnsealAppService, IUserAppService
             userId,
             Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Accepted.Id),
             cancellationToken);
+
         return true;
     }
 
@@ -251,6 +261,8 @@ public class UserAppService : UnsealAppService, IUserAppService
         var count = await UserProfileRepository
             .GetDynamicListCountAsync(
                 new UserProfileFilters(),
+                q => q
+                    .Where(x => pendingUserIds.Contains(x.Id)),
                 cancellationToken: cancellationToken
             );
 
@@ -304,6 +316,8 @@ public class UserAppService : UnsealAppService, IUserAppService
         var count = await UserProfileRepository
             .GetDynamicListCountAsync(
                 new UserProfileFilters(),
+                q => q
+                    .Where(x => followerIds.Contains(x.Id)),
                 cancellationToken: cancellationToken
             );
 
@@ -364,23 +378,20 @@ public class UserAppService : UnsealAppService, IUserAppService
     }
 
     public async Task<PagedResultDto<UserDto>> GetBlockedUsersAsync(
+        UserInteractionFilters filters,
         CancellationToken cancellationToken = default
     )
     {
+        filters.SetSourceUserId(CurrentUser.GetId());
         var blockedUsers = await UserInteractionRepository.GetDynamicListAsync(
-            new UserInteractionFilters
-            {
-                SourceUserId = CurrentUser.GetId()
-            },
+            filters,
             null,
             asNoTracking: true,
             cancellationToken: cancellationToken
         );
         var blockedUserCount = await UserInteractionRepository.GetDynamicListCountAsync(
-            new UserInteractionFilters
-            {
-                SourceUserId = CurrentUser.GetId()
-            },
+            filters,
+            null,
             cancellationToken: cancellationToken
         );
         var blockedUserIds = blockedUsers
@@ -426,16 +437,16 @@ public class UserAppService : UnsealAppService, IUserAppService
             userName,
             cancellationToken: cancellationToken);
         var userDtos = users.Select(x =>
-        {
-            var profilePictureUrl = LazyServiceProvider.GetDecryptedFileUrlAsync(x.ProfilePictureUrl);
-            return new UserDto
             {
-                Id = x.Id,
-                Username = x.UserName,
-                ProfilePictureUrl = profilePictureUrl
-            };
-        })
-        .ToList();
+                var profilePictureUrl = LazyServiceProvider.GetDecryptedFileUrlAsync(x.ProfilePictureUrl);
+                return new UserDto
+                {
+                    Id = x.Id,
+                    Username = x.UserName,
+                    ProfilePictureUrl = profilePictureUrl
+                };
+            })
+            .ToList();
 
         var response = new PagedResultDto<UserDto>
         {
@@ -443,6 +454,68 @@ public class UserAppService : UnsealAppService, IUserAppService
             TotalCount = userDtos.Count
         };
         return response;
+    }
+
+    public async Task<PagedResultDto<UserDto>> GetUsersViewedProfileAsync(
+        UserProfileFilters filters,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var viewedUserIds = await UserViewTrackingRepository.UserIdsViewedProfileAsync(
+            CurrentUser.GetId(),
+            cancellationToken
+        );
+        var userProfiles = await UserProfileRepository
+            .GetDynamicListAsync(filters,
+                q => q
+                    .Include(x => x.User)
+                    .Where(x => viewedUserIds.Contains(x.Id)
+                    ), cancellationToken: cancellationToken);
+
+        var count = await UserProfileRepository
+            .GetDynamicListCountAsync(
+                filters,
+                q => q
+                    .Where(x => viewedUserIds.Contains(x.Id)),
+                cancellationToken: cancellationToken
+            );
+
+        var userDto = userProfiles
+            .Select(x =>
+            {
+                var decryptedProfilePictureUrl = LazyServiceProvider
+                    .GetDecryptedFileUrlAsync(x.ProfilePictureUrl);
+                return new UserDto
+                {
+                    Id = x.UserId!,
+                    Username = x.User.UserName,
+                    ProfilePictureUrl = decryptedProfilePictureUrl
+                };
+            })
+            .ToList();
+
+        var response = new PagedResultDto<UserDto>
+        {
+            Items = userDto,
+            TotalCount = count
+        };
+        return response;
+    }
+
+    public async Task<bool> MarkAsViewedAsync(
+        MarkAsViewedDto markAsViewedDto,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var userViewTrackingEto = new UserViewTrackingEto
+        {
+            UserId = CurrentUser.GetId(),
+            UserViewTrackingTypeId = markAsViewedDto.UserViewTrackingTypeId,
+            ExternalIds = markAsViewedDto.ExternalIds
+        };
+        await DistributedEventBus.PublishAsync(userViewTrackingEto);
+
+        return true;
     }
 
     private async Task UpdateUserFollowStatusAsync(
@@ -463,6 +536,39 @@ public class UserAppService : UnsealAppService, IUserAppService
         );
         userFollower.StatusId = newStatusId;
         await UserFollowerRepository.UpdateAsync(userFollower, cancellationToken: cancellationToken);
+        await FollowRequestAcceptPubAsync(userId, newStatusId, cancellationToken);
+    }
+
+    private async Task FollowRequestAcceptPubAsync(
+        Guid userId,
+        Guid newStatusId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (newStatusId == Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Accepted.Id))
+        {
+            var redis = LazyServiceProvider.GetRequiredService<IConnectionMultiplexer>();
+            var subscriber = redis.GetSubscriber();
+
+            var currentUser = await CustomIdentityUserManager
+                .TryGetByAsync(x =>
+                        x.Id.Equals(CurrentUser.GetId()), throwIfNull: true,
+                    cancellationToken: cancellationToken);
+
+            var eventModel = new FollowRequestAcceptedEventModel
+            {
+                FollowerUserId = userId,
+                UserId = currentUser.Id,
+                UserName = currentUser.UserName,
+                CreationTime = DateTime.Now
+            };
+            var payload = JsonSerializer.Serialize(eventModel);
+
+            await subscriber.PublishAsync(
+                EventConstants.ServerSentEvents.FollowRequestAccept.FollowRequestAcceptChannel,
+                payload
+            );
+        }
     }
 
     private async Task CheckUserIsBlocked(

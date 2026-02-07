@@ -11,6 +11,7 @@ public static class ValidationErrorCodes
             {
                 private const string Prefix = $"{ValidationPrefix}{nameof(RegisterDto)}:"; 
                 public const string EmailIsRequired = $"{Prefix}{nameof(EmailIsRequired)}";
+                public const string UsernameIsRequired = $"{Prefix}{nameof(UsernameIsRequired)}";
                 public const string InvalidEmailFormat = $"{Prefix}{nameof(InvalidEmailFormat)}";
                 public const string PasswordIsRequired = $"{Prefix}{nameof(PasswordIsRequired)}";
                 public const string InvalidPasswordFormat = $"{Prefix}{nameof(InvalidPasswordFormat)}";
@@ -91,6 +92,13 @@ public static class ValidationErrorCodes
             private const string Prefix = $"{ValidationPrefix}{nameof(UserProfileUpdateDto)}:"; 
             public const string IsLockedIsRequired = $"{Prefix}{nameof(IsLockedIsRequired)}";
             public const string AllowJoinGroupIsRequired = $"{Prefix}{nameof(AllowJoinGroupIsRequired)}";
+        }
+
+        public static class MarkAsViewedDto
+        {
+            private const string Prefix = $"{ValidationPrefix}{nameof(MarkAsViewedDto)}:"; 
+            public const string TypeIsRequired = $"{Prefix}{nameof(TypeIsRequired)}";
+            public const string ExternalIsRequired = $"{Prefix}{nameof(ExternalIsRequired)}";
         }
     }
 

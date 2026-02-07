@@ -18,6 +18,7 @@
     <PackageReference Include="StackExchange.Redis" Version="2.10.1" />
     <PackageReference Include="Volo.Abp.Ddd.Domain" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.OpenIddict.Domain" Version="10.0.1" />
+    <PackageReference Include="Volo.Abp.PermissionManagement.Domain.Identity" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.SettingManagement.Domain" Version="10.0.1" />
     <ProjectReference Include="..\Unseal.Domain.Shared\Unseal.Domain.Shared.csproj" />
   </ItemGroup>
