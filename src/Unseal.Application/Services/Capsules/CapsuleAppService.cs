@@ -522,6 +522,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
             var profile = profiles.GetValueOrDefault(comment.UserId);
             dtos.Add(new CapsuleCommentDto
             {
+                Id = comment.Id,
                 UserName = comment.User.UserName,
                 Comment = comment.Comment,
                 UserProfilePictureUrl = LazyServiceProvider.GetDecryptedFileUrlAsync(profile?.ProfilePictureUrl)
