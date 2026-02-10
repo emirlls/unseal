@@ -23,7 +23,9 @@ using Unseal.Repositories.Capsules;
 using Unseal.Repositories.Users;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.Data;
 using Volo.Abp.EventBus.Distributed;
+using Volo.Abp.MultiTenancy;
 using Volo.Abp.Users;
 
 namespace Unseal.Services.Users;
@@ -66,55 +68,68 @@ public class UserAppService : UnsealAppService, IUserAppService
     private IStringLocalizer<UnsealResource> StringLocalizer =>
         LazyServiceProvider.LazyGetRequiredService<IStringLocalizer<UnsealResource>>();
 
+    private readonly IDataFilter<IMultiTenant> _dataFilter;
+
+    public UserAppService(IDataFilter<IMultiTenant> dataFilter)
+    {
+        _dataFilter = dataFilter;
+    }
+
     public async Task<bool> FollowAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var user = await CustomIdentityUserManager
-            .TryGetByAsync(x =>
-                    x.Id.Equals(userId), throwIfNull: true,
-                cancellationToken: cancellationToken);
-        var userProfile = await UserProfileManager.TryGetByAsync(x =>
-            x.Id.Equals(user.Id), cancellationToken: cancellationToken);
-        var userFollowerStatusId =
-            Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Accepted.Id);
-        if (userProfile.IsLocked)
+        using (_dataFilter.Disable())
         {
-            userFollowerStatusId =
-                Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Pending.Id);
-        }
+            var user = await CustomIdentityUserManager
+                .TryGetByAsync(x =>
+                        x.Id.Equals(userId), throwIfNull: true,
+                    cancellationToken: cancellationToken);
+            var userProfile = await UserProfileManager.TryGetByAsync(x =>
+                x.Id.Equals(user.Id), cancellationToken: cancellationToken);
+            var userFollowerStatusId =
+                Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Accepted.Id);
+            if (userProfile is not null && userProfile.IsLocked)
+            {
+                userFollowerStatusId =
+                    Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Pending.Id);
+            }
 
-        var currentUserId = CurrentUser.GetId();
+            var currentUserId = CurrentUser.GetId();
 
-        await CheckUserIsBlocked(userId, cancellationToken);
-        await UserFollowerManager.TryGetByAsync(x =>
-                x.UserId.Equals(user.Id) && x.FollowerId.Equals(currentUserId),
-            throwIfExists: true,
-            cancellationToken: cancellationToken
-        );
-        var userFollower = UserFollowerManager
-            .Create(
-                user.Id,
-                currentUserId,
-                userFollowerStatusId
+            await CheckUserIsBlocked(userId, cancellationToken);
+            await UserFollowerManager.TryGetByAsync(x =>
+                    x.UserId.Equals(user.Id) && x.FollowerId.Equals(currentUserId),
+                throwIfExists: true,
+                cancellationToken: cancellationToken
             );
-        await UserFollowerRepository.InsertAsync(userFollower, cancellationToken: cancellationToken);
-        return true;
+            var userFollower = UserFollowerManager
+                .Create(
+                    user.Id,
+                    currentUserId,
+                    userFollowerStatusId
+                );
+            await UserFollowerRepository.InsertAsync(userFollower, cancellationToken: cancellationToken);
+            return true;
+        }
     }
 
     public async Task<bool> UnfollowAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        await CheckUserIsBlocked(userId, cancellationToken);
-        var user = await CustomIdentityUserManager
-            .TryGetByAsync(x =>
-                    x.Id.Equals(userId), throwIfNull: true,
-                cancellationToken: cancellationToken);
-        var currentUserId = CurrentUser.GetId();
-        var userFollower = await UserFollowerManager.TryGetByAsync(x =>
-                x.UserId.Equals(user.Id) &&
-                x.FollowerId.Equals(currentUserId),
-            cancellationToken: cancellationToken
-        );
-        await UserFollowerRepository.HardDeleteAsync(userFollower, cancellationToken);
-        return true;
+        using (_dataFilter.Disable())
+        {
+            await CheckUserIsBlocked(userId, cancellationToken);
+            var user = await CustomIdentityUserManager
+                .TryGetByAsync(x =>
+                        x.Id.Equals(userId), throwIfNull: true,
+                    cancellationToken: cancellationToken);
+            var currentUserId = CurrentUser.GetId();
+            var userFollower = await UserFollowerManager.TryGetByAsync(x =>
+                    x.UserId.Equals(user.Id) &&
+                    x.FollowerId.Equals(currentUserId),
+                cancellationToken: cancellationToken
+            );
+            await UserFollowerRepository.HardDeleteAsync(userFollower, cancellationToken);
+            return true;
+        }
     }
 
     public async Task<bool> BlockAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -200,6 +215,10 @@ public class UserAppService : UnsealAppService, IUserAppService
             );
         var decryptedProfilePictureUrl = LazyServiceProvider
             .GetDecryptedFileUrlAsync(userProfile.ProfilePictureUrl);
+        var decryptedCapsuleUrls = capsuleUrls
+            .Select(x =>
+                LazyServiceProvider.GetDecryptedFileUrlAsync(x))
+            .ToList();
         var response = new UserDetailDto
         {
             UserDto = new UserDto
@@ -208,7 +227,7 @@ public class UserAppService : UnsealAppService, IUserAppService
                 Username = userProfile.User.UserName,
                 ProfilePictureUrl = decryptedProfilePictureUrl
             },
-            CapsuleUrls = capsuleUrls,
+            CapsuleUrls = decryptedCapsuleUrls,
             FollowerCount = followCounts.followerCount,
             FollowCount = followCounts.followCount,
             LastActivity = userProfile.LastActivityTime

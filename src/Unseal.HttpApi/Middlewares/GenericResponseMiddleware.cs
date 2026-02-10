@@ -59,8 +59,19 @@ public class GenericResponseMiddleware
                 }
                 else
                 {
-                    using var doc = JsonDocument.Parse(responseText);
-                    data = doc.RootElement.Clone();
+                    var trimmedResponse = responseText.Trim();
+                    bool isJsonObject = (trimmedResponse.StartsWith("{") && trimmedResponse.EndsWith("}")) || 
+                                        (trimmedResponse.StartsWith("[") && trimmedResponse.EndsWith("]"));
+
+                    if (isJsonObject)
+                    {
+                        using var doc = JsonDocument.Parse(responseText);
+                        data = doc.RootElement.Clone();
+                    }
+                    else
+                    {
+                        data = responseText;
+                    }
                 }
 
                 message = _localizer[ExceptionCodes.Success];
