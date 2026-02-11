@@ -28,20 +28,6 @@ public class CapsuleController : UnsealController
         _abpLazyServiceProvider.LazyGetRequiredService<ICapsuleAppService>();
 
     /// <summary>
-    /// Use to create capsule.
-    /// </summary>
-    /// <param name="capsuleCreateDto"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpPost]
-    [Authorize(CapsulePermissions.Create)]
-    public async Task<bool> CreateAsync(
-        [FromForm]CapsuleCreateDto capsuleCreateDto,
-        CancellationToken cancellationToken = default
-    ) => await CapsuleAppService
-        .CreateAsync(capsuleCreateDto, cancellationToken);
-    
-    /// <summary>
     /// Use to paged capsule list.
     /// To list own capsule, isAll must be false.
     /// To list all capsule, isAll must be true.
@@ -106,6 +92,20 @@ public class CapsuleController : UnsealController
         CancellationToken cancellationToken = default
     ) => await CapsuleAppService
         .GetQrCodeAsync(capsuleId, cancellationToken);
+    
+    /// <summary>
+    /// Use to create capsule.
+    /// </summary>
+    /// <param name="capsuleCreateDto"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost]
+    [Authorize(CapsulePermissions.Create)]
+    public async Task<bool> CreateAsync(
+        [FromForm]CapsuleCreateDto capsuleCreateDto,
+        CancellationToken cancellationToken = default
+    ) => await CapsuleAppService
+        .CreateAsync(capsuleCreateDto, cancellationToken);
     
     /// <summary>
     /// Use to like a capsule.
