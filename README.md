@@ -46,3 +46,28 @@ The project serves as a laboratory for complex engineering scenarios, implementi
 - Global Action Filters for cross-cutting concerns.
 
 - Setting Management for flexible application configuration.
+
+Some pictures of Unseal:
+
+| Swagger - Admin & Auth | Swagger - Capsule & Group & Messages | Swagger - SSE & User |
+| :---: | :---: | :---: |
+| ![Swagger 1](https://github.com/user-attachments/assets/4019b8e3-bece-4820-bbbe-17dbac79b453) | ![Swagger 2](https://github.com/user-attachments/assets/83d516c9-2d55-4b5b-8346-8d5ad5dc1173) | ![Swagger 3](https://github.com/user-attachments/assets/9c780ec4-5456-44d8-8d66-aa063e8a110e) |
+
+
+| Mail - Register | Mail - Account Activation | Mail - Account Delete |
+| :---: | :---: | :---: |
+| ![Swagger 1](https://github.com/user-attachments/assets/20ba51b7-c2cf-48a7-b146-3519a1348eef) | ![Swagger 2](https://github.com/user-attachments/assets/c15c502e-2884-48c2-ad8b-abc21bb208cd) | ![Swagger 3](https://github.com/user-attachments/assets/b6f0a734-2e51-40d3-a530-720046b4e581) |
+
+
+| App - Login | App - Register | App - Reset Password |
+| :---: | :---: | :---: 
+| ![App 1](https://github.com/user-attachments/assets/e199510f-e03d-49d6-b193-ebe7c3930db2) | ![App 2](https://github.com/user-attachments/assets/313217d9-2bfe-4cde-9966-c284e70d1ac0) | ![App 3](https://github.com/user-attachments/assets/1502aa85-80d1-4db7-9832-43f10260760c) |
+
+| App - Capsule Detail | App - Explore | App - Profile |
+| :---: | :---: |:---: |
+| ![App 4](https://github.com/user-attachments/assets/fa805f68-debe-4f1f-9f27-0b091367e3af) | ![App 5](https://github.com/user-attachments/assets/d8dace9e-6f81-499d-be2b-5a62cdd75bc3) | ![App 6](https://github.com/user-attachments/assets/31e9d34b-2d03-4f77-a82d-33ffda3e1c8d) |
+
+
+| App - Capsule Create | App - User Search | App - Capsule QR |
+ | :---: | :---: |:---: |
+| ![App 7](https://github.com/user-attachments/assets/3a7554f9-9153-4cda-a656-1285168a2af6) | ![App 8](https://github.com/user-attachments/assets/f0ddc251-e86a-486c-a834-28656bc66861) | ![App 9](https://github.com/user-attachments/assets/c0956d56-b43c-459c-b2aa-5c0e274b52fb) |
