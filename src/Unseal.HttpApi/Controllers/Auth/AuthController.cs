@@ -26,42 +26,6 @@ public class AuthController : UnsealController
         _lazyServiceProvider.LazyGetRequiredService<IAuthAppService>();
 
     /// <summary>
-    /// Use to register.
-    /// </summary>
-    /// <param name="registerDto"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpPost("register")]
-    public async Task<bool> RegisterAsync(
-        RegisterDto registerDto,
-        CancellationToken cancellationToken = default
-    ) => await AuthAppService.RegisterAsync(registerDto, cancellationToken);
-
-    /// <summary>
-    /// Use to login
-    /// </summary>
-    /// <param name="loginDto"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpPost("login")]
-    public async Task<LoginResponseDto> LoginAsync(
-        LoginDto loginDto,
-        CancellationToken cancellationToken = default
-    ) => await AuthAppService.LoginAsync(loginDto, cancellationToken);
-
-    /// <summary>
-    /// Use to logout
-    /// </summary>
-    /// <param name="refreshToken"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpPost("logout")]
-    public async Task<bool> LoginAsync(
-        string refreshToken,
-        CancellationToken cancellationToken = default
-    ) => await AuthAppService.LogoutAsync(refreshToken, cancellationToken);
-
-    /// <summary>
     /// Used to resend the confirmation email if it could not be sent during registration. 
     /// </summary>
     /// <param name="mail"></param>
@@ -73,23 +37,6 @@ public class AuthController : UnsealController
         string mail,
         CancellationToken cancellationToken = default
     ) => await AuthAppService.SendConfirmationMailAsync(mail, cancellationToken);
-
-    /// <summary>
-    /// Use to change mail address.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="newMailAddress"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    
-    [Authorize]
-    [HttpPost("change-mail")]
-    [Authorize(UserPermissions.Update)]
-    public async Task<bool> ChangeMailAsync(
-        Guid userId,
-        string newMailAddress,
-        CancellationToken cancellationToken = default
-    ) => await AuthAppService.ChangeMailAsync(userId, newMailAddress, cancellationToken);
     
     /// <summary>
     /// Used to confirm an mail address change.
@@ -153,13 +100,81 @@ public class AuthController : UnsealController
         token,
         cancellationToken
     );
+    
+    /// <summary>
+    /// Use to confirm activation mail.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet(ApiConstants.Auth.ConfirmActivationMail)]
+    [AllowAnonymous]
+    public async Task<bool> ConfirmActivationMailAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    ) => await AuthAppService.ConfirmActivationMailAsync(
+        userId,
+        cancellationToken
+    );
+    
+    /// <summary>
+    /// Use to register.
+    /// </summary>
+    /// <param name="registerDto"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("register")]
+    public async Task<bool> RegisterAsync(
+        RegisterDto registerDto,
+        CancellationToken cancellationToken = default
+    ) => await AuthAppService.RegisterAsync(registerDto, cancellationToken);
+
+    /// <summary>
+    /// Use to login
+    /// </summary>
+    /// <param name="loginDto"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("login")]
+    public async Task<LoginResponseDto> LoginAsync(
+        LoginDto loginDto,
+        CancellationToken cancellationToken = default
+    ) => await AuthAppService.LoginAsync(loginDto, cancellationToken);
+
+    /// <summary>
+    /// Use to logout
+    /// </summary>
+    /// <param name="refreshToken"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("logout")]
+    public async Task<bool> LoginAsync(
+        string refreshToken,
+        CancellationToken cancellationToken = default
+    ) => await AuthAppService.LogoutAsync(refreshToken, cancellationToken);
+
+    
+    /// <summary>
+    /// Use to change mail address.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="newMailAddress"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("change-mail")]
+    [Authorize(UserPermissions.Update)]
+    public async Task<bool> ChangeMailAsync(
+        Guid userId,
+        string newMailAddress,
+        CancellationToken cancellationToken = default
+    ) => await AuthAppService.ChangeMailAsync(userId, newMailAddress, cancellationToken);
+    
     /// <summary>
     /// Use to change password.
     /// </summary>
     /// <param name="changePasswordDto"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    [Authorize]
     [HttpPost("change-password")]
     [Authorize(UserPermissions.Update)]
     public async Task<bool> ChangePasswordAsync(
@@ -169,36 +184,6 @@ public class AuthController : UnsealController
         changePasswordDto,
         cancellationToken
     );
-    
-    /// <summary>
-    /// Use to delete user.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [Authorize]
-    [HttpDelete("{userId}")]
-    [Authorize(UserPermissions.Delete)]
-    public async Task<bool> UserDeleteAsync(
-        Guid userId,
-        CancellationToken cancellationToken = default
-    ) => await AuthAppService.UserDeleteAsync(userId, cancellationToken);
-
-    /// <summary>
-    /// Use to deactivate account.
-    /// </summary>
-    /// <param name="refreshToken"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    /// <summary>
-    /// Use to deactivate account.
-    /// </summary>
-    [HttpPut("deactivate-account")]
-    [Authorize(UserPermissions.Update)]
-    public async Task<bool> DeactivateAccountAsync(
-        [FromBody]string refreshToken,
-        CancellationToken cancellationToken = default
-    ) => await AuthAppService.DeactivateAccountAsync(refreshToken, cancellationToken);
 
     /// <summary>
     /// Use to send account activity mail.
@@ -217,18 +202,32 @@ public class AuthController : UnsealController
     );
     
     /// <summary>
-    /// Use to confirm activation mail.
+    /// Use to deactivate account.
+    /// </summary>
+    /// <param name="refreshToken"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    /// <summary>
+    /// Use to deactivate account.
+    /// </summary>
+    [HttpPut("deactivate-account")]
+    [Authorize(UserPermissions.Update)]
+    public async Task<bool> DeactivateAccountAsync(
+        [FromBody]string refreshToken,
+        CancellationToken cancellationToken = default
+    ) => await AuthAppService.DeactivateAccountAsync(refreshToken, cancellationToken);
+    
+    /// <summary>
+    /// Use to delete user.
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    [HttpGet(ApiConstants.Auth.ConfirmActivationMail)]
-    [AllowAnonymous]
-    public async Task<bool> ConfirmActivationMailAsync(
+    [HttpDelete("{userId}")]
+    [Authorize(UserPermissions.Delete)]
+    public async Task<bool> UserDeleteAsync(
         Guid userId,
         CancellationToken cancellationToken = default
-    ) => await AuthAppService.ConfirmActivationMailAsync(
-        userId,
-        cancellationToken
-    );
+    ) => await AuthAppService.UserDeleteAsync(userId, cancellationToken);
+    
 }

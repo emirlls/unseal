@@ -59,21 +59,6 @@ public class AdminController : UnsealController
     );
     
     /// <summary>
-    /// Use to update role.
-    /// </summary>
-    /// <param name="roleUpdateDto"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpPut("roles")]
-    public async Task<bool> RoleUpdateAsync(
-        RoleUpdateDto roleUpdateDto,
-        CancellationToken cancellationToken = default
-    ) => await AdminAppService.RoleUpdateAsync(
-        roleUpdateDto, 
-        cancellationToken
-    );
-
-    /// <summary>
     /// Get application usage by time dashboard.
     /// </summary>
     /// <param name="endDate"></param>
@@ -108,4 +93,20 @@ public class AdminController : UnsealController
         endDate,
         cancellationToken
     );
+    
+    /// <summary>
+    /// Use to update role.
+    /// </summary>
+    /// <param name="roleUpdateDto"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPut("roles")]
+    public async Task<bool> RoleUpdateAsync(
+        RoleUpdateDto roleUpdateDto,
+        CancellationToken cancellationToken = default
+    ) => await AdminAppService.RoleUpdateAsync(
+        roleUpdateDto, 
+        cancellationToken
+    );
+
 }

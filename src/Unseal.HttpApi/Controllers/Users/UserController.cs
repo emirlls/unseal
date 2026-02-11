@@ -28,6 +28,82 @@ public class UserController : UnsealController
     _abpLazyServiceProvider.LazyGetRequiredService<IUserAppService>();
 
     /// <summary>
+    /// Use to search users.
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("search")]
+    [Authorize(UserPermissions.Default)]
+    public async Task<PagedResultDto<UserDto>> SearchAsync(
+        string userName, 
+        CancellationToken cancellationToken = default
+    ) => await UserAppService.SearchAsync(userName, cancellationToken);
+    
+    /// <summary>
+    /// Use to list follow requests.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("follow-requests")]
+    [Authorize(UserPermissions.Default)]
+    public async Task<PagedResultDto<UserDto>> GetFollowRequestsAsync(
+        CancellationToken cancellationToken = default
+    ) => await UserAppService.GetFollowRequestsAsync(cancellationToken);
+    
+    /// <summary>
+    /// Use to list my followers.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("followers")]
+    [Authorize(UserPermissions.Default)]
+    public async Task<PagedResultDto<UserDto>> GetFollowersAsync(
+        CancellationToken cancellationToken = default
+    ) => await UserAppService.GetFollowersAsync(cancellationToken);
+
+    
+    /// <summary>
+    /// Use to get user profile
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("{userId}/profile")]
+    [Authorize(UserPermissions.Default)]
+    public async Task<UserDetailDto> GetProfileAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    ) => await UserAppService.GetProfileAsync(userId, cancellationToken);
+
+    /// <summary>
+    /// Use to get blocked users.
+    /// </summary>
+    /// <param name="filters"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("blocked-users")]
+    [Authorize(UserPermissions.Default)]
+    public async Task<PagedResultDto<UserDto>> GetBlockedUsersAsync(
+        [FromQuery]UserInteractionFilters filters,
+        CancellationToken cancellationToken = default
+    ) => await UserAppService.GetBlockedUsersAsync(filters, cancellationToken);
+
+    /// <summary>
+    /// Use to users list that viewed profile api.
+    /// Data from a maximum of 30 days is displayed.
+    /// </summary>
+    /// <param name="filters"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("users-viewed-profile")]
+    [Authorize(UserPermissions.Default)]
+    public async Task<PagedResultDto<UserDto>> GetUsersViewedProfileAsync(
+        [FromQuery]UserProfileFilters filters,
+        CancellationToken cancellationToken = default
+    ) => await UserAppService.GetUsersViewedProfileAsync(filters, cancellationToken);
+    
+    /// <summary>
     /// Use to follow or send follow request to user.
     /// If user account is public, directly follow
     /// else send pending follow request.
@@ -123,82 +199,6 @@ public class UserController : UnsealController
         Guid userId,
         CancellationToken cancellationToken = default
     ) => await UserAppService.RejectFollowRequestAsync(userId, cancellationToken);
-
-    /// <summary>
-    /// Use to search users.
-    /// </summary>
-    /// <param name="userName"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpGet("search")]
-    [Authorize(UserPermissions.Default)]
-    public async Task<PagedResultDto<UserDto>> SearchAsync(
-        string userName, 
-        CancellationToken cancellationToken = default
-    ) => await UserAppService.SearchAsync(userName, cancellationToken);
-    
-    /// <summary>
-    /// Use to list follow requests.
-    /// </summary>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpGet("follow-requests")]
-    [Authorize(UserPermissions.Default)]
-    public async Task<PagedResultDto<UserDto>> GetFollowRequestsAsync(
-        CancellationToken cancellationToken = default
-    ) => await UserAppService.GetFollowRequestsAsync(cancellationToken);
-    
-    /// <summary>
-    /// Use to list my followers.
-    /// </summary>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpGet("followers")]
-    [Authorize(UserPermissions.Default)]
-    public async Task<PagedResultDto<UserDto>> GetFollowersAsync(
-        CancellationToken cancellationToken = default
-    ) => await UserAppService.GetFollowersAsync(cancellationToken);
-
-    
-    /// <summary>
-    /// Use to get user profile
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpGet("{userId}/profile")]
-    [Authorize(UserPermissions.Default)]
-    public async Task<UserDetailDto> GetProfileAsync(
-        Guid userId,
-        CancellationToken cancellationToken = default
-    ) => await UserAppService.GetProfileAsync(userId, cancellationToken);
-
-    /// <summary>
-    /// Use to get blocked users.
-    /// </summary>
-    /// <param name="filters"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpGet("blocked-users")]
-    [Authorize(UserPermissions.Default)]
-    public async Task<PagedResultDto<UserDto>> GetBlockedUsersAsync(
-        [FromQuery]UserInteractionFilters filters,
-        CancellationToken cancellationToken = default
-    ) => await UserAppService.GetBlockedUsersAsync(filters, cancellationToken);
-
-    /// <summary>
-    /// Use to users list that viewed profile api.
-    /// Data from a maximum of 30 days is displayed.
-    /// </summary>
-    /// <param name="filters"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpGet("users-viewed-profile")]
-    [Authorize(UserPermissions.Default)]
-    public async Task<PagedResultDto<UserDto>> GetUsersViewedProfileAsync(
-        [FromQuery]UserProfileFilters filters,
-        CancellationToken cancellationToken = default
-    ) => await UserAppService.GetUsersViewedProfileAsync(filters, cancellationToken);
 
     /// <summary>
     /// Use to user profile.
