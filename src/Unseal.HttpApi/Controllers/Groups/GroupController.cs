@@ -71,6 +71,19 @@ public class GroupController : UnsealController
     );
 
     /// <summary>
+    /// Use to leave the group
+    /// </summary>
+    /// <param name="groupId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("{groupId}/leave")]
+    [Authorize(GroupPermissions.Default)]
+    public async Task<bool> LeaveAsync(
+        Guid groupId,
+        CancellationToken cancellationToken = default
+    ) => await GroupAppService.LeaveAsync(groupId,cancellationToken);
+    
+    /// <summary>
     /// Use to update group
     /// </summary>
     /// <param name="groupId"></param>
@@ -88,18 +101,5 @@ public class GroupController : UnsealController
         groupUpdateDto, 
         cancellationToken
     );
-
-    /// <summary>
-    /// Use to leave the group
-    /// </summary>
-    /// <param name="groupId"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    [HttpGet("{groupId}/leave")]
-    [Authorize(GroupPermissions.Default)]
-    public async Task<bool> LeaveAsync(
-        Guid groupId,
-        CancellationToken cancellationToken = default
-    ) => await GroupAppService.LeaveAsync(groupId,cancellationToken);
     
 }
