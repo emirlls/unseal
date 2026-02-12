@@ -17,7 +17,8 @@ namespace Unseal;
     typeof(UnsealDomainSharedModule),
     typeof(AbpOpenIddictDomainModule),
     typeof(AbpPermissionManagementDomainModule),
-    typeof(AbpPermissionManagementDomainIdentityModule)
+    typeof(AbpPermissionManagementDomainIdentityModule),
+    typeof(AbpPermissionManagementDomainModule)
 )]
 public class UnsealDomainModule : AbpModule
 {
