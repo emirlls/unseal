@@ -46,7 +46,8 @@ public class CustomPermissionDataSeedContributor : PermissionDataSeedContributor
             var superAdminRole = await _customRoleRepository.GetByAsync(x =>
                 !x.TenantId.HasValue &&
                 x.IsStatic &&
-                !x.IsPublic);
+                !x.IsPublic &&
+                x.Name == "admin");
         
             await PermissionDataSeeder.SeedAsync(
                 RolePermissionValueProvider.ProviderName,
