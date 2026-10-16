@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Unseal.Constants;
@@ -44,7 +43,7 @@ public class ConfirmChangeMailEventHandler : IDistributedEventHandler<ConfirmCha
 
         var baseUrl = await _serviceProvider.GetSelfUrlAsync();
         var verifyUrl =
-            $"{baseUrl}/api/auth/{ApiConstants.Auth.ConfirmChangeMail}?userId={eventData.UserId}&newMailAddress={eventData.NewMailAddress}&token={WebUtility.UrlEncode(eventData.Token)}";
+            $"{baseUrl}/api/auth/{ApiConstants.Auth.ConfirmChangeMail}?userId={eventData.UserId}&newMailAddress={Uri.EscapeDataString(eventData.NewMailAddress)}&token={eventData.Token}";
 
         var replacedTemplate = notificationTemplate.Content
             .Replace(NotificationTemplateProperties.ChangeMailTemplateParameters.Name, eventData.Name)

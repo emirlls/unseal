@@ -82,38 +82,35 @@ public class AuthController : UnsealController
     /// <summary>
     /// Used to confirm password reset.
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="newPassword"></param>
-    /// <param name="token"></param>
+    /// <param name="confirmPasswordResetDto"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    [HttpGet(ApiConstants.Auth.ConfirmPasswordReset)]
+    [HttpPost(ApiConstants.Auth.ConfirmPasswordReset)]
     [AllowAnonymous]
     public async Task<bool> ConfirmPasswordResetAsync(
-        Guid userId,
-        string newPassword,
-        string token,
+        ConfirmPasswordResetDto confirmPasswordResetDto,
         CancellationToken cancellationToken = default
     ) => await AuthAppService.ConfirmPasswordResetAsync(
-        userId,
-        newPassword,
-        token,
+        confirmPasswordResetDto,
         cancellationToken
     );
-    
+
     /// <summary>
     /// Use to confirm activation mail.
     /// </summary>
     /// <param name="userId"></param>
+    /// <param name="token"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpGet(ApiConstants.Auth.ConfirmActivationMail)]
     [AllowAnonymous]
     public async Task<bool> ConfirmActivationMailAsync(
         Guid userId,
+        string token,
         CancellationToken cancellationToken = default
     ) => await AuthAppService.ConfirmActivationMailAsync(
         userId,
+        token,
         cancellationToken
     );
     
@@ -155,19 +152,18 @@ public class AuthController : UnsealController
 
     
     /// <summary>
-    /// Use to change mail address.
+    /// Use to change mail address of the current user.
+    /// A confirmation link is sent to the new address; the address changes only after it is confirmed.
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="newMailAddress"></param>
+    /// <param name="changeMailDto"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost("change-mail")]
     [Authorize(UserPermissions.Update)]
     public async Task<bool> ChangeMailAsync(
-        Guid userId,
-        string newMailAddress,
+        ChangeMailDto changeMailDto,
         CancellationToken cancellationToken = default
-    ) => await AuthAppService.ChangeMailAsync(userId, newMailAddress, cancellationToken);
+    ) => await AuthAppService.ChangeMailAsync(changeMailDto, cancellationToken);
     
     /// <summary>
     /// Use to change password.
@@ -219,6 +215,7 @@ public class AuthController : UnsealController
     
     /// <summary>
     /// Use to delete user.
+    /// Users can delete only their own account; deleting another user requires the Admin.Users.Delete permission.
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="cancellationToken"></param>

@@ -55,7 +55,7 @@ public static class FilterStrategyExecutor
             FilterOperators.LessThan => Expression.LessThan(property, constant),
             FilterOperators.LessThanOrEqual => Expression.LessThanOrEqual(property, constant),
             FilterOperators.Contains => BuildContainsExpression(property, filterItem.Value),
-            _ => Expression.Equal(property, constant)
+            _ => throw new NotSupportedException($"{filterItem.Strategy} is not supported.")
         };
     }
 

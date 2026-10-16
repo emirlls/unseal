@@ -9,5 +9,14 @@ namespace Unseal.Profiles.Messages;
 [Mapper]
 public partial class ChatMessageMapper : ITransientDependency
 {
-    public partial ChatMessageCreateModel MapToModel(ChatMessageCreateDto dto, Guid senderId);
+    public ChatMessageCreateModel MapToModel(ChatMessageCreateDto dto, Guid senderId)
+    {
+        return new ChatMessageCreateModel
+        {
+            SenderId = senderId,
+            TargetIds = dto.TargetIds,
+            ChatTypeId = dto.ChatTypeId,
+            Content = dto.Content
+        };
+    }
 }

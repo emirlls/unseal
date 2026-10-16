@@ -155,7 +155,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         var count = await CapsuleRepository
             .GetDynamicListCountAsync(
                 capsuleFilters,
-                null,
+                queryBuilder,
                 useCache: false,
                 cancellationToken
             );
@@ -215,11 +215,18 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
 
     public async Task<bool> LikeAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var capsule = await CapsuleManager.TryGetByAsync(x =>
-                x.Id.Equals(id), true,
-            cancellationToken: cancellationToken);
+        var currentUserId = CurrentUser.GetId();
+        var capsule = await GetVisibleCapsuleAsync(id, currentUserId, cancellationToken);
 
-        var capsuleLike = CapsuleLikeManager.Create(capsule!.Id, CurrentUser.Id);
+        var isAlreadyLiked = await CapsuleLikeManager.ExistsAsync(x =>
+                x.CapsuleId.Equals(capsule.Id) && x.UserId.Equals(currentUserId),
+            cancellationToken: cancellationToken);
+        if (isAlreadyLiked)
+        {
+            return true;
+        }
+
+        var capsuleLike = CapsuleLikeManager.Create(capsule.Id, currentUserId);
         await CapsuleLikeRepository.InsertAsync(capsuleLike, cancellationToken: cancellationToken);
         return true;
     }
@@ -231,8 +238,12 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
             cancellationToken: cancellationToken);
         var capsuleLike = await CapsuleLikeManager.TryGetByAsync(x =>
                 x.CapsuleId.Equals(capsule!.Id) && x.UserId.Equals(CurrentUser.Id),
-            true, cancellationToken: cancellationToken);
-        await CapsuleLikeRepository.HardDeleteAsync(capsuleLike!, cancellationToken);
+            cancellationToken: cancellationToken);
+        if (capsuleLike is not null)
+        {
+            await CapsuleLikeRepository.HardDeleteAsync(capsuleLike, cancellationToken);
+        }
+
         return true;
     }
 
@@ -242,10 +253,19 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         CancellationToken cancellationToken = default
     )
     {
-        var capsule = await CapsuleManager.TryGetByAsync(x =>
-                x.Id.Equals(id), true,
-            cancellationToken: cancellationToken);
-        var capsuleComment = CapsuleCommentManager.Create(capsule.Id, CurrentUser.Id, comment);
+        if (string.IsNullOrWhiteSpace(comment))
+        {
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.CapsuleComment.CommentIsRequired]);
+        }
+
+        if (comment.Length > AppConstants.CapsuleComment.MaxCommentLength)
+        {
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.CapsuleComment.CommentTooLong]);
+        }
+
+        var currentUserId = CurrentUser.GetId();
+        var capsule = await GetVisibleCapsuleAsync(id, currentUserId, cancellationToken);
+        var capsuleComment = CapsuleCommentManager.Create(capsule.Id, currentUserId, comment);
         await CapsuleCommentRepository.InsertAsync(capsuleComment, cancellationToken: cancellationToken);
         return true;
     }
@@ -255,9 +275,12 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         CancellationToken cancellationToken = default
     )
     {
-        var comment = await CapsuleCommentManager.TryGetByAsync(x =>
-                x.Id.Equals(commentId),
-            true,
+        // Only the comment owner or the capsule owner can remove a comment.
+        var currentUserId = CurrentUser.GetId();
+        var comment = await CapsuleCommentManager.TryGetByQueryableAsync(q => q
+                .Where(x => x.Id.Equals(commentId) &&
+                            (x.UserId == currentUserId || x.Capsule.CreatorId == currentUserId)),
+            throwIfNull: true,
             cancellationToken: cancellationToken);
         await CapsuleCommentRepository.HardDeleteAsync(comment, cancellationToken);
         return true;
@@ -268,6 +291,7 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         CancellationToken cancellationToken = default
     )
     {
+        var currentUserId = CurrentUser.GetId();
         var capsule = await (await CapsuleManager.TryGetQueryableAsync(q => q
                     .Include(x => x.CapsuleItems)
                     .Include(x => x.CapsuleType)
@@ -276,29 +300,36 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
                     .ThenInclude(c => c.User)
                     .Include(x => x.CapsuleLikes)
                     .ThenInclude(c => c.User)
-                    .Where(x => x.Id.Equals(id)),
+                    .Where(x => x.Id.Equals(id))
+                    .WhereVisibleTo(currentUserId),
                 true,
                 cancellationToken: cancellationToken))!
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+        if (capsule is null)
+        {
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.Capsule.NotFound]);
+        }
+
+        await CheckCreatorNotBlockedCurrentUserAsync(capsule, currentUserId, cancellationToken);
 
         var blockedUserIds = (await UserInteractionManager
-                .GetUserIdsBlockedUserAsync(CurrentUser.GetId(), cancellationToken)!)?
+                .GetUserIdsBlockedUserAsync(currentUserId, cancellationToken)!)?
             .ToHashSet() ?? new HashSet<Guid>();
 
-        var validLikes = capsule?.CapsuleLikes
+        var validLikes = capsule.CapsuleLikes
             .Where(l => !blockedUserIds.Contains(l.UserId))
             .ToList();
 
-        var validComments = capsule?
+        var validComments = capsule
             .CapsuleComments
             .Where(c => !blockedUserIds.Contains(c.UserId))
             .ToList();
 
-        var allUserIds = (validLikes ?? Enumerable.Empty<CapsuleLike>())
+        var allUserIds = validLikes
             .Select(l => l.UserId)
-            .Union((validComments ?? Enumerable.Empty<CapsuleComment>())
+            .Union(validComments
                 .Select(c => c.UserId))
-            .Append(capsule!.CreatorId ?? Guid.Empty)
+            .Append(capsule.CreatorId ?? Guid.Empty)
             .ToHashSet();
 
         var profiles = (await UserProfileManager.TryGetListByQueryableAsync(q => q
@@ -472,11 +503,9 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         CancellationToken cancellationToken = default
     )
     {
-        var capsule = await CapsuleManager.TryGetByAsync(x =>
-                x.Id.Equals(id), true,
-            cancellationToken: cancellationToken);
+        var capsule = await GetOwnCapsuleAsync(id, cancellationToken);
 
-        await CapsuleRepository.DeleteAsync(capsule!, cancellationToken: cancellationToken);
+        await CapsuleRepository.DeleteAsync(capsule, cancellationToken: cancellationToken);
         return true;
     }
 
@@ -486,12 +515,59 @@ public class CapsuleAppService : UnsealAppService, ICapsuleAppService
         CancellationToken cancellationToken = default
     )
     {
-        var capsule = await CapsuleManager.TryGetByAsync(x =>
-                x.Id.Equals(id), true,
-            cancellationToken: cancellationToken);
-        capsule!.IsActive = isActive;
+        var capsule = await GetOwnCapsuleAsync(id, cancellationToken);
+        capsule.IsActive = isActive;
         await CapsuleRepository.UpdateAsync(capsule, cancellationToken: cancellationToken);
         return true;
+    }
+
+    private async Task<Capsule> GetOwnCapsuleAsync(
+        Guid id,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var currentUserId = CurrentUser.GetId();
+        var capsule = await CapsuleManager.TryGetByAsync(x =>
+                x.Id.Equals(id) && x.CreatorId == currentUserId, true,
+            cancellationToken: cancellationToken);
+        return capsule!;
+    }
+
+    private async Task<Capsule> GetVisibleCapsuleAsync(
+        Guid id,
+        Guid currentUserId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var capsule = await CapsuleManager.TryGetByQueryableAsync(q => q
+                .Where(x => x.Id.Equals(id))
+                .WhereVisibleTo(currentUserId),
+            throwIfNull: true,
+            cancellationToken: cancellationToken);
+        await CheckCreatorNotBlockedCurrentUserAsync(capsule, currentUserId, cancellationToken);
+        return capsule;
+    }
+
+    private async Task CheckCreatorNotBlockedCurrentUserAsync(
+        Capsule capsule,
+        Guid currentUserId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (capsule.CreatorId == currentUserId)
+        {
+            return;
+        }
+
+        var isBlocked = await UserInteractionManager.CheckUserBlockedAsync(
+            capsule.CreatorId,
+            currentUserId,
+            cancellationToken
+        );
+        if (isBlocked)
+        {
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.Capsule.NotFound]);
+        }
     }
 
     private async Task<List<CapsuleLikeDto>> MapLikesAsync(List<CapsuleLike>? likes,

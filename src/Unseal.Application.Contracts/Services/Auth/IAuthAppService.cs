@@ -34,8 +34,7 @@ public interface IAuthAppService : IApplicationService
     );
 
     Task<bool> ChangeMailAsync(
-        Guid userId,
-        string newMailAddress,
+        ChangeMailDto changeMailDto,
         CancellationToken cancellationToken = default
     );
 
@@ -69,13 +68,12 @@ public interface IAuthAppService : IApplicationService
     );
     Task<bool> ConfirmActivationMailAsync(
         Guid userId,
+        string token,
         CancellationToken cancellationToken = default
     );
 
     Task<bool> ConfirmPasswordResetAsync(
-        Guid userId,
-        string newPassword,
-        string token,
+        ConfirmPasswordResetDto confirmPasswordResetDto,
         CancellationToken cancellationToken = default
     );
 }

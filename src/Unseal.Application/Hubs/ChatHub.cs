@@ -3,6 +3,10 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Localization;
+using Unseal.Constants;
+using Unseal.Interfaces.Managers.Groups;
+using Unseal.Localization;
 using Unseal.Models.Hubs;
 using Volo.Abp.AspNetCore.SignalR;
 using Volo.Abp.Users;
@@ -13,7 +17,13 @@ namespace Unseal.Hubs;
 public class ChatHub : AbpHub
 {
     private static readonly ConcurrentDictionary<string, ChatHubConnectionModel> Connections = new();
-    
+
+    private IGroupMemberManager GroupMemberManager =>
+        LazyServiceProvider.LazyGetRequiredService<IGroupMemberManager>();
+
+    private IStringLocalizer<UnsealResource> StringLocalizer =>
+        LazyServiceProvider.LazyGetRequiredService<IStringLocalizer<UnsealResource>>();
+
     public override Task OnConnectedAsync()
     {
         var userId = CurrentUser.GetId();
@@ -34,6 +44,14 @@ public class ChatHub : AbpHub
     [HubMethodName("join-group")]
     public async Task JoinGroup(Guid groupId)
     {
+        var currentUserId = CurrentUser.GetId();
+        var isMember = await GroupMemberManager.ExistsAsync(x =>
+            x.GroupId.Equals(groupId) && x.UserId.Equals(currentUserId));
+        if (!isMember)
+        {
+            throw new HubException(StringLocalizer[ExceptionCodes.GroupMember.UserIsNotMember]);
+        }
+
         await Groups.AddToGroupAsync(Context.ConnectionId, groupId.ToString());
     }
 

@@ -21,6 +21,9 @@ public static class ExceptionCodes
         public const string MailInUsed = $"{Prefix}004";
         public const string MailIsInvalid = $"{Prefix}005";
         public const string UsernameInUsed = $"{Prefix}006";
+        public const string InvalidCredentials = $"{Prefix}007";
+        public const string InvalidToken = $"{Prefix}008";
+        public const string PasswordIsIncorrect = $"{Prefix}009";
     }
     public static class IdentityRole
     {
@@ -47,6 +50,8 @@ public static class ExceptionCodes
         private const string Prefix = $"{ExceptionCodePrefix}CapsuleComment:";
         public const string NotFound = $"{Prefix}001";
         public const string AlreadyExists = $"{Prefix}002";
+        public const string CommentIsRequired = $"{Prefix}003";
+        public const string CommentTooLong = $"{Prefix}004";
     }
     public static class CapsuleLike
     {
@@ -107,6 +112,7 @@ public static class ExceptionCodes
         public const string NotFound = $"{Prefix}001";
         public const string AlreadyExists = $"{Prefix}002";
         public const string UserNotAllowedToJoinGroup = $"{Prefix}003";
+        public const string UserIsNotMember = $"{Prefix}004";
     }
     public static class UserInteraction
     {
@@ -119,6 +125,7 @@ public static class ExceptionCodes
         private const string Prefix = $"{ExceptionCodePrefix}ChatMessage:";
         public const string NotFound = $"{Prefix}001";
         public const string AlreadyExists = $"{Prefix}002";
+        public const string UserIsBlocked = $"{Prefix}003";
     }
     public static class ChatType
     {
@@ -137,5 +144,13 @@ public static class ExceptionCodes
         private const string Prefix = $"{ExceptionCodePrefix}UserViewTracking:";
         public const string NotFound = $"{Prefix}001";
         public const string AlreadyExists = $"{Prefix}002";
+    }
+    public static class Filter
+    {
+        private const string Prefix = $"{ExceptionCodePrefix}Filter:";
+        public const string InvalidProperty = $"{Prefix}001";
+        public const string InvalidStrategy = $"{Prefix}002";
+        public const string InvalidValue = $"{Prefix}003";
+        public const string InvalidSorting = $"{Prefix}004";
     }
 }

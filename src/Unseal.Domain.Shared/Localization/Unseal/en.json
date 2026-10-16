@@ -13,6 +13,9 @@
     "Unseal:ExceptionCodes:IdentityUser:004": "This mail address is in use.",
     "Unseal:ExceptionCodes:IdentityUser:005": "This mail address is invalid.",
     "Unseal:ExceptionCodes:IdentityUser:006": "Username is in use.",
+    "Unseal:ExceptionCodes:IdentityUser:007": "Email or password is incorrect.",
+    "Unseal:ExceptionCodes:IdentityUser:008": "The link is invalid or has expired.",
+    "Unseal:ExceptionCodes:IdentityUser:009": "Current password is incorrect.",
     
     "Unseal:ExceptionCodes:IdentityRole:001": "Role not found.",
     "Unseal:ExceptionCodes:IdentityRole:002": "Role already exists.",
@@ -26,6 +29,8 @@
 
     "Unseal:ExceptionCodes:CapsuleComment:001": "Capsule comment not found.",
     "Unseal:ExceptionCodes:CapsuleComment:002": "Capsule comment already exists.",
+    "Unseal:ExceptionCodes:CapsuleComment:003": "Comment is required.",
+    "Unseal:ExceptionCodes:CapsuleComment:004": "Comment is too long.",
 
     "Unseal:ExceptionCodes:CapsuleLike:001": "Capsule like not found.",
     "Unseal:ExceptionCodes:CapsuleLike:002": "Capsule like already exists.",
@@ -59,12 +64,14 @@
     "Unseal:ExceptionCodes:GroupMember:001": "Group member not found.",
     "Unseal:ExceptionCodes:GroupMember:002": "Group member already exists.",
     "Unseal:ExceptionCodes:GroupMember:003": "Users who do not give permission cannot be added to the group.",
+    "Unseal:ExceptionCodes:GroupMember:004": "You are not a member of this group.",
     
     "Unseal:ExceptionCodes:UserInteraction:001": "User interaction not found.",
     "Unseal:ExceptionCodes:UserInteraction:002": "User interaction already exists.",
 
     "Unseal:ExceptionCodes:ChatMessage:001": "Message not found.",
     "Unseal:ExceptionCodes:ChatMessage:002": "Message already exists.",
+    "Unseal:ExceptionCodes:ChatMessage:003": "You cannot send messages to this user.",
 
     "Unseal:ExceptionCodes:ChatType:001": "Chat type not found.",
     "Unseal:ExceptionCodes:ChatType:002": "Chat type already exists.",
@@ -73,9 +80,14 @@
     "Unseal:ExceptionCodes:UserFollowStatus:002": "Follow status already exists.",
     
     "Unseal:ExceptionCodes:UserViewTracking:001": "User view tracking not found.",
-    "Unseal:ExceptionCodes:UserViewTracking::002": "User view tracking already exists.",
+    "Unseal:ExceptionCodes:UserViewTracking:002": "User view tracking already exists.",
     
     "Unseal:ExceptionCodes:Mail:001": "Mail settings not found.",
+
+    "Unseal:ExceptionCodes:Filter:001": "Filtering by this field is not allowed.",
+    "Unseal:ExceptionCodes:Filter:002": "This filter operator is not supported.",
+    "Unseal:ExceptionCodes:Filter:003": "The filter value is invalid.",
+    "Unseal:ExceptionCodes:Filter:004": "Sorting by this field is not allowed.",
 
     //Enums
 
@@ -101,6 +113,15 @@
     "Validation:ChangePasswordDto:NewPasswordIsRequired":"New password is required.",
     "Validation:ChangePasswordDto:InvalidPasswordFormat":"Invalid password format ! Please ensure you enter at least 8 characters and at least one uppercase letter, special character, and number.",
 
+    "Validation:ChangeMailDto:NewMailAddressIsRequired":"New mail address is required.",
+    "Validation:ChangeMailDto:InvalidEmailFormat":"Invalid mail format !",
+    "Validation:ChangeMailDto:PasswordIsRequired":"Password is required.",
+
+    "Validation:ConfirmPasswordResetDto:UserIdIsRequired":"User is required.",
+    "Validation:ConfirmPasswordResetDto:TokenIsRequired":"Token is required.",
+    "Validation:ConfirmPasswordResetDto:NewPasswordIsRequired":"New password is required.",
+    "Validation:ConfirmPasswordResetDto:InvalidPasswordFormat":"Invalid password format ! Please ensure you enter at least 8 characters and at least one uppercase letter, special character, and number.",
+
     "Validation:CapsuleCreateDto:NameIsRequired":"Name is required.",
     "Validation:CapsuleCreateDto:RevealDateIsRequired":"Reveal date is required.",
     "Validation:CapsuleCreateDto:RevealDateMustBeInFuture":"Reveal date must be in future.",
@@ -112,6 +133,8 @@
     "Validation:ChatMessageCreateDto:TargetIsRequired":"Target is required.",
     "Validation:ChatMessageCreateDto:ChatTypeIsRequired":"Chat type is required.",
     "Validation:ChatMessageCreateDto:ContentIsRequired":"Content is required.",
+    "Validation:ChatMessageCreateDto:ContentTooLong":"Message content is too long.",
+    "Validation:ChatMessageCreateDto:TooManyTargets":"Too many recipients.",
 
     "Validation:UserProfileUpdateDto:IsLockedIsRequired":"Account privacy is required.",
     "Validation:UserProfileUpdateDto:AllowJoinGroupIsRequired":"Allow join to groups is required.",
@@ -146,6 +169,7 @@
     "User.Export": "User Export",
 
     "Admin.Default": "Admin Operations",
+    "Admin.Users.Delete": "Delete Any User",
     
     //Dashboards
     "Dashboard:UsageByTime":"Application Usage By Time",

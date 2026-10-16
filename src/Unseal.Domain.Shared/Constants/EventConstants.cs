@@ -15,6 +15,7 @@ public static class EventConstants
         public static class CapsuleCreate
         {
             public const string GlobalFeedUpdateChannel = "global_feed_update";
+            public const string PersonalRevealChannel = "personal_capsule_reveal";
             public const string Type = nameof(CapsuleCreate);
         }
         public static class FollowRequestAccept
