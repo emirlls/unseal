@@ -13,6 +13,9 @@
     "Unseal:ExceptionCodes:IdentityUser:004": "Mail adresi kullanımdadır.",
     "Unseal:ExceptionCodes:IdentityUser:005": "Mail adresi geçersizdir.",
     "Unseal:ExceptionCodes:IdentityUser:006": "Kullanıcı adı kullanımdadır.",
+    "Unseal:ExceptionCodes:IdentityUser:007": "E-posta adresi veya şifre hatalı.",
+    "Unseal:ExceptionCodes:IdentityUser:008": "Bağlantı geçersiz veya süresi dolmuş.",
+    "Unseal:ExceptionCodes:IdentityUser:009": "Mevcut şifre hatalı.",
 
     "Unseal:ExceptionCodes:IdentityRole:001": "Rol bulunamadı.",
     "Unseal:ExceptionCodes:IdentityRole:002": "Rol zaten mevcut.",
@@ -26,6 +29,8 @@
 
     "Unseal:ExceptionCodes:CapsuleComment:001": "Kapsül yorumu bulunamadı.",
     "Unseal:ExceptionCodes:CapsuleComment:002": "Kapsül yorumu zaten mevcut.",
+    "Unseal:ExceptionCodes:CapsuleComment:003": "Yorum alanı zorunludur.",
+    "Unseal:ExceptionCodes:CapsuleComment:004": "Yorum çok uzun.",
 
     "Unseal:ExceptionCodes:CapsuleLike:001": "Kapsül beğenisi bulunamadı.",
     "Unseal:ExceptionCodes:CapsuleLike:002": "Kapsül beğenisi zaten mevcut.",
@@ -59,15 +64,17 @@
     "Unseal:ExceptionCodes:GroupMember:001": "Grup üyesi bulunamadı.",
     "Unseal:ExceptionCodes:GroupMember:002": "Grup üyesi zaten mevcut.",
     "Unseal:ExceptionCodes:GroupMember:003": "Gruba eklenme izni vermeyen kullanıcı eklenemez.",
+    "Unseal:ExceptionCodes:GroupMember:004": "Bu grubun üyesi değilsiniz.",
     
-    "Unseal:ExceptionCodes:UserInteraction::001": "Kullanıcı ilişkisi bulunamadı.",
-    "Unseal:ExceptionCodes:UserInteraction::002": "Kullanıcı ilişkisi zaten mevcut.",
+    "Unseal:ExceptionCodes:UserInteraction:001": "Kullanıcı ilişkisi bulunamadı.",
+    "Unseal:ExceptionCodes:UserInteraction:002": "Kullanıcı ilişkisi zaten mevcut.",
     
-    "Unseal:ExceptionCodes:ChatMessage::001": "Mesaj bulunamadı.",
-    "Unseal:ExceptionCodes:ChatMessage::002": "Mesaj zaten mevcut.",
+    "Unseal:ExceptionCodes:ChatMessage:001": "Mesaj bulunamadı.",
+    "Unseal:ExceptionCodes:ChatMessage:002": "Mesaj zaten mevcut.",
+    "Unseal:ExceptionCodes:ChatMessage:003": "Bu kullanıcıya mesaj gönderemezsiniz.",
 
-    "Unseal:ExceptionCodes:ChatType::001": "Mesaj tipi bulunamadı.",
-    "Unseal:ExceptionCodes:ChatType::002": "Mesaj tipi zaten mevcut.",
+    "Unseal:ExceptionCodes:ChatType:001": "Mesaj tipi bulunamadı.",
+    "Unseal:ExceptionCodes:ChatType:002": "Mesaj tipi zaten mevcut.",
     
     "Unseal:ExceptionCodes:UserFollowStatus:001": "Takipçi durumu bulunamadı.",
     "Unseal:ExceptionCodes:UserFollowStatus:002": "Takipçi durumu zaten mevcut.",
@@ -76,6 +83,11 @@
     "Unseal:ExceptionCodes:UserViewTracking:002": "Kullanıcı izleme geçmişi zaten mevcut.",
 
     "Unseal:ExceptionCodes:Mail:001": "Mail ayarları bulunamadı.",
+
+    "Unseal:ExceptionCodes:Filter:001": "Bu alana göre filtreleme yapılamaz.",
+    "Unseal:ExceptionCodes:Filter:002": "Bu filtre operatörü desteklenmiyor.",
+    "Unseal:ExceptionCodes:Filter:003": "Filtre değeri geçersiz.",
+    "Unseal:ExceptionCodes:Filter:004": "Bu alana göre sıralama yapılamaz.",
     
     //Enums
     
@@ -100,6 +112,15 @@
     "Validation:ChangePasswordDto:OldPasswordIsRequired":"Eski şifre alanı zorunludur.",
     "Validation:ChangePasswordDto:NewPasswordIsRequired":"Yeni şifre alanı zorunludur.",
     "Validation:ChangePasswordDto:InvalidPasswordFormat":"Şifre formatı yanlış. Lütfen en az 8 karakter ve en az 1 tane büyük harf, özel karakter ve sayı girdiğinizden emin olun.",
+
+    "Validation:ChangeMailDto:NewMailAddressIsRequired":"Yeni mail adresi zorunludur.",
+    "Validation:ChangeMailDto:InvalidEmailFormat":"Geçersiz mail formatı !",
+    "Validation:ChangeMailDto:PasswordIsRequired":"Şifre alanı zorunludur.",
+
+    "Validation:ConfirmPasswordResetDto:UserIdIsRequired":"Kullanıcı zorunludur.",
+    "Validation:ConfirmPasswordResetDto:TokenIsRequired":"Doğrulama kodu zorunludur.",
+    "Validation:ConfirmPasswordResetDto:NewPasswordIsRequired":"Yeni şifre alanı zorunludur.",
+    "Validation:ConfirmPasswordResetDto:InvalidPasswordFormat":"Şifre formatı yanlış. Lütfen en az 8 karakter ve en az 1 tane büyük harf, özel karakter ve sayı girdiğinizden emin olun.",
     
     "Validation:CapsuleCreateDto:NameIsRequired":"İsim alanı zorunludur.",
     "Validation:CapsuleCreateDto:RevealDateIsRequired":"Tarih alanı zorunludur.",
@@ -112,6 +133,8 @@
     "Validation:ChatMessageCreateDto:TargetIsRequired":"Hedef zorunludur.",
     "Validation:ChatMessageCreateDto:ChatTypeIsRequired":"Mesaj tipi zorunludur.",
     "Validation:ChatMessageCreateDto:ContentIsRequired":"Mesaj içeriği zorunludur.",
+    "Validation:ChatMessageCreateDto:ContentTooLong":"Mesaj içeriği çok uzun.",
+    "Validation:ChatMessageCreateDto:TooManyTargets":"Çok fazla alıcı seçildi.",
     
     "Validation:UserProfileUpdateDto:IsLockedIsRequired":"Hesap gizlilik durumu zorunludur.",
     "Validation:UserProfileUpdateDto:AllowJoinGroupIsRequired":"Gruplara eklenme izni zorunludur.",
@@ -146,6 +169,7 @@
     "User.Export": "Kullanıcı Dışa Aktarım",
 
     "Admin.Default": "Admin İşlemleri",
+    "Admin.Users.Delete": "Herhangi Bir Kullanıcıyı Silme",
     
     //Dashboards
     "Dashboard:UsageByTime":"Uygulamanın Zamana Göre Kullanım Sayısı",

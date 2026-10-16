@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Unseal.Entities.Capsules;
 using Unseal.EntityFrameworkCore;
+using Unseal.Extensions;
 using Unseal.Models.Dashboards;
 using Unseal.Repositories.Base;
 using Volo.Abp.EntityFrameworkCore;
@@ -21,12 +22,14 @@ public class EfCapsuleRepository : EfBaseRepository<Capsule>, ICapsuleRepository
 
     public async Task<List<string?>> GetCapsuleUrlsByUserIdAsync(
         Guid userId,
+        Guid viewerId,
         CancellationToken cancellationToken = default
     )
     {
         var dbSet = await GetDbSetAsync();
         var response = await dbSet
             .Where(x => x.CreatorId.Equals(userId))
+            .WhereVisibleTo(viewerId)
             .Include(x=>x.CapsuleItems)
             .Select(x=>x.CapsuleItems.FileUrl)
             .ToListAsync(cancellationToken: cancellationToken);

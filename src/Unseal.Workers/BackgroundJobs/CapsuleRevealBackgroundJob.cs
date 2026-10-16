@@ -76,6 +76,7 @@ public class CapsuleRevealBackgroundJob : ITransientDependency
                             cancellationToken: cancellationToken
                         ))!)
                     .ToListAsync(cancellationToken: cancellationToken);
+                var publicCapsuleTypeId = Guid.Parse(LookupSeederConstants.CapsuleTypesConstants.Public.Id);
                 foreach (var capsule in notOpenedCapsules)
                 {
                     var userProfile = userProfiles!.FirstOrDefault(x => x.UserId.Equals(capsule.CreatorId));
@@ -86,6 +87,7 @@ public class CapsuleRevealBackgroundJob : ITransientDependency
                     {
                         Id = capsule.Id,
                         CreatorId = (Guid)capsule.CreatorId!,
+                        ReceiverId = capsule.ReceiverId,
                         Name = capsule.Name,
                         Username = userProfile?.User.UserName,
                         FileUrl = fileUrl,
@@ -95,8 +97,13 @@ public class CapsuleRevealBackgroundJob : ITransientDependency
                     };
                     var payload = JsonSerializer.Serialize(eventModel);
 
+                    // Only active public capsules go to the global feed; the rest are streamed
+                    // to their creator and receiver only.
+                    var isGlobal = capsule.CapsuleTypeId == publicCapsuleTypeId && capsule.IsActive == true;
                     await subscriber.PublishAsync(
-                        EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdateChannel,
+                        isGlobal
+                            ? EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdateChannel
+                            : EventConstants.ServerSentEvents.CapsuleCreate.PersonalRevealChannel,
                         payload
                     );
                 }

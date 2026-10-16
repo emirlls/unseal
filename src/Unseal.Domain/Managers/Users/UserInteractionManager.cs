@@ -83,7 +83,7 @@ public class UserInteractionManager : BaseDomainService<UserInteraction>, IUserI
         if (userInteractions.Any() && userInteractions.Count() != 0)
         {
             response = userInteractions
-                .Select(c => c.SourceUserId)
+                .Select(c => c.TargetUserId)
                 .ToList();
         }
 

@@ -14,6 +14,9 @@ public class CapsuleLikeConfiguration : IEntityTypeConfiguration<CapsuleLike>
         builder.ToTable(builder.GetTableName(),DatabaseConstants.SchemaName);
         builder.ConfigureByConvention();
 
+        // A user can like a capsule only once.
+        builder.HasIndex(x => new { x.CapsuleId, x.UserId }).IsUnique();
+
         builder.HasOne(x=>x.Capsule)
             .WithMany(x=>x.CapsuleLikes)
             .HasForeignKey(x=>x.CapsuleId)

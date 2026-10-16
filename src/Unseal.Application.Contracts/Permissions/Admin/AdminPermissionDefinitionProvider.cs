@@ -11,5 +11,7 @@ public class AdminPermissionDefinitionProvider : UnsealPermissionDefinitionProvi
 
         var defaultPermission = permissionGroupDefinition.AddPermission(AdminPermissions.Default,
             L(AdminPermissions.Default));
+        var userDeletePermission = permissionGroupDefinition.AddPermission(AdminPermissions.Users.Delete,
+            L(AdminPermissions.Users.Delete));
     }
 }

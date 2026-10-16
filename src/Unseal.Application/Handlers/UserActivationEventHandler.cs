@@ -43,7 +43,7 @@ public class UserActivationEventHandler : IDistributedEventHandler<UserActivatio
 
         var baseUrl = await _serviceProvider.GetSelfUrlAsync();
         var verifyUrl =
-            $"{baseUrl}/api/auth/{ApiConstants.Auth.ConfirmActivationMail}?userId={eventData.UserId}";
+            $"{baseUrl}/api/auth/{ApiConstants.Auth.ConfirmActivationMail}?userId={eventData.UserId}&token={eventData.ActivationToken}";
 
         var replacedTemplate = notificationTemplate.Content
             .Replace(NotificationTemplateProperties.ActivationMailTemplateParameters.Name, eventData.Name)

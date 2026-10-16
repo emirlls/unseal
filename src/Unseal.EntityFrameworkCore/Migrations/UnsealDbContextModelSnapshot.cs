@@ -271,9 +271,10 @@ namespace Unseal.Migrations
                     b.HasKey("Id")
                         .HasName("p_k_capsule_likes");
 
-                    b.HasIndex("CapsuleId");
-
                     b.HasIndex("UserId");
+
+                    b.HasIndex("CapsuleId", "UserId")
+                        .IsUnique();
 
                     b.ToTable("capsule_likes", "unseal");
                 });

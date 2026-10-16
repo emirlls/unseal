@@ -10,6 +10,7 @@ using Microsoft.Extensions.Localization;
 using StackExchange.Redis;
 using Unseal.Constants;
 using Unseal.Dtos.Users;
+using Unseal.Entities.Users;
 using Unseal.Enums;
 using Unseal.Etos;
 using Unseal.Extensions;
@@ -84,7 +85,7 @@ public class UserAppService : UnsealAppService, IUserAppService
                         x.Id.Equals(userId), throwIfNull: true,
                     cancellationToken: cancellationToken);
             var userProfile = await UserProfileManager.TryGetByAsync(x =>
-                x.Id.Equals(user.Id), cancellationToken: cancellationToken);
+                x.UserId.Equals(user.Id), cancellationToken: cancellationToken);
             var userFollowerStatusId =
                 Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Accepted.Id);
             if (userProfile is not null && userProfile.IsLocked)
@@ -203,11 +204,14 @@ public class UserAppService : UnsealAppService, IUserAppService
             throwIfNull: true,
             cancellationToken: cancellationToken
         );
-        var capsuleUrls = await CapsuleRepository
-            .GetCapsuleUrlsByUserIdAsync(
-                userId,
-                cancellationToken
-            );
+        var capsuleUrls = await CanSeeProfileContentAsync(userProfile, currentUser, cancellationToken)
+            ? await CapsuleRepository
+                .GetCapsuleUrlsByUserIdAsync(
+                    userId,
+                    currentUser,
+                    cancellationToken
+                )
+            : new List<string?>();
         var followCounts = await UserFollowerRepository
             .GetFollowCountsAsync(
                 userId,
@@ -274,14 +278,14 @@ public class UserAppService : UnsealAppService, IUserAppService
             .GetDynamicListAsync(new UserProfileFilters(),
                 q => q
                     .Include(x => x.User)
-                    .Where(x => pendingUserIds.Contains(x.Id)
+                    .Where(x => pendingUserIds.Contains(x.UserId)
                     ), cancellationToken: cancellationToken);
 
         var count = await UserProfileRepository
             .GetDynamicListCountAsync(
                 new UserProfileFilters(),
                 q => q
-                    .Where(x => pendingUserIds.Contains(x.Id)),
+                    .Where(x => pendingUserIds.Contains(x.UserId)),
                 cancellationToken: cancellationToken
             );
 
@@ -329,14 +333,14 @@ public class UserAppService : UnsealAppService, IUserAppService
                 },
                 q => q
                     .Include(x => x.User)
-                    .Where(x => followerIds.Contains(x.Id)
+                    .Where(x => followerIds.Contains(x.UserId)
                     ), cancellationToken: cancellationToken);
 
         var count = await UserProfileRepository
             .GetDynamicListCountAsync(
                 new UserProfileFilters(),
                 q => q
-                    .Where(x => followerIds.Contains(x.Id)),
+                    .Where(x => followerIds.Contains(x.UserId)),
                 cancellationToken: cancellationToken
             );
 
@@ -488,14 +492,14 @@ public class UserAppService : UnsealAppService, IUserAppService
             .GetDynamicListAsync(filters,
                 q => q
                     .Include(x => x.User)
-                    .Where(x => viewedUserIds.Contains(x.Id)
+                    .Where(x => viewedUserIds.Contains(x.UserId)
                     ), cancellationToken: cancellationToken);
 
         var count = await UserProfileRepository
             .GetDynamicListCountAsync(
                 filters,
                 q => q
-                    .Where(x => viewedUserIds.Contains(x.Id)),
+                    .Where(x => viewedUserIds.Contains(x.UserId)),
                 cancellationToken: cancellationToken
             );
 
@@ -548,8 +552,9 @@ public class UserAppService : UnsealAppService, IUserAppService
                 cancellationToken: cancellationToken);
 
         await CheckUserIsBlocked(userId, cancellationToken);
+        // The request was sent by userId to the current user.
         var userFollower = await UserFollowerManager.TryGetByAsync(x =>
-                x.UserId.Equals(user.Id) && x.FollowerId.Equals(CurrentUser.GetId()),
+                x.UserId.Equals(CurrentUser.GetId()) && x.FollowerId.Equals(user.Id),
             throwIfNull: true,
             cancellationToken: cancellationToken
         );
@@ -588,6 +593,25 @@ public class UserAppService : UnsealAppService, IUserAppService
                 payload
             );
         }
+    }
+
+    private async Task<bool> CanSeeProfileContentAsync(
+        UserProfile userProfile,
+        Guid viewerId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (!userProfile.IsLocked || userProfile.UserId.Equals(viewerId))
+        {
+            return true;
+        }
+
+        var acceptedStatusId = Guid.Parse(LookupSeederConstants.UserFollowStatusesConstants.Accepted.Id);
+        return await UserFollowerManager.ExistsAsync(x =>
+                x.UserId.Equals(userProfile.UserId) &&
+                x.FollowerId.Equals(viewerId) &&
+                x.StatusId == acceptedStatusId,
+            cancellationToken: cancellationToken);
     }
 
     private async Task CheckUserIsBlocked(
