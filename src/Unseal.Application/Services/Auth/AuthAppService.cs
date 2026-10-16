@@ -1,17 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Duende.IdentityModel.Client;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 using OpenIddict.Abstractions;
 using Unseal.Constants;
 using Unseal.Dtos.Auth;
@@ -19,6 +20,7 @@ using Unseal.Enums;
 using Unseal.Etos;
 using Unseal.Interfaces.Managers.Auth;
 using Unseal.Localization;
+using Unseal.Permissions.Admin;
 using Unseal.Profiles.Auth;
 using Volo.Abp;
 using Volo.Abp.Data;
@@ -82,15 +84,13 @@ public class AuthAppService : UnsealAppService, IAuthAppService
 
             var mailConfirmationToken = await IdentityUserManager
                 .GenerateEmailConfirmationTokenAsync(user);
-            var encodedToken =
-                WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(mailConfirmationToken));
             var userRegisterEto = new UserRegisterEto
             {
                 UserId = user.Id,
                 Name = user.Name,
                 Surname = user.Surname,
                 Email = user.Email,
-                ConfirmationToken = encodedToken
+                ConfirmationToken = EncodeToken(mailConfirmationToken)
             };
             var userElasticEto = new UserElasticEto
             {
@@ -140,19 +140,31 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         {
             var user = await CustomIdentityUserManager.TryGetByAsync(x =>
                     string.Equals(x.Email, loginDto.Email),
-                true,
                 cancellationToken: cancellationToken);
 
-            if (!user.IsActive)
+            if (user is null)
             {
-                return new LoginResponseDto
-                {
-                    IsActive = false
-                };
+                throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.InvalidCredentials]);
             }
-            
-            if (!await IdentityUserManager.IsEmailConfirmedAsync(user))
+
+            if (!user.IsActive || !await IdentityUserManager.IsEmailConfirmedAsync(user))
             {
+                // These accounts never reach the token endpoint, so the password is verified here
+                // before the account state is revealed.
+                if (await IdentityUserManager.IsLockedOutAsync(user) ||
+                    !await IdentityUserManager.CheckPasswordAsync(user, loginDto.Password))
+                {
+                    throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.InvalidCredentials]);
+                }
+
+                if (!user.IsActive)
+                {
+                    return new LoginResponseDto
+                    {
+                        IsActive = false
+                    };
+                }
+
                 throw new UserFriendlyException(
                     StringLocalizer[ExceptionCodes.IdentityUser.CannotLoginIfMailNotConfirmed]);
             }
@@ -204,10 +216,8 @@ public class AuthAppService : UnsealAppService, IAuthAppService
                 cancellationToken: cancellationToken
             );
 
-            var decodedToken = Encoding.UTF8.GetString(
-                WebEncoders.Base64UrlDecode(token));
             var result =
-                await IdentityUserManager.ConfirmEmailAsync(user, decodedToken);
+                await IdentityUserManager.ConfirmEmailAsync(user, DecodeToken(token));
 
             return result.Succeeded;
         }
@@ -218,6 +228,11 @@ public class AuthAppService : UnsealAppService, IAuthAppService
         CancellationToken cancellationToken = default
     )
     {
+        if (userId != CurrentUser.GetId())
+        {
+            await AuthorizationService.CheckAsync(AdminPermissions.Users.Delete);
+        }
+
         var user = await CustomIdentityUserManager.TryGetByAsync(x => x.Id.Equals(userId), true,
             cancellationToken: cancellationToken);
 
@@ -254,15 +269,13 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             var token = await IdentityUserManager
                 .GenerateEmailConfirmationTokenAsync(user);
 
-            var encodedToken =
-                WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
             var userRegisterEto = new UserRegisterEto
             {
                 UserId = user.Id,
                 Name = user.Name,
                 Surname = user.Surname,
                 Email = user.Email,
-                ConfirmationToken = encodedToken
+                ConfirmationToken = EncodeToken(token)
             };
             await DistributedEventBus.PublishAsync(userRegisterEto);
             return true;
@@ -270,26 +283,33 @@ public class AuthAppService : UnsealAppService, IAuthAppService
     }
 
     public async Task<bool> ChangeMailAsync(
-        Guid userId,
-        string newMailAddress,
+        ChangeMailDto changeMailDto,
         CancellationToken cancellationToken = default
     )
     {
-        await CheckMailInUseAsync(newMailAddress);
-        var user = await CustomIdentityUserManager.TryGetByAsync(x =>
-                x.Id.Equals(userId), true,
-            cancellationToken: cancellationToken);
-        var token = await IdentityUserManager.GenerateChangeEmailTokenAsync(user, newMailAddress);
-        await DistributedEventBus.PublishAsync(new ConfirmChangeMailEto
+        using (_dataFilter.Disable())
         {
-            UserId = user.Id,
-            Name = user.Name,
-            Surname = user.Surname,
-            NewMailAddress = newMailAddress,
-            Token = token
-        });
-        await IdentityUserManager.ChangeEmailAsync(user, newMailAddress, token);
-        return true;
+            var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                    x.Id.Equals(CurrentUser.GetId()), true,
+                cancellationToken: cancellationToken);
+            if (!await IdentityUserManager.CheckPasswordAsync(user, changeMailDto.Password))
+            {
+                throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.PasswordIsIncorrect]);
+            }
+
+            await CheckMailInUseAsync(changeMailDto.NewMailAddress);
+            // The address is changed only when the link sent to the new address is confirmed.
+            var token = await IdentityUserManager.GenerateChangeEmailTokenAsync(user, changeMailDto.NewMailAddress);
+            await DistributedEventBus.PublishAsync(new ConfirmChangeMailEto
+            {
+                UserId = user.Id,
+                Name = user.Name,
+                Surname = user.Surname,
+                NewMailAddress = changeMailDto.NewMailAddress,
+                Token = EncodeToken(token)
+            });
+            return true;
+        }
     }
 
     public async Task<bool> ConfirmChangeMailAsync(
@@ -306,9 +326,9 @@ public class AuthAppService : UnsealAppService, IAuthAppService
                 true,
                 cancellationToken: cancellationToken
             );
-            var decodedToken = WebUtility.UrlDecode(token);
+            await CheckMailInUseAsync(newMailAddress);
             var result = await IdentityUserManager
-                .ChangeEmailAsync(user, newMailAddress, decodedToken);
+                .ChangeEmailAsync(user, newMailAddress, DecodeToken(token));
 
             return result.Succeeded;
         }
@@ -345,16 +365,14 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             );
             
             var resetToken = await IdentityUserManager.GeneratePasswordResetTokenAsync(user);
-            
-            var encodedToken =
-                WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetToken));
+
             var passwordResetEto = new PasswordResetEto
             {
                 UserId = user.Id,
                 Name = user.Name,
                 Surname = user.Surname,
                 Email = user.Email,
-                ConfirmationToken = encodedToken
+                ConfirmationToken = EncodeToken(resetToken)
             };
             await DistributedEventBus.PublishAsync(passwordResetEto);
             return true;
@@ -419,38 +437,25 @@ public class AuthAppService : UnsealAppService, IAuthAppService
             true,
             cancellationToken: cancellationToken);
         
+        var activationToken = await IdentityUserManager.GenerateUserTokenAsync(
+            user,
+            TokenOptions.DefaultProvider,
+            AuthConstants.AccountActivationTokenPurpose
+        );
         var userActivationEto = new UserActivationEto()
         {
             UserId = user.Id,
             Name = user.Name,
             Surname = user.Surname,
-            Email = user.Email
+            Email = user.Email,
+            ActivationToken = EncodeToken(activationToken)
         };
         await DistributedEventBus.PublishAsync(userActivationEto);
         return true;
     }
 
     public async Task<bool> ConfirmActivationMailAsync(
-        Guid userId, 
-        CancellationToken cancellationToken = default
-    )
-    {
-        using (_dataFilter.Disable())
-        {
-            var user = await CustomIdentityUserManager.TryGetByAsync(x =>
-                    x.Id.Equals(userId),
-                true,
-                cancellationToken: cancellationToken);
-            user.SetIsActive(true);
-            var result = await IdentityUserManager.UpdateAsync(user);
-            result.CheckErrors();
-            return result.Succeeded;
-        }
-    }
-
-    public async Task<bool> ConfirmPasswordResetAsync(
         Guid userId,
-        string newPassword, 
         string token,
         CancellationToken cancellationToken = default
     )
@@ -461,10 +466,59 @@ public class AuthAppService : UnsealAppService, IAuthAppService
                     x.Id.Equals(userId),
                 true,
                 cancellationToken: cancellationToken);
-            var decodedToken = WebUtility.UrlDecode(token);
-            var result = await IdentityUserManager.ResetPasswordAsync(user, decodedToken, newPassword);
+            var isTokenValid = await IdentityUserManager.VerifyUserTokenAsync(
+                user,
+                TokenOptions.DefaultProvider,
+                AuthConstants.AccountActivationTokenPurpose,
+                DecodeToken(token)
+            );
+            if (!isTokenValid)
+            {
+                throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.InvalidToken]);
+            }
+
+            user.SetIsActive(true);
+            var result = await IdentityUserManager.UpdateAsync(user);
             result.CheckErrors();
             return result.Succeeded;
+        }
+    }
+
+    public async Task<bool> ConfirmPasswordResetAsync(
+        ConfirmPasswordResetDto confirmPasswordResetDto,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using (_dataFilter.Disable())
+        {
+            var user = await CustomIdentityUserManager.TryGetByAsync(x =>
+                    x.Id.Equals(confirmPasswordResetDto.UserId),
+                true,
+                cancellationToken: cancellationToken);
+            var result = await IdentityUserManager.ResetPasswordAsync(
+                user,
+                DecodeToken(confirmPasswordResetDto.Token),
+                confirmPasswordResetDto.NewPassword
+            );
+            result.CheckErrors();
+            return result.Succeeded;
+        }
+    }
+
+    private static string EncodeToken(string token)
+    {
+        return WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+    }
+
+    private string DecodeToken(string token)
+    {
+        try
+        {
+            return Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+        }
+        catch (Exception e) when (e is FormatException or ArgumentNullException)
+        {
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.InvalidToken]);
         }
     }
 
@@ -503,7 +557,9 @@ public class AuthAppService : UnsealAppService, IAuthAppService
 
         if (tokenResponse.IsError)
         {
-            throw new UserFriendlyException(tokenResponse.Error!);
+            Logger.LogWarning("Token request failed: {Error} {ErrorDescription}",
+                tokenResponse.Error, tokenResponse.ErrorDescription);
+            throw new UserFriendlyException(StringLocalizer[ExceptionCodes.IdentityUser.InvalidCredentials]);
         }
 
         return tokenResponse;

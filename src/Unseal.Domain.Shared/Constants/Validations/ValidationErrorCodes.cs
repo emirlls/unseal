@@ -35,6 +35,23 @@ public static class ValidationErrorCodes
                 public const string NewPasswordIsRequired = $"{Prefix}{nameof(NewPasswordIsRequired)}";
                 public const string InvalidPasswordFormat = $"{Prefix}{nameof(InvalidPasswordFormat)}";
             }
+
+            public static class ChangeMailDto
+            {
+                private const string Prefix = $"{ValidationPrefix}{nameof(ChangeMailDto)}:";
+                public const string NewMailAddressIsRequired = $"{Prefix}{nameof(NewMailAddressIsRequired)}";
+                public const string InvalidEmailFormat = $"{Prefix}{nameof(InvalidEmailFormat)}";
+                public const string PasswordIsRequired = $"{Prefix}{nameof(PasswordIsRequired)}";
+            }
+
+            public static class ConfirmPasswordResetDto
+            {
+                private const string Prefix = $"{ValidationPrefix}{nameof(ConfirmPasswordResetDto)}:";
+                public const string UserIdIsRequired = $"{Prefix}{nameof(UserIdIsRequired)}";
+                public const string TokenIsRequired = $"{Prefix}{nameof(TokenIsRequired)}";
+                public const string NewPasswordIsRequired = $"{Prefix}{nameof(NewPasswordIsRequired)}";
+                public const string InvalidPasswordFormat = $"{Prefix}{nameof(InvalidPasswordFormat)}";
+            }
         }
     #endregion
 
@@ -78,6 +95,8 @@ public static class ValidationErrorCodes
             public const string TargetIsRequired = $"{Prefix}{nameof(TargetIsRequired)}";
             public const string ChatTypeIsRequired = $"{Prefix}{nameof(ChatTypeIsRequired)}";
             public const string ContentIsRequired = $"{Prefix}{nameof(ContentIsRequired)}";
+            public const string ContentTooLong = $"{Prefix}{nameof(ContentTooLong)}";
+            public const string TooManyTargets = $"{Prefix}{nameof(TooManyTargets)}";
         }
     }
 

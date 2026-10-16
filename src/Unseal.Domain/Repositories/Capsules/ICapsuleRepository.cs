@@ -10,7 +10,11 @@ namespace Unseal.Repositories.Capsules;
 
 public interface ICapsuleRepository : IBaseRepository<Capsule>
 {
+    /// <summary>
+    /// Returns file urls of the capsules created by <paramref name="userId"/> that <paramref name="viewerId"/> can see.
+    /// </summary>
     Task<List<string?>> GetCapsuleUrlsByUserIdAsync(Guid userId,
+        Guid viewerId,
         CancellationToken cancellationToken = default);
 
     Task<List<CreationCapsuleByDateModel>> GetCreationCapsuleByDateAsync(

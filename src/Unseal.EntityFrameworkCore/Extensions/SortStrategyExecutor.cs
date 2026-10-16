@@ -1,8 +1,7 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using Unseal.Attributes;
+using Unseal.Constants;
 
 namespace Unseal.Extensions;
 
@@ -16,13 +15,18 @@ public static class SortStrategyExecutor
 
         var parts = sorting.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var fieldName = parts[0];
+        if (parts.Length > 2 ||
+            (parts.Length == 2 &&
+             !parts[1].Equals("asc", StringComparison.OrdinalIgnoreCase) &&
+             !parts[1].Equals("desc", StringComparison.OrdinalIgnoreCase)))
+        {
+            throw QueryableExtensions.CreateFilterException(ExceptionCodes.Filter.InvalidSorting);
+        }
         bool isDescending = parts.Length > 1 && parts[1].Equals("desc", StringComparison.OrdinalIgnoreCase);
 
-        var prop = typeof(TFilter).GetProperty(fieldName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-        if (prop == null) return query;
-
-        var mappingAttr = prop.GetCustomAttribute<FilterMappedAttribute>();
-        string dbFieldName = mappingAttr != null ? mappingAttr.MapTo : fieldName;
+        // Only properties declared with [FilterMapped] on the filter type can be sorted.
+        var dbFieldName = QueryableExtensions.GetFilterMappedFieldName(typeof(TFilter), fieldName)
+                          ?? throw QueryableExtensions.CreateFilterException(ExceptionCodes.Filter.InvalidSorting);
 
         var parameter = Expression.Parameter(typeof(TEntity), "x");
         Expression property = parameter;

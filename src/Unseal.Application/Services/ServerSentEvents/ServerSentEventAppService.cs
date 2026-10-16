@@ -49,9 +49,25 @@ public class ServerSentEventAppService : UnsealAppService, IServerSentEventAppSe
         var subscriber = _connectionMultiplexer.GetSubscriber();
         var channel = Channel.CreateUnbounded<string>();
         var currentUserId = CurrentUser.GetId();
+        Action<RedisChannel, RedisValue> globalFeedHandler =
+            (redisChannel, message) => channel.Writer.TryWrite(message.ToString());
+        Action<RedisChannel, RedisValue> personalRevealHandler = (redisChannel, message) =>
+        {
+            // Personal capsules are streamed only to their creator and receiver.
+            var eventData = JsonSerializer.Deserialize<CapsuleCreatedEventModel>(message.ToString());
+            if (eventData is not null &&
+                (eventData.CreatorId == currentUserId || eventData.ReceiverId == currentUserId))
+            {
+                channel.Writer.TryWrite(message.ToString());
+            }
+        };
         await subscriber.SubscribeAsync(
             EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdateChannel,
-            (redisChannel, message) => channel.Writer.TryWrite(message.ToString())
+            globalFeedHandler
+        );
+        await subscriber.SubscribeAsync(
+            EventConstants.ServerSentEvents.CapsuleCreate.PersonalRevealChannel,
+            personalRevealHandler
         );
 
         try
@@ -81,7 +97,7 @@ public class ServerSentEventAppService : UnsealAppService, IServerSentEventAppSe
                 var missedCapsules = await _capsuleManager.TryGetListByQueryableAsync(q => q
                         .Include(x => x.CapsuleItems)
                         .Where(x => x.CreationTime > referenceDate && x.CapsuleType.Code == (int)CapsuleTypes.Public &&
-                                    (bool)x.IsOpened!),
+                                    (bool)x.IsOpened! && (bool)x.IsActive!),
                     asNoTracking : true,
                     cancellationToken: cancellationToken);
 
@@ -142,8 +158,13 @@ public class ServerSentEventAppService : UnsealAppService, IServerSentEventAppSe
         finally
         {
             channel.Writer.TryComplete();
+            // Remove only this stream's handlers; other connections share the same subscriber.
             await subscriber
-                .UnsubscribeAsync(EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdateChannel);
+                .UnsubscribeAsync(EventConstants.ServerSentEvents.CapsuleCreate.GlobalFeedUpdateChannel,
+                    globalFeedHandler);
+            await subscriber
+                .UnsubscribeAsync(EventConstants.ServerSentEvents.CapsuleCreate.PersonalRevealChannel,
+                    personalRevealHandler);
         }
     }
 
@@ -154,9 +175,11 @@ public class ServerSentEventAppService : UnsealAppService, IServerSentEventAppSe
         var subscriber = _connectionMultiplexer.GetSubscriber();
         var channel = Channel.CreateUnbounded<string>();
         var currentUserId = CurrentUser.GetId();
+        Action<RedisChannel, RedisValue> followRequestAcceptHandler =
+            (redisChannel, message) => channel.Writer.TryWrite(message.ToString());
         await subscriber.SubscribeAsync(
             EventConstants.ServerSentEvents.FollowRequestAccept.FollowRequestAcceptChannel,
-            (redisChannel, message) => channel.Writer.TryWrite(message.ToString())
+            followRequestAcceptHandler
         );
 
         try
@@ -176,8 +199,10 @@ public class ServerSentEventAppService : UnsealAppService, IServerSentEventAppSe
         finally
         {
             channel.Writer.TryComplete();
+            // Remove only this stream's handler; other connections share the same subscriber.
             await subscriber
-                .UnsubscribeAsync(EventConstants.ServerSentEvents.FollowRequestAccept.FollowRequestAcceptChannel);
+                .UnsubscribeAsync(EventConstants.ServerSentEvents.FollowRequestAccept.FollowRequestAcceptChannel,
+                    followRequestAcceptHandler);
         }
     }
 }

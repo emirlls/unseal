@@ -19,6 +19,7 @@ using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Content;
 using Volo.Abp.Uow;
+using Volo.Abp.Users;
 
 namespace Unseal.Services.Groups;
 
@@ -78,12 +79,23 @@ public class GroupAppService : UnsealAppService, IGroupAppService
         CancellationToken cancellationToken = default
     )
     {
+        // Only the group creator can update the group.
+        var currentUserId = CurrentUser.GetId();
         var group = await GroupManager.TryGetByQueryableAsync(q =>
                 q
-                    .Where(x => x.Id.Equals(groupId))
+                    .Where(x => x.Id.Equals(groupId) && x.CreatorId == currentUserId)
                     .Include(x => x.GroupMembers),
             throwIfNull: true,
             cancellationToken: cancellationToken);
+        var existingMemberIds = group.GroupMembers
+            .Select(x => x.UserId)
+            .ToHashSet();
+        await CheckUserAllowToJoinGroupAsync(
+            groupUpdateDto.UserIds
+                .Where(x => !existingMemberIds.Contains(x))
+                .ToHashSet(),
+            cancellationToken
+        );
         var groupUpdateModel = GroupMapper.MapToModel(groupUpdateDto);
         var updatedGroup = GroupManager.Update(group, groupUpdateModel);
         updatedGroup = await SetGroupImageUrlAsync(
@@ -120,17 +132,22 @@ public class GroupAppService : UnsealAppService, IGroupAppService
         CancellationToken cancellationToken = default
     )
     {
+        // Only the groups the current user belongs to are listed.
+        var currentUserId = CurrentUser.GetId();
+        Func<IQueryable<Group>, IQueryable<Group>> queryBuilder = q => q
+            .Where(x => x.GroupMembers.Any(m => m.UserId == currentUserId));
+
         var groups = await GroupRepository.GetDynamicListAsync(
             groupFilters,
-            null,
+            queryBuilder,
             true,
             cancellationToken
         );
 
         var count = await GroupRepository.GetDynamicListCountAsync(
             groupFilters,
-            null,
-            useCache:true,
+            queryBuilder,
+            useCache:false,
             cancellationToken
         );
 
@@ -148,9 +165,11 @@ public class GroupAppService : UnsealAppService, IGroupAppService
         CancellationToken cancellationToken = default
     )
     {
+        var currentUserId = CurrentUser.GetId();
         var group = await GroupManager.TryGetByQueryableAsync(q =>
                 q
-                    .Where(x => x.Id.Equals(groupId))
+                    .Where(x => x.Id.Equals(groupId) &&
+                                x.GroupMembers.Any(m => m.UserId == currentUserId))
                     .Include(x => x.GroupMembers)
                     .ThenInclude(x => x.User),
             throwIfNull: true,

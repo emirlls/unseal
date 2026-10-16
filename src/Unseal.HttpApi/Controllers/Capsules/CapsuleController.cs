@@ -159,6 +159,7 @@ public class CapsuleController : UnsealController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPatch("{id}/set-activity")]
+    [Authorize(CapsulePermissions.Update)]
     public async Task<bool> SetActivityAsync(
         Guid id,
         bool isActive = true,

@@ -16,4 +16,20 @@ public static class AppConstants
     {
         public const string Purpose = "Unseal.FileEncryption";
     }
+
+    public static class Filtering
+    {
+        public const int MaxResultCount = 100;
+    }
+
+    public static class ChatMessage
+    {
+        public const int MaxContentLength = 2000;
+        public const int MaxTargetCount = 50;
+    }
+
+    public static class CapsuleComment
+    {
+        public const int MaxCommentLength = 1000;
+    }
 }
